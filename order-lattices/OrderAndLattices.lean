@@ -1,0 +1,356 @@
+-- a relationship is a subset  R ⊆ A × A.
+def Rel (α : Type) : Type := α → α → Prop
+
+-- a R a
+def Reflexive {α : Type} (r : Rel α) : Prop :=
+  ∀ (a : α), r a a
+
+-- a R b implies b R a
+def Symmetric {α : Type} (r : Rel α) : Prop :=
+  ∀ (a b : α), r a b → r b a
+
+-- a R b and b R a implies a = b
+def Antisymm {α : Type} (r : Rel α) : Prop :=
+  ∀ (a b : α), r a b → r b a → a = b
+
+-- if a R b and b R c, then a R c
+def Transitive {α : Type} (r : Rel α) : Prop :=
+  ∀ (a b c : α), r a b → r b c → r a c
+
+-- Partial Orders
+-- Partial refers to the fact that not every 2 elements of α needs to be comparable
+class PartialOrder (α : Type) [LE α] where
+  le_refl               : ∀ (a : α), LE.le a a
+  le_antisymm {a b : α} : LE.le a b → LE.le b a → a = b
+  le_trans {a b c : α}  : LE.le a b → LE.le b c → LE.le a c
+
+def lt {α : Type} [LE α] [PartialOrder α] (a b : α) : Prop :=
+  LE.le a b ∧ ¬(a = b)
+
+instance {α : Type} [LE α] [PartialOrder α] : LT α := ⟨lt⟩
+
+instance : PartialOrder Nat where
+  le_refl := Nat.le_refl
+  le_antisymm := Nat.le_antisymm
+  le_trans := Nat.le_trans
+
+structure DvdNat where
+  val : Nat
+  deriving Repr, DecidableEq
+
+instance : Coe DvdNat Nat := ⟨DvdNat.val⟩
+instance : Coe Nat DvdNat := ⟨DvdNat.mk⟩
+instance {n : Nat} : OfNat DvdNat n := ⟨⟨n⟩⟩
+
+-- if n ∣ m, then there's a multiple of `n`, `k`, that makes `m`.
+def Dvd' (n m : DvdNat) : Prop := ∃ k, m.val = n.val * k
+
+instance : LE DvdNat := ⟨Dvd'⟩
+
+-- if 0 ∣ m, then m = 0
+theorem dvd_zero_left (m : DvdNat) (h : Dvd' 0 m) : m.val = 0 := by
+  obtain ⟨k, hk⟩ := h
+  have h0 : (0 : DvdNat).val = 0 := rfl
+  rw [h0, Nat.zero_mul] at hk
+  exact hk
+
+--  if 𝑘 ⋅ 𝑗 = 1 in ℕ, then 𝑘 = 1
+theorem mul_eq_one_left {k j : Nat} (h : k * j = 1) : k = 1 := by
+  match k with
+    | 0 =>
+      rw [Nat.zero_mul] at h
+      exact h
+    | 1 => rfl
+    | k + 2 =>
+      exfalso
+      have hj : j ≥ 1 := by
+        cases j with
+          | zero => simp only [Nat.mul_zero, Nat.zero_ne_one] at h
+          | succ j =>
+            have t := Nat.zero_le j
+            exact Nat.succ_le_succ t
+      have hbig : 2 ≤ (k + 2) * j :=
+        calc 2 ≤ k + 2              := Nat.le_add_left 2 k
+          k + 2 = (k + 2) * 1       := (Nat.mul_one (k + 2)).symm
+          (k + 2) * 1 ≤ (k + 2) * j := Nat.mul_le_mul_left (k + 2) hj
+      omega
+
+theorem mul_eq_one_right {k j : Nat} (h : k * j = 1) : j = 1 := by
+  have opp : j * k = 1 := by
+    rw [Nat.mul_comm] at h
+    exact h
+  exact mul_eq_one_left opp
+
+--  if 𝑎 > 0, 𝑎 ∣ 𝑏, and 𝑏 ∣ 𝑎, then 𝑎 = 𝑏.
+theorem dvd_antisymm_pos
+    {a b : Nat} (ha : 0 < a)
+    (k : Nat) (hk : b = a * k)
+    (j : Nat) (hj : a = b * j) : a = b := by
+  have hkj : k * j = 1 := by
+    have hstep : a = a * (k * j) :=
+      calc a = b * j        := hj
+           _ = (a * k) * j  := by rw [hk]
+           _ = a * (k * j)  := by rw [Nat.mul_assoc]
+    exact Nat.eq_of_mul_eq_mul_left ha (by rw [Nat.mul_one]; exact hstep.symm)
+  have h : j = 1      := mul_eq_one_right hkj
+  have h₂ : a = b * 1 := by rw [h] at hj; exact hj
+  have h₃ : a = b     := by rw [Nat.mul_one] at h₂; exact h₂
+  exact h₃
+
+instance : PartialOrder DvdNat where
+  le_refl {n}         := ⟨1, by rw [Nat.mul_one]⟩
+  le_antisymm {n m}   := fun k j => by
+    -- not shadowing because obtain destructs
+    obtain ⟨k, hk⟩ := k
+    obtain ⟨j, hj⟩ := j
+    cases n; cases m
+    congr 1
+    rename_i a b
+    cases Nat.eq_zero_or_pos a with
+      | inl ha =>
+        subst ha
+        have h : Dvd' 0 b := ⟨k, hk⟩
+        exact (dvd_zero_left ⟨b⟩ h).symm
+      | inr ha =>
+        exact dvd_antisymm_pos ha k hk j hj
+  le_trans {n m q}    := fun ⟨k, hk⟩ ⟨j, hj⟩ =>
+    ⟨k * j, by rw [hj, hk, Nat.mul_assoc]⟩
+
+example : DvdNat.mk 5 ≤ DvdNat.mk 10 :=
+  @Exists.intro
+    Nat (fun k => 10 = 5 * k)
+    2 rfl
+
+example : ¬ (DvdNat.mk 3 ≤ DvdNat.mk 10) := by
+  intro ⟨k, hk⟩
+  -- hk : 10 = 3 * k
+  -- We case split on k and rule out every possibility.
+  match k with
+  | 0 => simp [Nat.mul_zero] at hk   -- 10 = 0, absurd
+  | 1 => simp [Nat.mul_one]  at hk   -- 10 = 3, absurd
+  | 2 => exact absurd hk (by decide) -- 10 = 6, absurd
+  | 3 => exact absurd hk (by decide) -- 10 = 9, absurd
+  | k + 4 =>
+    have hge : 3 * (k + 4) ≥ 12 :=
+      calc 3 * (k + 4) = 3 * k + 12 := by rw [Nat.mul_add]
+                     _ ≥ 12          := Nat.le_add_left 12 (3 * k)
+    -- hk : {val:=10}.val = {val:=3}.val * (k+4)
+    -- simplify .val accesses to bare Nats first
+    have hk' : 10 = 3 * (k + 4) := hk
+    -- now substitute: 10 = 3*(k+4) and 3*(k+4) ≥ 12, so 10 ≥ 12
+    have : 10 ≥ 12 := hk' ▸ hge
+    exact absurd this (by decide)
+
+def Set (α : Type) : Type := α → Prop
+
+def Set.subset {α : Type} (s t : Set α) : Prop :=
+  ∀ (a : α), s a → t a
+
+instance {α : Type} : LE (Set α) where
+  le := Set.subset
+
+instance {α : Type} : PartialOrder (Set α) where
+  le_refl {_ _}       := id
+  le_antisymm {s t}   := fun h₁ h₂ => by
+    have h : ∀ (a : α), s a = t a := fun a => propext ⟨h₁ a, h₂ a⟩
+    exact funext h
+  le_trans {_ _ _}    := fun h1 h2 a ha => by
+    have e₁ := h1 a ha
+    have e₂ := h2 a e₁
+    exact e₂
+
+-- The set of even numbers
+def evens : Set Nat := fun n => ∃ k, n = 2 * k
+
+example : evens 6 := ⟨3, rfl⟩
+
+example : ¬ evens 3 := by
+  intro ⟨k, hk⟩
+  match k with
+    | 0 | 1 => exact absurd hk (by decide)
+    | k + 2 =>
+      have hge : 4 ≤ 2 * (k + 2) :=
+        calc 2 * (k + 2) = 2 * k + 4 := by rw [Nat.mul_add]
+                       _ ≥ 4         := Nat.le_add_left 4 (2 * k)
+      have : 3 ≥ 4 := hk ▸ hge
+      exact absurd this (by decide)
+
+def IsTop {α : Type} [LE α] [PartialOrder α] (t : α) : Prop :=
+  ∀ a : α, a ≤ t
+
+def IsBot {α : Type} [LE α] [PartialOrder α] (b : α) : Prop :=
+  ∀ a : α, b ≤ a
+
+def IsMaximum {α : Type} [LE α] [PartialOrder α] (s : Set α) (t : α) : Prop :=
+  s t ∧ (∀ a : α, s a → a ≤ t)
+
+def IsMinimum {α : Type} [LE α] [PartialOrder α] (s : Set α) (b : α) : Prop :=
+  s b ∧ (∀ a : α, s a → b ≤ a)
+
+class Bot (α : Type) [LE α] where
+  bot : α
+  bot_le : ∀ (a : α), bot ≤ a
+
+class Top (α : Type) [LE α] where
+  top : α
+  top_le : ∀ (a : α), a ≤ top
+
+class Bounded (α : Type) [LE α] [PartialOrder α] extends Bot α, Top α
+
+notation "⊥" => Bot.bot
+notation "⊤" => Top.top
+
+#eval (5 : Fin 12) ≤ (6 : Fin 12)
+
+instance (n : Nat) : PartialOrder (Fin n) where
+  le_refl := Fin.le_refl
+  le_antisymm := Fin.le_antisymm
+  le_trans := Fin.le_trans
+
+instance : Bounded (Fin 12) where
+  top := 11
+  bot := 0
+  bot_le := Fin.zero_le
+  top_le := Fin.le_last
+
+-- 2.2 Upper/Lower bounds
+
+-- supremum, the smallest upper bound of a pair of elements in a relation
+structure IsSupOf {α : Type} [LE α] [PartialOrder α] (a b sup : α) : Prop where
+  -- sup bigger than element a
+  ge_a : a ≤ sup
+  -- sup bigger than element b
+  ge_b : b ≤ sup
+  -- for all u bigger than both a and b, returns a proof of the suprenum being less than u
+  least : ∀ (u : α), a ≤ u → b ≤ u → sup ≤ u
+
+-- infimum, the greatest lower bound of a pair of elements in a relation
+structure IsInfOf {α : Type} [LE α] [PartialOrder α] (a b inf : α) : Prop where
+  -- inf is less than element a
+  le_a : inf ≤ a
+  -- inf is less than element b
+  le_b : inf ≤ b
+  -- for all u smaller than both a and b, returns a proof of the infimum being greater than u
+  greatest : ∀ (u : α), u ≤ a → u ≤ b → u ≤ inf
+
+-- if a supremum exists, it's unique.
+theorem sup_unique {α : Type} [LE α] [PartialOrder α]
+    {a b s t : α}
+    (hs : IsSupOf a b s) (ht : IsSupOf a b t) : s = t := by
+  -- apply antisymm (s ≤ t → t ≤ s → s = t) to the goal.
+  -- transforms it into cases for providing both the arguments (`s ≤ t` and `t ≤ s`)
+  apply PartialOrder.le_antisymm
+  · exact hs.least t ht.ge_a ht.ge_b
+  · exact ht.least s hs.ge_a hs.ge_b
+
+-- if a infimum exists, it's unique.
+theorem inf_unique {α : Type} [LE α] [PartialOrder α]
+    {a b s t : α}
+    (hs : IsInfOf a b s) (ht : IsInfOf a b t) : s = t := by
+  apply PartialOrder.le_antisymm
+  · exact ht.greatest s hs.le_a hs.le_b
+  · exact hs.greatest t ht.le_a ht.le_b
+
+-- 2.3 Monotone Maps
+
+-- A function 𝑓 ∶ (𝑃 , ≤_𝑃) → (𝑄, ≤_𝑄) between posets is monotone (or orderpreserving) if ∀𝑎, 𝑏 ∈ 𝑃 , 𝑎 ≤𝑃 𝑏 → 𝑓(𝑎) ≤𝑄 𝑓(𝑏).
+structure Monotone {α β : Type}
+    [LE α] [LE β] [PartialOrder α] [PartialOrder β]
+    (f : α → β) : Prop where
+  -- A proof that for all a less than b, applying 𝑓 does not change that relation.
+  map_le : ∀ (a b : α), a ≤ b → f a ≤ f b
+
+theorem Monotone.comp {α β γ : Type}
+    [LE α] [LE β] [LE γ] [PartialOrder α] [PartialOrder β] [PartialOrder γ]
+    {f : α → β} {g : β → γ}
+    (hf : Monotone f) (hg : Monotone g) : Monotone (g ∘ f) where
+  map_le := fun a b h => by
+    have h₁ := (hf.map_le a b h)
+    exact hg.map_le (f a) (f b) h₁
+
+structure Antitone {α β : Type}
+    [LE α] [LE β] [PartialOrder α] [PartialOrder β]
+    (f : α → β) : Prop where
+  -- reverses order
+  map_le : ∀ (a b : α), a ≤ b → f b ≤ f a
+
+theorem Antitone.comp {α β γ : Type}
+    [LE α] [LE β] [LE γ] [PartialOrder α] [PartialOrder β] [PartialOrder γ]
+    {f : α → β} {g : β → γ}
+    (hf : Antitone f) (hg : Antitone g) : Monotone (g ∘ f) where
+  map_le := fun a b h => by
+    have h₁ := (hf.map_le a b h)
+    exact hg.map_le (f b) (f a) h₁
+
+-- A fixed point is a point in a set unaffected by a mapping function.
+structure IsFixedPoint {α : Type} {f : α → α} (x : α) : Prop where
+  fp : f x = x
+
+-- define multiple function application `n` times, 𝑓ⁿ x
+def iter {α : Type} (f : α → α) : Nat → α → α
+  | 0, x      => x                -- f⁰ x is just x, don't apply the function
+  | n + 1, x  => f (iter f n x)   -- fⁿ⁺¹ x = f (fⁿ x)
+
+-- for monotone 𝑓, if 𝑎 ≤ 𝑓 𝑎, then the repeated application of 𝑓 ascends:
+-- 𝑎 ≤ 𝑓 𝑎 ≤ 𝑓² 𝑎 ≤ ⋯
+theorem fixed_point_chain {α : Type} {f : α → α} {a : α}
+    [LE α] [PartialOrder α]
+    (hf : Monotone f) (ha : a ≤ f a) :
+    ∀ (n : Nat), iter f n a ≤ iter f (n + 1) a := by
+  intro n
+  induction n with
+    | zero      =>
+      exact ha
+    | succ n ih =>
+      let arg₁ := iter f n a
+      let arg₂ := iter f (n + 1) a
+      exact hf.map_le arg₁ arg₂ ih
+
+-- (id : 𝑎 → 𝑎) is monotone since a ≤ b → id a ≤ id b by hypothesis (a ≤ b)
+theorem Monotone.id {α : Type} [LE α] [PartialOrder α] :
+    -- type annotation so that Monotone's implicit α resolves to α, and β resolves to α.
+    -- can also do `@id α`, or `Monotone (β := α) id`
+    Monotone (id : α → α) where
+  map_le := fun _ _ h => h
+
+-- 3 Lattices
+-- 3.1 Meet and join
+
+-- A lattice is a poset in which every pair of elements has a supremum and infimum.
+-- Meet: Greatest lower bound, `a ⊓ b`.
+-- Join: Least upper bound, `a ⊔ b`.
+class Lattice (α : Type) extends LE α, PartialOrder α where
+  inf           : α → α → α -- meet, ⊓
+  sup           : α → α → α -- join, ⊔
+  -- meet is lower bound
+  inf_le_left   : ∀ (a b : α), inf a b ≤ a
+  inf_le_right  : ∀ (a b : α), inf a b ≤ b
+  le_inf        : ∀ (a b c : α), a ≤ b → a ≤ c → a ≤ inf b c
+  -- join is upper bound
+  sup_le_left   : ∀ (a b : α), a ≤ sup a b
+  sup_le_right  : ∀ (a b : α), b ≤ sup a b
+  le_sup        : ∀ (a b c : α), a ≤ c → b ≤ c → sup a b ≤ c
+
+-- Lattice notation
+infixl:70 " ⊓ " => Lattice.inf
+infixl:65 " ⊔ " => Lattice.sup
+
+theorem inf_comm {α : Type} [Lattice α] {a b : α} :
+    a ⊓ b = b ⊓ a := by
+  apply PartialOrder.le_antisymm
+  · apply Lattice.le_inf
+    · apply Lattice.inf_le_right
+    · apply Lattice.inf_le_left
+  · apply Lattice.le_inf
+    · apply Lattice.inf_le_right
+    · apply Lattice.inf_le_left
+
+theorem sup_comm {α : Type} [Lattice α] {a b : α} :
+    a ⊔ b = b ⊔ a := by
+  apply PartialOrder.le_antisymm
+  · apply Lattice.le_sup
+    · apply Lattice.sup_le_right
+    · apply Lattice.sup_le_left
+  · apply Lattice.le_sup
+    · apply Lattice.sup_le_right
+    · apply Lattice.sup_le_left

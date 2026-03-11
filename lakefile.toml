@@ -2,9 +2,6 @@ name = "test"
 version = "0.1.0"
 defaultTargets = ["test"]
 
-[[lean_lib]]
-name = "Test"
-
 [[lean_exe]]
 name = "test"
 root = "Main"
