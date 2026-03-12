@@ -373,7 +373,7 @@ instance {α : Type} [LE α] [PartialOrder α] : PartialOrder (Dual α) where
 instance {α : Type} [Lattice α] : Lattice (Dual α) where
   inf           := fun ⟨a⟩ ⟨b⟩  => ⟨Lattice.sup (α := α) a b⟩
   sup           := fun ⟨a⟩ ⟨b⟩ => ⟨Lattice.inf (α := α) a b⟩
-  inf_le_left   :=fun ⟨a⟩ ⟨b⟩ => Lattice.sup_le_left (α := α) a b
+  inf_le_left   := fun ⟨a⟩ ⟨b⟩ => Lattice.sup_le_left (α := α) a b
   inf_le_right  := fun ⟨a⟩ ⟨b⟩  => Lattice.sup_le_right (α := α) a b
   sup_le_left   := fun ⟨a⟩ ⟨b⟩ => Lattice.inf_le_left (α := α) a b
   sup_le_right  := fun ⟨a⟩ ⟨b⟩ => Lattice.inf_le_right (α := α) a b
