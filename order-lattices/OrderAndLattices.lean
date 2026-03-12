@@ -355,30 +355,19 @@ theorem Dual.mk_inj {α : Type} {a b : α} :
   · exact congrArg Dual.val
   · exact congrArg Dual.mk
 
--- 1. The dual order flips ≤
-instance {α  : Type} [LE α] : LE (Dual α) where
-  le a b := LE.le (α := α) b.val a.val   -- a ≤_dual b means b ≤_original a
-
--- 2. The dual partial order (le_trans flips h1/h2, antisymm flips arguments)
-instance {α : Type} [LE α] [PartialOrder α] : PartialOrder (Dual α) where
-  le_refl {a}             := PartialOrder.le_refl a.val
-  le_antisymm {a b h1 h2} := by
-    cases a; cases b;
-    congr 1
-    exact PartialOrder.le_antisymm (α := α) h2 h1
-  le_trans {a b c}        := fun h1 h2 => by
-    cases a; cases b; cases c
-    exact PartialOrder.le_trans (α := α) h2 h1
-
 instance {α : Type} [Lattice α] : Lattice (Dual α) where
-  inf {a b}             := ⟨Lattice.sup a.val b.val⟩
-  sup {a b}             := ⟨Lattice.inf a.val b.val⟩
-  inf_le_left {a b}     := Lattice.sup_le_left a.val b.val
-  inf_le_right {a b}    := Lattice.sup_le_right a.val b.val
-  sup_le_left {a b}     := Lattice.inf_le_left a.val b.val
-  sup_le_right {a b}    := Lattice.inf_le_right a.val b.val
-  le_inf {a b c h1 h2}  := Lattice.le_sup b.val c.val a.val h1 h2
-  le_sup {a b c h1 h2}  := Lattice.le_inf c.val a.val b.val h1 h2
+  le a b                  := LE.le (α := α) b.val a.val   -- a ≤_dual b means b ≤_original a
+  le_refl {a}             := PartialOrder.le_refl a.val
+  le_antisymm {_ _ h1 h2} := congrArg Dual.mk (PartialOrder.le_antisymm (α := α) h2 h1)
+  le_trans {_ _ _ h1 h2}  := PartialOrder.le_trans (α := α) h2 h1
+  inf {a b}               := ⟨Lattice.sup a.val b.val⟩
+  sup {a b}               := ⟨Lattice.inf a.val b.val⟩
+  inf_le_left {a b}       := Lattice.sup_le_left a.val b.val
+  inf_le_right {a b}      := Lattice.sup_le_right a.val b.val
+  sup_le_left {a b}       := Lattice.inf_le_left a.val b.val
+  sup_le_right {a b}      := Lattice.inf_le_right a.val b.val
+  le_inf {a b c h1 h2}    := Lattice.le_sup b.val c.val a.val h1 h2
+  le_sup {a b c h1 h2}    := Lattice.le_inf c.val a.val b.val h1 h2
 
 theorem sup_comm {α : Type} [Lattice α] {a b : α} :
     a ⊔ b = b ⊔ a := by
