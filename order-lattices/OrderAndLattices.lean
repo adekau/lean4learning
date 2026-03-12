@@ -377,12 +377,8 @@ instance {α : Type} [Lattice α] : Lattice (Dual α) where
   inf_le_right  := fun ⟨a⟩ ⟨b⟩  => Lattice.sup_le_right (α := α) a b
   sup_le_left   := fun ⟨a⟩ ⟨b⟩ => Lattice.inf_le_left (α := α) a b
   sup_le_right  := fun ⟨a⟩ ⟨b⟩ => Lattice.inf_le_right (α := α) a b
-  le_inf        := fun ⟨a⟩ ⟨b⟩ ⟨c⟩ h1 h2 => by
-    change Lattice.sup (α := α) b c ≤ a
-    exact Lattice.le_sup (α := α) b c a h1 h2
-  le_sup        := fun ⟨a⟩ ⟨b⟩ ⟨c⟩ h1 h2 => by
-    change LE.le (α := α) c (Lattice.inf (α := α) a b)
-    exact Lattice.le_inf (α := α) c a b h1 h2
+  le_inf        := fun ⟨a⟩ ⟨b⟩ ⟨c⟩ h1 h2 => Lattice.le_sup (α := α) b c a h1 h2
+  le_sup        := fun ⟨a⟩ ⟨b⟩ ⟨c⟩ h1 h2 => Lattice.le_inf (α := α) c a b h1 h2
 
 theorem sup_comm {α : Type} [Lattice α] {a b : α} :
     a ⊔ b = b ⊔ a := by
