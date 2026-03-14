@@ -373,3 +373,91 @@ theorem sup_comm {α : Type} [Lattice α] {a b : α} :
     a ⊔ b = b ⊔ a := by
   have h := @inf_comm (Dual α) _ ⟨a⟩ ⟨b⟩
   rwa [Dual.mk_inj] at h
+
+theorem inf_assoc {α : Type} [Lattice α] {a b c : α} :
+    a ⊓ (b ⊓ c) = (a ⊓ b) ⊓ c := by
+  apply PartialOrder.le_antisymm
+  · apply Lattice.le_inf
+    · apply Lattice.le_inf
+      · exact Lattice.inf_le_left a (b ⊓ c)
+      · have h₁ := Lattice.inf_le_right a (b ⊓ c)
+        have h₂ := Lattice.inf_le_left b c
+        exact PartialOrder.le_trans h₁ h₂
+    · have h₁ := Lattice.inf_le_right a (b ⊓ c)
+      have h₂ := Lattice.inf_le_right b c
+      exact PartialOrder.le_trans h₁ h₂
+  · apply Lattice.le_inf
+    · have h₁ : a ⊓ b ⊓ c ≤ a ⊓ b := Lattice.inf_le_left (a ⊓ b) c
+      have h₂ : a ⊓ b ≤ a := Lattice.inf_le_left a b
+      exact PartialOrder.le_trans h₁ h₂
+    · apply Lattice.le_inf
+      · have h₁ := Lattice.inf_le_left (a ⊓ b) c
+        have h₂ := Lattice.inf_le_right a b
+        exact PartialOrder.le_trans h₁ h₂
+      · exact Lattice.inf_le_right (a ⊓ b) c
+
+theorem sup_assoc {α : Type} [Lattice α] {a b c : α} :
+    a ⊔ (b ⊔ c) = (a ⊔ b) ⊔ c := by
+  have h := @inf_assoc (Dual α) _ ⟨a⟩ ⟨b⟩ ⟨c⟩
+  rwa [Dual.mk_inj] at h
+
+theorem inf_idempotent {α : Type} [Lattice α] {a : α} :
+    a ⊓ a = a := by
+  apply PartialOrder.le_antisymm
+  · exact Lattice.inf_le_left a a
+  · apply Lattice.le_inf
+    · apply PartialOrder.le_refl
+    · apply PartialOrder.le_refl
+
+theorem sup_idempotent {α : Type} [Lattice α] {a : α} :
+    a ⊔ a = a := by
+  have h := @inf_idempotent (Dual α) _ ⟨a⟩
+  rwa [Dual.mk_inj] at h
+
+theorem sup_absorbtion {α : Type} [Lattice α] {a b : α} :
+    a ⊔ (a ⊓ b) = a := by
+  apply PartialOrder.le_antisymm
+  · apply Lattice.le_sup
+    · apply PartialOrder.le_refl
+    · apply Lattice.inf_le_left
+  · apply Lattice.sup_le_left
+
+theorem inf_absorbtion {α : Type} [Lattice α] {a b : α} :
+    a ⊓ (a ⊔ b) = a := by
+  have h := @sup_absorbtion (Dual α) _ ⟨a⟩ ⟨b⟩
+  rwa [Dual.mk_inj] at h
+
+instance : Lattice Bool where
+  le            := (· ≤ ·)
+  le_refl       := Bool.le_refl
+  le_antisymm   := Bool.le_antisymm
+  le_trans      := Bool.le_trans
+  inf           := (· && ·)
+  sup           := (· || ·)
+  inf_le_left   := by decide
+  inf_le_right  := by decide
+  le_inf        := by decide
+  sup_le_left   := by decide
+  sup_le_right  := by decide
+  le_sup        := by decide
+
+def Set.inter {α : Type} (s t : Set α) : Set α := fun a => s a ∧ t a
+def Set.union {α : Type} (s t : Set α) : Set α := fun a => s a ∨ t a
+
+instance {α : Type} : Lattice (Set α) where
+  le                  := Set.subset
+  le_refl             := fun s a ha => ha
+  le_antisymm {a b}   := fun h₁ h₂ => funext (fun a => propext ⟨h₁ a, h₂ a⟩)
+  le_trans {a b c}    := fun h₁ h₂ a ha => by
+    have t₁ := h₁ a ha
+    have t₂ := h₂ a t₁
+    exact t₂
+  inf                 := Set.inter
+  sup                 := Set.union
+  le_inf              := fun s t u ab ac a ha => by
+    exact ⟨ab a ha, ac a ha⟩
+  inf_le_left         := fun s t a ht => ht.left
+  inf_le_right        := fun s t a ⟨htl, htr⟩ => htr
+  le_sup              := fun s t u su tu a ht => ht.elim (su a) (tu a)
+  sup_le_left         := fun s t a ha => Or.inl ha
+  sup_le_right        := fun s t a ha => Or.inr ha
