@@ -461,3 +461,63 @@ instance {α : Type} : Lattice (Set α) where
   le_sup              := fun s t u su tu a ht => ht.elim (su a) (tu a)
   sup_le_left         := fun s t a ha => Or.inl ha
   sup_le_right        := fun s t a ha => Or.inr ha
+
+instance : Lattice Nat where
+  le                  := (· ∣ ·)
+  le_refl             := fun a => by exact ⟨1, by omega⟩
+  le_antisymm         := Nat.dvd_antisymm
+  le_trans            := Nat.dvd_trans
+  inf                 := Nat.gcd
+  sup                 := Nat.lcm
+  inf_le_left         := Nat.gcd_dvd_left
+  inf_le_right        := Nat.gcd_dvd_right
+  le_inf              := fun a b c => Nat.dvd_gcd
+  sup_le_left         := Nat.dvd_lcm_left
+  sup_le_right        := Nat.dvd_lcm_right
+  le_sup              := fun a b c ha hb => Nat.lcm_dvd ha hb
+
+structure Interval where
+  -- interval lower bound
+  l       : Int
+  -- interval upper bound
+  h       : Int
+  -- proof that the lower bound is LE upper bound
+  l_le_h  : l ≤ h
+
+instance : LE Interval where
+  -- containment by smaller interval
+  -- int₁ ≤ int₂ ↔ l₂ ≤ l₁ ∧ h₁ ≤ h₂
+  -- [l₁, h₁] ≤ [l₂, h₂] ↔ l₂ ≤ l₁ ∧ h₁ ≤ h₂
+  -- So left hand side interval should be contained within the right hand side interval, AKA more specific.
+  le := fun int₁ int₂ => (int₂.l ≤ int₁.l) ∧ (int₁.h ≤ int₂.h)
+
+instance : PartialOrder Interval where
+  le_refl           := fun a => by
+    have l₂_le_l₁ := show a.l ≤ a.l from Int.le_refl a.l
+    have h₁_le_h₂ := show a.h ≤ a.h from Int.le_refl a.h
+    exact ⟨l₂_le_l₁, h₁_le_h₂⟩
+  le_antisymm {a b} := fun hyp₁ hyp₂ => by
+    -- a ≤ b says: (b.l ≤ a.l) ∧ (a.h ≤ b.h)
+    -- b ≤ a says: (a.l ≤ b.l) ∧ (b.h ≤ a.h)
+    cases a; cases b;
+    rename_i l₁ h₁ l₁_le_h₁ l₂ h₂ l₂_le_h₂
+    congr 1
+    · exact Int.le_antisymm hyp₂.left hyp₁.left
+    · exact Int.le_antisymm hyp₁.right hyp₂.right
+      -- Don't need to show l₁_le_h₁ = l₂_le_h₂ by `proof_irrel` axiom
+  le_trans {a b c}  := fun hyp₁ hyp₂ => by
+    rcases a with ⟨a_l, a_h, a_le⟩
+    rcases b with ⟨b_l, b_h, b_le⟩
+    rcases c with ⟨c_l, c_h, c_le⟩
+    simp [LE.le] at *
+    -- now we can traverse the transitive property of each field using le_trans on Int
+    -- if we want to say a ≤ c, then we need 2 proofs:
+    -- c_l ≤ a_l
+    -- a_h ≤ c_h
+    have hl_ba : b_l ≤ a_l := hyp₁.left
+    have hl_cb : c_l ≤ b_l := hyp₂.left
+    have hl_ca : c_l ≤ a_l := Int.le_trans hl_cb hl_ba
+    have hh_ab : a_h ≤ b_h := hyp₁.right
+    have hh_bc : b_h ≤ c_h := hyp₂.right
+    have hh_ac : a_h ≤ c_h := Int.le_trans hh_ab hh_bc
+    exact ⟨hl_ca, hh_ac⟩
