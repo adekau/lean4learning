@@ -523,4 +523,54 @@ instance : PartialOrder Interval where
     exact ⟨hl_ca, hh_ac⟩
 
 instance {α β : Type} [Lattice α] [Lattice β] : Lattice (α × β) where
-  le := fun ⟨l₁, r₁⟩ ⟨l₂, r₂⟩ => (l₁ ≤ l₂) ∧ (r₁ ≤ r₂)
+  le                := fun a b => (a.fst ≤ b.fst) ∧ (a.snd ≤ b.snd)
+  le_refl           := fun a => by
+    apply And.intro
+    · apply PartialOrder.le_refl
+    · apply PartialOrder.le_refl
+  le_antisymm {a b} := fun hyp₁ hyp₂ => by
+    rcases a with ⟨l₁, r₁⟩
+    rcases b with ⟨l₂, r₂⟩
+    congr 1
+    · exact PartialOrder.le_antisymm hyp₁.left hyp₂.left
+    · exact PartialOrder.le_antisymm hyp₁.right hyp₂.right
+  le_trans {a b c}  := fun hyp₁ hyp₂ => by
+    apply And.intro
+    · exact PartialOrder.le_trans hyp₁.left hyp₂.left
+    · exact PartialOrder.le_trans hyp₁.right hyp₂.right
+  inf := fun a b =>
+    ⟨Lattice.inf a.fst b.fst, Lattice.inf a.snd b.snd⟩
+  sup := fun a b =>
+    ⟨Lattice.sup a.fst b.fst, Lattice.sup a.snd b.snd⟩
+  inf_le_left       := fun a b => by
+    apply And.intro
+    · apply Lattice.inf_le_left
+    · apply Lattice.inf_le_left
+  inf_le_right      := fun a b => by
+    apply And.intro
+    · apply Lattice.inf_le_right
+    · apply Lattice.inf_le_right
+  le_inf            := fun a b c hyp₁ hyp₂ => by
+    apply And.intro
+    · apply Lattice.le_inf
+      · exact hyp₁.left
+      · exact hyp₂.left
+    · apply Lattice.le_inf
+      · exact hyp₁.right
+      · exact hyp₂.right
+  sup_le_left       := fun a b => by
+    apply And.intro
+    · apply Lattice.sup_le_left
+    · apply Lattice.sup_le_left
+  sup_le_right      := fun a b => by
+    apply And.intro
+    · apply Lattice.sup_le_right
+    · apply Lattice.sup_le_right
+  le_sup            := fun a b c hyp₁ hyp₂ => by
+    apply And.intro
+    · apply Lattice.le_sup
+      · exact hyp₁.left
+      · exact hyp₂.left
+    · apply Lattice.le_sup
+      · exact hyp₁.right
+      · exact hyp₂.right
