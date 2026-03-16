@@ -574,3 +574,16 @@ instance {α β : Type} [Lattice α] [Lattice β] : Lattice (α × β) where
     · apply Lattice.le_sup
       · exact hyp₁.right
       · exact hyp₂.right
+
+theorem le_iff_sup_eq {α : Type} [Lattice α] {a b : α} :
+    a ≤ b ↔ a ⊔ b = b := by
+  apply Iff.intro
+  · intro h
+    apply PartialOrder.le_antisymm
+    · apply Lattice.le_sup
+      · exact h
+      · exact PartialOrder.le_refl b
+    · exact Lattice.sup_le_right a b
+  · intro h
+    rw [← h]
+    exact Lattice.sup_le_left a b
