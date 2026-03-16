@@ -521,3 +521,6 @@ instance : PartialOrder Interval where
     have hh_bc : b_h ≤ c_h := hyp₂.right
     have hh_ac : a_h ≤ c_h := Int.le_trans hh_ab hh_bc
     exact ⟨hl_ca, hh_ac⟩
+
+instance {α β : Type} [Lattice α] [Lattice β] : Lattice (α × β) where
+  le := fun ⟨l₁, r₁⟩ ⟨l₂, r₂⟩ => (l₁ ≤ l₂) ∧ (r₁ ≤ r₂)
