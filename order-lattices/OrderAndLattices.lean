@@ -587,3 +587,41 @@ theorem le_iff_sup_eq {α : Type} [Lattice α] {a b : α} :
   · intro h
     rw [← h]
     exact Lattice.sup_le_left a b
+
+def Pred (α : Type) := α → Prop
+
+-- A lattice (𝐿, ≤) is complete if every subset 𝑆 ⊆ 𝐿 has a supremum `⋁ 𝑆` and an infimum `⋀ 𝑆` in
+class CompleteLattice (α : Type) extends Lattice α where
+  sSup : Pred α → α -- supremum of a set
+  sInf : Pred α → α -- infimum of a set
+  -- Says that sSup is an upper bound. Every element of set s, a, is less than sSup s.
+  le_sSup : ∀ (s : Pred α) (a : α), s a → a ≤ sSup s
+  -- (∀ a : α, s a → a ≤ u) → sSup s ≤ u says:
+  -- for all elements in set s, a ≤ u where u is an upper bound.
+  -- Then, a proof of this implies that the supremum of the set, s, is less than or equal to any upper bound
+  -- Says that sSup s is the _least_ upper bound.
+  sSup_le : ∀ (s : Pred α) (u : α), (∀ a : α, s a → a ≤ u) → sSup s ≤ u
+  -- equivalent of the sSup le statements but for greatest lower bound
+  le_sInf : ∀ (s : Pred α) (a : α), s a → sInf s ≤ a
+  sInf_le : ∀ (s : Pred α) (l : α), (∀ a : α, s a → l ≤ a) → l ≤ sInf s
+
+-- Powerset lattice, ⋁ ℱ = ⋃ ℱ and ⋀ ℱ = ⋂ ℱ
+instance {α : Type} : CompleteLattice (Set α) where
+  -- F is a family of sets matching the predicate
+  -- a is an element of the lattice
+  -- There exists a set such that the set is in the family of sets and `a` is an element of the set
+  -- Union of the sets in the family
+  -- Concretely, say F is the family { {1,2}, {2,3}, {3,4} }. Then:
+  -- Union ⋃ F = {1,2} ∪ {2,3} ∪ {3,4} = {1,2,3,4}
+  sSup := fun F a => ∃ s : Set α, F s ∧ s a
+  -- F is a family of sets matching the predicate
+  -- a is an element of the lattice
+  -- `a` is an element of every set in the family.
+  -- Intersection of the sets in the family
+  -- ⋂ F = {1,2} ∩ {2,3} ∩ {3,4} = {}
+  sInf := fun F a => ∀ s : Set α, F s → s a
+  le_sSup := fun _ s hs _ ha =>
+    ⟨s, ⟨hs, ha⟩⟩
+  sSup_le := fun _ _ hu a ⟨s, hs, ha⟩ => hu s hs a ha
+  le_sInf := fun _ s hs _ ha => ha s hs
+  sInf_le := fun _ _ hl a ha s hs => hl s hs a ha
