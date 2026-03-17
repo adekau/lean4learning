@@ -651,6 +651,5 @@ theorem knaster_tarski {α : Type} [CompleteLattice α]
   -- Minimality
   intro x hx
   apply CompleteLattice.sInf_le
-  simp only [P]
-  rw [hx]
+  simp only [P, hx]
   exact PartialOrder.le_refl x
