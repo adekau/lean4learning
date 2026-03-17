@@ -602,8 +602,8 @@ class CompleteLattice (α : Type) extends Lattice α where
   -- Says that sSup s is the _least_ upper bound.
   sSup_le : ∀ (s : Pred α) (u : α), (∀ a : α, s a → a ≤ u) → sSup s ≤ u
   -- equivalent of the sSup le statements but for greatest lower bound
-  le_sInf : ∀ (s : Pred α) (a : α), s a → sInf s ≤ a
-  sInf_le : ∀ (s : Pred α) (l : α), (∀ a : α, s a → l ≤ a) → l ≤ sInf s
+  sInf_le : ∀ (s : Pred α) (a : α), s a → sInf s ≤ a
+  le_sInf : ∀ (s : Pred α) (l : α), (∀ a : α, s a → l ≤ a) → l ≤ sInf s
 
 -- Powerset lattice, ⋁ ℱ = ⋃ ℱ and ⋀ ℱ = ⋂ ℱ
 instance {α : Type} : CompleteLattice (Set α) where
@@ -623,5 +623,34 @@ instance {α : Type} : CompleteLattice (Set α) where
   le_sSup := fun _ s hs _ ha =>
     ⟨s, ⟨hs, ha⟩⟩
   sSup_le := fun _ _ hu a ⟨s, hs, ha⟩ => hu s hs a ha
-  le_sInf := fun _ s hs _ ha => ha s hs
-  sInf_le := fun _ _ hl a ha s hs => hl s hs a ha
+  le_sInf := fun _ _ hl a ha s hs => hl s hs a ha
+  sInf_le := fun _ s hs _ ha => ha s hs
+
+theorem knaster_tarski {α : Type} [CompleteLattice α]
+  (f : α → α) (hf : Monotone f) :
+    -- There's a least fixed point such that when a monotone map is applied to it, it equals itself
+    -- and for all x in the lattice where the monotone map `f` applied to `x` results in x (fixed point),
+    -- the least fixed point (`lfp`) is less than or equal to it.
+    ∃ (lfp : α), f lfp = lfp ∧
+    ∀ (x : α), f x = x → lfp ≤ x := by
+  let P : Pred α := fun x => f x ≤ x
+  let m := CompleteLattice.sInf P
+  -- Step 1 : f(m) ≤ m
+  have step1 : f m ≤ m := by
+    apply CompleteLattice.le_sInf
+    intro x hx
+    simp only [P] at *
+    have hh := hf.map_le m x (CompleteLattice.sInf_le P x hx)
+    exact PartialOrder.le_trans hh hx
+  have step2 : m ≤ f m := by
+    apply CompleteLattice.sInf_le
+    simp [P]
+    exact hf.map_le (f m) m step1
+  have fixed : f m = m := PartialOrder.le_antisymm step1 step2
+  refine ⟨m, fixed, ?_⟩
+  -- Minimality
+  intro x hx
+  apply CompleteLattice.sInf_le
+  simp only [P]
+  rw [hx]
+  exact PartialOrder.le_refl x
