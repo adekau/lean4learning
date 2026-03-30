@@ -653,3 +653,203 @@ theorem knaster_tarski {α : Type} [CompleteLattice α]
   apply CompleteLattice.sInf_le
   simp only [P, hx]
   exact PartialOrder.le_refl x
+
+class BoundedJoinSemilattice (α : Type) extends LE α, PartialOrder α where
+  sup : α → α → α
+  bot : α
+  le_sup_left   : ∀ (a b : α), a ≤ sup a b
+  le_sup_right  : ∀ (a b : α), b ≤ sup a b
+  sup_le        : ∀ (a b c : α), a ≤ c → b ≤ c → sup a b ≤ c
+  bot_le        : ∀ (a : α), bot ≤ a
+
+infixl:65 " ⊔ " => BoundedJoinSemilattice.sup
+notation  "⊥"   => BoundedJoinSemilattice.bot
+
+structure Propagator1 (α β : Type)
+  [BoundedJoinSemilattice α] [BoundedJoinSemilattice β] where
+  fn        : α → β
+  monotone  : ∀ (a b : α), a ≤ b → BoundedJoinSemilattice.sup (fn a) (fn b) = fn b
+
+structure Propagator2 (α β γ : Type)
+  [BoundedJoinSemilattice α] [BoundedJoinSemilattice β] [BoundedJoinSemilattice γ] where
+  fn        : α → β → γ
+  monotone  : ∀ (a₁ a₂ : α) (b₁ b₂ : β),
+    a₁ ≤ a₂ → b₁ ≤ b₂ → BoundedJoinSemilattice.sup (fn a₁ b₁) (fn a₂ b₂) = fn a₂ b₂
+
+structure Cell (α : Type) where
+  ref : IO.Ref α
+
+def Cell.new {α} [BoundedJoinSemilattice α] [DecidableEq α] : IO (Cell α) := do
+  let r ← IO.mkRef (BoundedJoinSemilattice.bot (α := α))
+  return { ref := r }
+
+def Cell.read {α} [BoundedJoinSemilattice α] [DecidableEq α] (c : Cell α) : IO α :=
+  c.ref.get
+
+def Cell.write {α} [BoundedJoinSemilattice α] [DecidableEq α] (c : Cell α) (v : α) : IO Bool := do
+  let old ← c.ref.get
+  let merged := old ⊔ v
+  if merged == old then
+    return false
+  else
+    c.ref.set merged
+    return true
+
+abbrev PropStep := IO Bool
+
+def runToFixpoint (steps : Array PropStep) : IO Unit := do
+  let mut changed := true
+  while changed do
+    changed := false
+    for step in steps do
+      let c ← step
+      if c then changed := true
+
+structure Network where
+  steps : Array PropStep
+
+def Network.run (n : Network) : IO Unit :=
+  runToFixpoint n.steps
+
+inductive FlatNat where
+  | unknown         : FlatNat
+  | known (n : Nat) : FlatNat
+  | conflict        : FlatNat
+  deriving Repr, DecidableEq
+
+instance : ToString FlatNat where
+  toString a := match a with
+    | .unknown  => "unknown"
+    | .known n  => ToString.toString n
+    | .conflict => "conflict"
+
+instance : LE FlatNat where
+  le a b := match a, b with
+    | .unknown , _         => True
+    | _        , .conflict => True
+    | .known m , .known n  => m = n
+    | .conflict, .unknown  => False
+    | .conflict, .known _  => False
+    | .known _ , .unknown  => False
+
+instance : PartialOrder FlatNat where
+  le_refl       := by
+    intro a
+    cases a <;> simp only [LE.le]
+    -- · simp only [LE.le]
+    -- · rename_i n
+    --   simp only [LE.le]
+    -- · simp only [LE.le]
+  le_antisymm   := by
+    intro a b hab hba
+    cases a <;> cases b <;> simp_all [LE.le]
+  le_trans      := by
+    intro a b c hab hbc
+    cases a <;> cases b <;> cases c <;> simp_all [LE.le]
+
+instance : BoundedJoinSemilattice FlatNat where
+  bot         := .unknown
+  sup a b     := match a, b with
+    | .unknown, x         => x
+    | x       , .unknown  => x
+    | .known m, .known n  => if m = n then .known m else .conflict
+    | _       , _         => .conflict
+  bot_le      := by
+    intro a
+    cases a <;> simp [LE.le]
+  le_sup_left := by
+    intro a b
+    cases a <;> cases b <;> simp_all [LE.le]
+    rename_i m n
+    by_cases h : m = n <;> simp [h]
+  le_sup_right := by
+    intro a b
+    cases a <;> cases b <;> simp_all [LE.le]
+    rename_i m n
+    by_cases h : m = n <;> simp [h]
+  sup_le      := by
+    intro a b c hac hbc
+    cases a <;> cases b <;> cases c <;> simp_all [LE.le]
+    rename_i m n
+    by_cases h : m = n <;> simp [h]
+
+def addProp (cx cy csum : Cell FlatNat) : PropStep := do
+  let x ← cx.read
+  let y ← cy.read
+  match x, y with
+    | .known a, .known b => csum.write (.known (a + b))
+    | _       , _        => return false
+
+def subProp (csum cx cy : Cell FlatNat) : PropStep := do
+  let s ← csum.read
+  let x ← cx.read
+  match s, x with
+    | .known total, .known a =>
+      if total ≥ a then
+        cy.write (.known (total - a))
+      else
+        cy.write (.conflict)
+    | _           , _        => return false
+
+def exampleNetwork : IO Unit := do
+  let cx ← Cell.new (α := FlatNat)
+  let cy ← Cell.new (α := FlatNat)
+  let csum ← Cell.new (α := FlatNat)
+
+  let _ ← cx.write (.known 3)
+  let _ ← csum.write (.known 10)
+
+  let net : Network := Network.mk #[
+    addProp cx cy csum,
+    subProp csum cx cy,
+    subProp csum cy cx
+  ]
+
+  net.run
+
+  let yVal ← cy.read
+  IO.println s!"y is {yVal}"
+
+#eval exampleNetwork
+
+-- Exercise 6.1
+def mulProp (cx cy cz : Cell FlatNat) : PropStep := do
+  let x ← cx.read
+  let y ← cy.read
+
+  match x, y with
+    | .known a, .known b => cz.write (.known (a * b))
+    | _       , _        => return false
+
+def divProp (cz cx cy : Cell FlatNat) : PropStep := do
+  let z ← cz.read
+  let x ← cx.read
+
+  match z, x with
+    | .known z, .known x =>
+      if x ∣ z then
+        cy.write (.known (z / x))
+      else
+        cy.write (.conflict)
+    | _       , _        => return false
+
+def mulNetwork : IO Unit := do
+  let cx ← Cell.new (α := FlatNat)
+  let cy ← Cell.new (α := FlatNat)
+  let cz ← Cell.new (α := FlatNat)
+
+  let _ ← cx.write (.known 3)
+  let _ ← cz.write (.known 12)
+
+  let net : Network := Network.mk #[
+    mulProp cx cy cz,
+    divProp cz cx cy,
+    divProp cz cy cx
+  ]
+
+  net.run
+
+  let yVal ← cy.read
+  IO.println s!"y is {yVal}"
+
+#eval mulNetwork
