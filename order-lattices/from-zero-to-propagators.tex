@@ -1,0 +1,3859 @@
+% ============================================================
+%  From Zero to Propagators
+%  Orders, Lattices, and Propagator Networks in Lean 4
+% ============================================================
+\documentclass[12pt, a4paper, openright]{book}
+
+% ── Fonts & encoding ────────────────────────────────────────
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\setmainfont{Latin Modern Roman}
+\setmathfont{Latin Modern Math}
+\setmonofont[Scale=0.82,
+             BoldFont={DejaVu Sans Mono:style=Bold}
+            ]{DejaVu Sans Mono}
+
+% ── Layout ──────────────────────────────────────────────────
+\usepackage[top=1in, bottom=1.15in, left=1.1in, right=1.1in, headheight=14pt]{geometry}
+\usepackage{microtype}
+\usepackage{placeins}
+\usepackage{setspace}
+\setstretch{1.08}
+\usepackage{parskip}
+\setlength{\parskip}{6pt}
+
+% ── Math ────────────────────────────────────────────────────
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+% ── Theorems ────────────────────────────────────────────────
+\usepackage{amsthm}
+\newtheoremstyle{defstyle}{8pt}{6pt}{\normalfont}{0pt}{\bfseries}{.}{.5em}{}
+\newtheoremstyle{thmstyle}{8pt}{6pt}{\itshape}{0pt}{\bfseries}{.}{.5em}{}
+\theoremstyle{thmstyle}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{defstyle}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+
+% ── Code (minted) ───────────────────────────────────────────
+\usepackage{minted}
+\usemintedstyle{friendly}
+\setminted[lean4]{
+  bgcolor=gray!6,
+  frame=lines,
+  framesep=4pt,
+  rulecolor=gray!40,
+  fontsize=\small,
+  breaklines=true,
+  linenos=true,
+  numbersep=6pt,
+  xleftmargin=14pt,
+}
+\setminted[text]{
+  bgcolor=yellow!8,
+  frame=single,
+  framesep=4pt,
+  rulecolor=gray!30,
+  fontsize=\small,
+  linenos=false,
+  xleftmargin=6pt,
+}
+% Inline lean
+\newcommand{\lc}[1]{\mintinline{lean4}{#1}}
+
+% ── Diagrams ────────────────────────────────────────────────
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, shapes.geometric, calc, decorations.pathreplacing}
+\tikzset{
+  node/.style={circle, draw=gray!80, fill=gray!10, inner sep=3pt, minimum size=7mm, font=\small},
+  edge/.style={-{Stealth[scale=0.8]}, gray!60, thick},
+  hasseedge/.style={draw=gray!70, thick},
+}
+
+% ── Coloured boxes ──────────────────────────────────────────
+\usepackage{tcolorbox}
+\tcbuselibrary{theorems, breakable, skins, most}
+
+\tcbset{
+  defbox/.style={
+    enhanced, breakable,
+    colback=blue!4, colframe=blue!55!black,
+    fonttitle=\bfseries, title={Definition},
+    attach boxed title to top left={xshift=8pt, yshift=-2pt},
+    boxed title style={colback=blue!55!black, colframe=blue!55!black},
+    boxrule=0.6pt, arc=3pt, left=6pt, right=6pt, top=8pt, bottom=6pt,
+  },
+  thmbox/.style={
+    enhanced, breakable,
+    colback=green!3, colframe=green!50!black,
+    fonttitle=\bfseries,
+    boxrule=0.6pt, arc=3pt, left=6pt, right=6pt, top=6pt, bottom=6pt,
+  },
+  exbox/.style={
+    enhanced, breakable,
+    colback=orange!4, colframe=orange!70!black,
+    fonttitle=\bfseries, title={Example},
+    attach boxed title to top left={xshift=8pt, yshift=-2pt},
+    boxed title style={colback=orange!70!black, colframe=orange!70!black},
+    boxrule=0.6pt, arc=3pt, left=6pt, right=6pt, top=8pt, bottom=6pt,
+  },
+  exbox_notitle/.style={
+    enhanced, breakable,
+    colback=orange!4, colframe=orange!70!black,
+    boxrule=0.6pt, arc=3pt, left=6pt, right=6pt, top=6pt, bottom=6pt,
+  },
+  exercisebox/.style={
+    enhanced, breakable,
+    colback=purple!4, colframe=purple!60!black,
+    fonttitle=\bfseries,
+    boxrule=0.6pt, arc=3pt, left=6pt, right=6pt, top=6pt, bottom=6pt,
+  },
+  notebox/.style={
+    enhanced,
+    colback=yellow!8, colframe=yellow!70!black,
+    boxrule=0.4pt, arc=3pt, left=6pt, right=6pt, top=4pt, bottom=4pt,
+  },
+}
+
+\newenvironment{defbox}[1][]{%
+  \begin{tcolorbox}[defbox, title={Definition\ifx\\#1\\\else\ --- #1\fi}]%
+}{\end{tcolorbox}}
+
+\newenvironment{thmbox}[1][]{%
+  \begin{tcolorbox}[thmbox, title={\ifx\\#1\\Theorem\else#1\fi}]%
+}{\end{tcolorbox}}
+
+\newenvironment{exbox}[1][]{%
+  \begin{tcolorbox}[exbox, title={Example\ifx\\#1\\\else\ --- #1\fi}]%
+}{\end{tcolorbox}}
+
+\newenvironment{notebox}{%
+  \begin{tcolorbox}[notebox]%
+}{\end{tcolorbox}}
+
+\newcounter{exercise}[chapter]
+\newenvironment{exercisebox}[1][]{%
+  \refstepcounter{exercise}%
+  \begin{tcolorbox}[exercisebox,
+    title={Exercise \thechapter.\theexercise\ifx\\#1\\\else\ --- #1\fi}]%
+}{\end{tcolorbox}}
+
+% ── Fancy chapter headings ───────────────────────────────────
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\huge\bfseries}
+  {\large\scshape\chaptertitlename\ \thechapter}
+  {10pt}
+  {\Huge\bfseries}
+\titlespacing*{\chapter}{0pt}{20pt}{30pt}
+
+% ── Headers & footers ───────────────────────────────────────
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\itshape\leftmark}
+\fancyhead[RO]{\small\itshape\rightmark}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Hyperlinks ──────────────────────────────────────────────
+\usepackage[colorlinks=true, linkcolor=blue!60!black,
+            citecolor=green!50!black, urlcolor=blue!70!black,
+            bookmarks=true, bookmarksnumbered]{hyperref}
+
+% ── Misc ────────────────────────────────────────────────────
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{xspace}
+
+% Lean-specific math notation
+\newcommand{\lean}[1]{\texttt{#1}}
+
+% ============================================================
+\begin{document}
+\frontmatter
+
+% ── Title page ──────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  {\Huge\bfseries From Zero to Propagators\par}
+  \vspace{0.5cm}
+  {\large\itshape Orders, Lattices, and Propagator Networks in Lean~4\par}
+  \vspace{3cm}
+  \begin{tcolorbox}[width=0.75\textwidth,
+                    colback=gray!8, colframe=gray!50, arc=4pt,
+                    boxrule=0.6pt]
+    \small\centering
+    \textit{``The propagator model is to functional programming\\
+    what constraint logic programming is to logic programming:\\
+    a radical generalisation that turns programs into networks\\
+    of co-operating, partial knowledge sources.''}\\[4pt]
+    --- Inspired by Radul \& Sussman (2009)
+  \end{tcolorbox}
+  \vfill
+  {\large A Self-Contained Journey Through Order Theory\\
+  to Verified Constraint Propagation\par}
+  \vspace{1cm}
+  {\normalsize Lean~4 code requires no external libraries beyond the standard prelude.\par}
+  \vspace{0.5cm}
+  {\small\color{gray} Edition 1.0\par}
+\end{titlepage}
+
+% ── Preface ──────────────────────────────────────────────────
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
+
+This book has a single grand ambition: to take you from the very first
+principles of ordered structures all the way to building a working
+\emph{propagator network} --- a powerful computational model that arises
+naturally from the mathematics of lattices --- and to do it with
+complete rigour in Lean~4.
+
+\medskip
+\textbf{Who this book is for.}
+We assume you are comfortable reading mathematics at the level of a second-year
+undergraduate: sets, functions, logical quantifiers, and basic proof
+techniques are fair game. No prior knowledge of abstract algebra or Lean is
+required, though some familiarity with functional programming will help when
+reading the longer code sections.
+
+\medskip
+\textbf{The Lean~4 philosophy here.}
+Every definition and theorem in this book has a corresponding Lean~4
+encoding. We deliberately avoid Mathlib to keep the dependency footprint at
+zero and to force you to understand every axiom rather than importing it from
+a library. Where a Mathlib equivalent exists we point it out in a margin
+note.
+
+\medskip
+\textbf{How to read this book.}
+Part~I builds the algebraic foundations: relations, partial orders, and
+lattices. Part~II shows how these structures give rise to a beautiful
+computational model --- the propagator network. Part~III contains two
+capstone projects that demonstrate the full power of the model: a Sudoku
+solver driven entirely by constraint propagation, and a type-inference
+engine for a small lambda calculus. By the time you reach the end of
+Part~III the connection between the mathematics and the code should feel
+inevitable.
+
+\medskip
+\textbf{A note on Lean Unicode.}
+All code listings use the Unicode characters that Lean~4 accepts natively:
+\texttt{∀ ∃ → ← ↔ ≤ ≥ ⊓ ⊔ ⊥ ⊤ ∈ ∉ α β γ ×} and so on. When
+reading the code, treat these as single characters exactly as Lean treats
+them. In Lean~4 you enter them with backslash sequences (e.g.\ \texttt{\textbackslash{}le} for \texttt{≤}); your editor should substitute them live.
+
+\tableofcontents
+
+% ============================================================
+\mainmatter
+
+% ============================================================
+\part{The Algebra of Order}
+
+% ============================================================
+\chapter{Relations and Partial Orders}
+
+\begin{quote}
+  \itshape
+  ``The concept of an ordering is one of the most basic in all of
+  mathematics, and yet we rarely pause to examine what it actually requires.''
+\end{quote}
+
+Before we can study lattices or build propagator networks, we need a precise
+vocabulary for talking about \emph{order}: what it means for one thing to be
+``at most'' another, how such a concept can be captured in a type, and which
+algebraic laws make it useful.
+
+% ── 1.1 Binary Relations ────────────────────────────────────
+\section{Binary Relations}
+
+\begin{defbox}[Binary Relation]
+  A \emph{binary relation} on a set $A$ is a subset $R \subseteq A \times A$.
+  We write $a \mathrel{R} b$ (or $R(a, b)$) as shorthand for $(a, b) \in R$.
+\end{defbox}
+
+Lean~4 encodes a relation as a function returning \lc{Prop}:
+
+\begin{minted}{lean4}
+-- A binary relation on type α
+def Rel (α : Type) : Type := α → α → Prop
+\end{minted}
+
+Using \lc{Prop} rather than \lc{Bool} is crucial: proofs are computationally
+irrelevant (two proofs of the same proposition are definitionally equal), and
+we can state facts like ``this relation is a partial order'' as types.
+
+\begin{exbox}[Common relations]
+  \begin{itemize}[nosep]
+    \item $\leq$ on $\mathbb{N}$: $R = \{(m, n) \mid m \leq n\}$.
+    \item Divisibility on $\mathbb{N}$: $m \mid n \iff \exists k,\; n = m \cdot k$.
+    \item Subset inclusion on $\mathcal{P}(S)$: $A \subseteq B \iff \forall x, x \in A \to x \in B$.
+    \item The equality relation $=$ on any set.
+    \item The \emph{discrete} relation: $a \mathrel{R} b \iff a = b$.
+    \item The \emph{trivial} relation: $a \mathrel{R} b$ for all $a, b$ (everything relates to everything).
+  \end{itemize}
+\end{exbox}
+
+% ── 1.2 Properties ──────────────────────────────────────────
+\section{Properties of Relations}
+
+Four properties will occupy us throughout the book.
+
+\begin{defbox}[Reflexivity, Symmetry, Antisymmetry, Transitivity]
+  Let $R$ be a binary relation on $A$.
+  \begin{align*}
+    \text{Reflexive}    &\;:\iff\; \forall a \in A,\; a \mathrel{R} a \\
+    \text{Symmetric}    &\;:\iff\; \forall a, b \in A,\; a \mathrel{R} b \to b \mathrel{R} a \\
+    \text{Antisymmetric}&\;:\iff\; \forall a, b \in A,\; a \mathrel{R} b \to b \mathrel{R} a \to a = b \\
+    \text{Transitive}   &\;:\iff\; \forall a, b, c \in A,\; a \mathrel{R} b \to b \mathrel{R} c \to a \mathrel{R} c
+  \end{align*}
+\end{defbox}
+
+In Lean~4:
+
+\begin{minted}{lean4}
+namespace OrderBook
+
+def Reflexive  {α : Type} (r : Rel α) : Prop :=
+  ∀ (a : α), r a a
+
+def Symmetric  {α : Type} (r : Rel α) : Prop :=
+  ∀ (a b : α), r a b → r b a
+
+def Antisymm   {α : Type} (r : Rel α) : Prop :=
+  ∀ (a b : α), r a b → r b a → a = b
+
+def Transitive {α : Type} (r : Rel α) : Prop :=
+  ∀ (a b c : α), r a b → r b c → r a c
+
+end OrderBook
+\end{minted}
+
+\begin{notebox}
+  \textbf{Symmetry vs Antisymmetry.}
+  These are not negations of each other! A relation can be both symmetric and
+  antisymmetric (equality), neither (``$a$ is a parent of $b$''), or only one.
+  Antisymmetry says: if you can go \emph{both} ways, the elements must be equal.
+\end{notebox}
+
+% ── 1.3 Partial Orders ──────────────────────────────────────
+\section{Partial Orders}
+
+\begin{defbox}[Partial Order]
+  A \emph{partial order} on $A$ is a relation $\leq$ that is
+  reflexive, antisymmetric, and transitive.
+  The pair $(A, \leq)$ is called a \emph{partially ordered set} (or
+  \emph{poset}).
+\end{defbox}
+
+The word \emph{partial} refers to the fact that not every two elements need be
+comparable: there may exist $a, b$ with neither $a \leq b$ nor $b \leq a$.
+
+In Lean~4 we capture this as a typeclass:
+
+\begin{minted}{lean4}
+namespace OrderBook
+
+-- Our own partial order typeclass (mirrors core Lean / Mathlib).
+class PartialOrder (α : Type) where
+  le         : α → α → Prop
+  le_refl    : ∀ (a : α), le a a
+  le_antisymm: ∀ (a b : α), le a b → le b a → a = b
+  le_trans   : ∀ (a b c : α), le a b → le b c → le a c
+
+-- Attach the ≤ notation to any PartialOrder instance.
+instance [PartialOrder α] : LE α := ⟨PartialOrder.le⟩
+
+-- A convenience alias for strict less-than
+def lt [PartialOrder α] (a b : α) : Prop :=
+  PartialOrder.le a b ∧ ¬ (a = b)
+
+instance [PartialOrder α] : LT α := ⟨lt⟩
+
+end OrderBook
+\end{minted}
+
+\subsection{The Natural Numbers}
+
+The natural numbers with the usual $\leq$ form our first instance.
+In Lean~4's core library, \lc{Nat.le} is defined inductively:
+
+\begin{minted}{lean4}
+-- Recap: how ≤ is defined in core Lean 4 (no Mathlib needed)
+-- inductive Nat.le : Nat → Nat → Prop
+--   | refl : Nat.le n n
+--   | step : Nat.le n m → Nat.le n (m + 1)
+
+instance : OrderBook.PartialOrder Nat where
+  le          := Nat.ble  -- wait, we want Prop, not Bool
+  -- Use the propositional version:
+  le          := (· ≤ ·)      -- uses Nat.le which is in core
+  le_refl     := Nat.le_refl
+  le_antisymm := fun a b h1 h2 => Nat.le_antisymm h1 h2
+  le_trans    := fun a b c h1 h2 => Nat.le_trans h1 h2
+\end{minted}
+
+\begin{notebox}
+  Lean~4's \emph{core} library already provides \lc{Nat.le_refl},
+  \lc{Nat.le_antisymm}, and \lc{Nat.le_trans}. We reuse these rather than
+  reprove them. In later chapters we will prove non-trivial instances by hand.
+\end{notebox}
+
+\subsection{Divisibility}
+
+Divisibility is a partial order on $\mathbb{N}$: $n \leq m$ means ``$n$ divides
+$m$'', i.e.\ $\exists k, m = n \cdot k$. This is a genuinely different order from
+$\leq$: for instance $3 \leq 12$ (since $12 = 3 \cdot 4$) but $4 \not\leq 6$
+(no natural number $k$ satisfies $6 = 4k$).
+
+As discussed in the previous section, we cannot attach a second \lc{LE} instance
+to \lc{Nat} (one already exists for the usual order), so we introduce a newtype
+wrapper.
+
+\begin{notebox}
+  \textbf{Why \lc{structure} and not \lc{def DvdNat := Nat}?}
+  Using \lc{def} creates a \emph{transparent alias}: Lean can and will see
+  through it, meaning it occasionally treats \lc{DvdNat} as \lc{Nat} and
+  tries to apply \lc{Nat}'s existing \lc{LE} or \lc{HMul} instances, causing
+  ``typeclass instance stuck'' errors. A \lc{structure} creates a
+  \emph{nominally distinct} type — Lean never conflates \lc{DvdNat} with
+  \lc{Nat} unless you explicitly coerce. This is the reliable choice whenever
+  you want a newtype for instance purposes.
+\end{notebox}
+
+\begin{minted}{lean4}
+-- A nominally distinct wrapper type for Nat under divisibility
+structure DvdNat where
+  val : Nat
+
+-- Coercion from DvdNat to Nat (one direction is enough for our proofs)
+instance : Coe DvdNat Nat := ⟨DvdNat.val⟩
+
+-- Numeric literals: (5 : DvdNat) desugars to DvdNat.mk 5
+instance {n : Nat} : OfNat DvdNat n := ⟨⟨n⟩⟩
+
+-- The divisibility relation, stated entirely in Nat to avoid ambiguity
+-- in the multiplication on the right-hand side.
+def Dvd' (n m : DvdNat) : Prop := ∃ k : Nat, m.val = n.val * k
+
+instance : LE DvdNat := ⟨Dvd'⟩
+\end{minted}
+
+By using \lc{.val} explicitly rather than a coercion inside \lc{Dvd'}, we
+ensure the multiplication \lc{n.val * k} is unambiguously \lc{Nat} multiplication.
+Coercions are useful for moving single values across a boundary, but inside an
+expression with multiple interacting terms they give Lean too many degrees of
+freedom and can produce stuck typeclass searches.
+
+\subsubsection{Building up the proof: the lemmas we need}
+
+The reflexivity and transitivity proofs are short. Antisymmetry --- ``if $a
+\mid b$ and $b \mid a$ then $a = b$'' --- is where the real mathematical content
+lives. Rather than writing it as a single inscrutable block, we build it from
+three small lemmas, each of which is worth understanding on its own.
+
+\medskip
+\textbf{Lemma 1: if $a = 0$ and $a \mid b$, then $b = 0$.}
+
+If $a = 0$, then $b = 0 \cdot k = 0$ for any $k$. This is the zero case of
+antisymmetry: the only thing that $0$ divides is $0$ itself.
+
+\begin{minted}{lean4}
+-- If 0 | m, then m.val = 0.
+-- Proof: the witness k gives m.val = 0 * k.
+-- We then reduce 0 * k to 0 using Nat.zero_mul.
+theorem dvd_zero_left (m : DvdNat) (h : Dvd' ⟨0⟩ m) : m.val = 0 := by
+  obtain ⟨k, hk⟩ := h
+  -- hk : m.val = DvdNat.mk(0).val * k
+  -- DvdNat.mk(0).val reduces to 0 by definition, so simp can see it
+  simp at hk
+  -- hk is now: m.val = 0
+  exact hk
+\end{minted}
+
+\begin{notebox}
+  \textbf{Why \lc{simp} instead of \lc{rw [Nat.zero\_mul]}?}
+  With a \lc{structure}, the literal \lc{0 : DvdNat} is
+  \lc{OfNat.ofNat 0 = DvdNat.mk 0}, so its \lc{.val} is
+  \lc{DvdNat.mk(0).val}, not the bare \lc{0} that \lc{Nat.zero\_mul} expects
+  as its left-hand side pattern. \lc{simp} performs the definitional unfolding
+  first and then applies \lc{Nat.zero\_mul}, where a bare \lc{rw} cannot.
+  If you want to avoid \lc{simp} you can write \lc{show m.val = 0} after an
+  explicit \lc{have : DvdNat.mk(0).val = 0 := rfl}.
+\end{notebox}
+
+\medskip
+\textbf{Lemma 2: if $k \cdot j = 1$ in $\mathbb{N}$, then $k = 1$.}
+
+This is the key algebraic fact that drives the nonzero case. In $\mathbb{Z}$ the
+units are $\pm 1$; in $\mathbb{N}$ the only unit is $1$. We prove it by
+exhaustive case analysis: $k$ cannot be $0$ (product would be $0$) and cannot
+be $\geq 2$ (product would be $\geq 2$).
+
+\begin{minted}{lean4}
+-- In ℕ, k * j = 1 forces k = 1 (and by symmetry, j = 1).
+-- No omega or linarith — proved by explicit structural case analysis.
+theorem mul_eq_one_left {k j : Nat} (h : k * j = 1) : k = 1 := by
+  match k with
+  | 0 =>
+    -- 0 * j = 0 ≠ 1, so this case is impossible.
+    -- simp knows 0 * j = 0, which contradicts h : 0 = 1.
+    simp [Nat.zero_mul] at h
+  | 1 =>
+    -- k is already 1; no further argument needed.
+    rfl
+  | k + 2 =>
+    -- (k+2) * j ≥ 2, contradicting h : (k+2) * j = 1.
+    exfalso
+    -- First establish j ≥ 1 (if j = 0, the product is 0, not 1).
+    have hj : j ≥ 1 := by
+      cases j with
+      | zero   => simp [Nat.mul_zero] at h
+      | succ j => exact Nat.succ_le_succ (Nat.zero_le j)
+    -- Now show the product is at least 2.
+    have hbig : (k + 2) * j ≥ 2 :=
+      calc (k + 2) * j
+          ≥ (k + 2) * 1 := Nat.mul_le_mul_left (k + 2) hj
+        _ = k + 2       := Nat.mul_one (k + 2)
+        _ ≥ 2           := Nat.le_add_left 2 k
+    -- h says the product is 1, but hbig says it is ≥ 2. Contradiction.
+    omega
+
+-- The right-factor version follows by commutativity.
+theorem mul_eq_one_right {k j : Nat} (h : k * j = 1) : j = 1 :=
+  mul_eq_one_left (by rw [Nat.mul_comm]; exact h)
+\end{minted}
+
+\medskip
+\textbf{Lemma 3: if $a > 0$, $a \mid b$, and $b \mid a$, then $a = b$.}
+
+Given witnesses $k$ and $j$ with $b = a \cdot k$ and $a = b \cdot j$, we
+substitute to get $a = a \cdot (k \cdot j)$, cancel $a$ (valid because $a >
+0$), apply Lemma~2, and conclude $k = 1$, hence $b = a$.
+
+\begin{minted}{lean4}
+-- All arithmetic here lives in Nat — no DvdNat involved.
+theorem dvd_antisymm_pos
+    {a b : Nat} (ha : 0 < a)
+    (k : Nat) (hk : b = a * k)
+    (j : Nat) (hj : a = b * j) : a = b := by
+  -- Step 1: derive k * j = 1.
+  -- Substitute hk into hj to get  a = a * (k * j),
+  -- then cancel a (valid since a > 0).
+  have hkj : k * j = 1 := by
+    have hstep : a = a * (k * j) :=
+      calc a = b * j       := hj
+           _ = (a * k) * j := by rw [hk]
+           _ = a * (k * j) := by rw [Nat.mul_assoc]
+    exact Nat.eq_of_mul_eq_mul_left ha (by rw [Nat.mul_one]; exact hstep.symm)
+  -- Step 2: j = 1 by Lemma 2 (right factor version).
+  have hj1 : j = 1 := mul_eq_one_right hkj
+  -- Step 3: substitute j = 1 into hj : a = b * j to get a = b * 1 = b.
+  have h₂ : a = b * 1 := by rw [hj1] at hj; exact hj
+  rw [Nat.mul_one] at h₂
+  exact h₂
+\end{minted}
+
+\begin{notebox}
+  \textbf{Why \lc{Nat.eq\_of\_mul\_eq\_mul\_left}?}
+  This says: if $a > 0$ and $a \cdot x = a \cdot y$, then $x = y$.
+  It is multiplication cancellation for $\mathbb{N}$, available in core Lean.
+  The positivity hypothesis is essential: $0 \cdot x = 0 \cdot y$ for all
+  $x, y$, so cancellation is unsound at zero.
+\end{notebox}
+
+\subsubsection{Assembling the instance}
+
+With the lemmas in hand, each field is a short delegation.
+
+\begin{minted}{lean4}
+instance : PartialOrder DvdNat where
+
+  -- Reflexivity: n | n via witness k = 1, since n.val = n.val * 1.
+  le_refl := fun n =>
+    ⟨1, (Nat.mul_one n.val).symm⟩
+
+  -- Antisymmetry: case-split on whether n.val is zero or positive,
+  -- then delegate to Lemma 1 or Lemma 3 respectively.
+  le_antisymm := fun n m ⟨k, hk⟩ ⟨j, hj⟩ => by
+    -- Reduce  n = m  (DvdNat equality) to  n.val = m.val
+    cases n; cases m
+    -- Now n and m are gone; we have a b : Nat as the .val fields.
+    -- The goal is  DvdNat.mk a = DvdNat.mk b.
+    -- congr 1 reduces this to  a = b.
+    congr 1
+    rename_i a b
+    cases Nat.eq_zero_or_pos a with
+    | inl ha =>
+      -- a = 0: b = 0 * k = 0 by Lemma 1, and a = 0, so a = b.
+      subst ha
+      exact (dvd_zero_left ⟨b⟩ ⟨k, hk⟩).symm
+    | inr ha =>
+      -- a > 0: use Lemma 3 directly.
+      exact (dvd_antisymm_pos ha k hk j hj).symm
+
+  -- Transitivity: compose witnesses.  b.val = a.val * k and
+  -- c.val = b.val * j, so c.val = a.val * (k * j).
+  le_trans := fun a b c ⟨k, hk⟩ ⟨j, hj⟩ =>
+    ⟨k * j, by rw [hj, hk, Nat.mul_assoc]⟩
+\end{minted}
+
+\subsubsection{Reflection}
+
+Notice that the structure of the proof exactly mirrors the structure of the
+mathematics:
+\begin{itemize}[nosep]
+  \item Reflexivity is trivial because the witness $k = 1$ is explicit.
+  \item Transitivity is trivial because multiplying witnesses gives a new
+    witness: $b = a \cdot k$ and $c = b \cdot j$ compose to $c = a \cdot (kj)$.
+  \item Antisymmetry requires real work because it cannot be witnessed
+    directly --- it requires us to reason about what witnesses can possibly
+    exist and conclude they must all be $1$.
+\end{itemize}
+
+The lemma \lc{mul\_eq\_one\_left} is the mathematical core. Everything else is
+bookkeeping. When reading an unfamiliar proof, it is always worth asking: where
+is the actual mathematical content? In this case it is entirely in that one
+lemma.
+
+\subsection{Sets}
+
+Sets (represented as predicates) form a canonical partial order under inclusion.
+
+\begin{minted}{lean4}
+-- We represent sets as indicator functions
+def Set (α : Type) : Type := α → Prop
+
+-- Subset inclusion
+def Set.subset {α : Type} (s t : Set α) : Prop :=
+  ∀ (a : α), s a → t a
+
+instance {α : Type} : OrderBook.PartialOrder (Set α) where
+  le          := Set.subset
+  le_refl     := fun s a ha => ha
+  le_antisymm := fun s t h1 h2 =>
+    funext (fun a => propext ⟨h1 a, h2 a⟩)
+  le_trans    := fun s t u h1 h2 a ha => h2 a (h1 a ha)
+\end{minted}
+
+This is our first non-trivial Lean proof. Let us read it carefully:
+\begin{itemize}
+  \item \lc{le_refl}: given $a \in s$, produce $a \in s$ --- trivial.
+  \item \lc{le_antisymm}: $s \subseteq t$ and $t \subseteq s$ imply $s = t$.
+    We use \lc{funext} (function extensionality) and \lc{propext}
+    (propositional extensionality) to conclude $s\,a \leftrightarrow t\,a$ for
+    all $a$, hence $s = t$.
+  \item \lc{le_trans}: chain the inclusions.
+\end{itemize}
+
+% ── 1.4 Hasse Diagrams ──────────────────────────────────────
+\section{Hasse Diagrams}
+
+Posets are best understood visually. A \emph{Hasse diagram} draws elements as
+nodes and covers as upward edges: we say $a$ is \emph{covered by} $b$
+(written $a \lessdot b$) if $a < b$ and there is no $c$ with $a < c < b$.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[node distance=1.4cm]
+    % Powerset of {a,b,c}
+    \node[node] (bot)  {\small $\varnothing$};
+    \node[node] (a)    [above left=1.2cm and 1.6cm of bot] {\small $\{a\}$};
+    \node[node] (b)    [above=1.8cm of bot]                {\small $\{b\}$};
+    \node[node] (c)    [above right=1.2cm and 1.6cm of bot]{\small $\{c\}$};
+    \node[node] (ab)   [above=1.8cm of a]                  {\small $\{a,b\}$};
+    \node[node] (bc)   [above=1.8cm of c]                  {\small $\{b,c\}$};
+    \node[node] (ac)   [above=1.8cm of b]                  {\small $\{a,c\}$};
+    \node[node] (top)  [above=1.8cm of ac]                 {\small $\{a,b,c\}$};
+    \draw[hasseedge] (bot)--(a); \draw[hasseedge] (bot)--(b); \draw[hasseedge] (bot)--(c);
+    \draw[hasseedge] (a)--(ab);  \draw[hasseedge] (b)--(ab); 
+    \draw[hasseedge] (b)--(bc);  \draw[hasseedge] (c)--(bc);
+    \draw[hasseedge] (a)--(ac);  \draw[hasseedge] (c)--(ac);
+    \draw[hasseedge] (ab)--(top);\draw[hasseedge] (ac)--(top);\draw[hasseedge] (bc)--(top);
+  \end{tikzpicture}
+  \caption{The powerset lattice $\mathcal{P}(\{a,b,c\})$ ordered by $\subseteq$.}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[node distance=1.4cm]
+    % Divisibility poset on {1,2,3,4,6,12}
+    \node[node] (1)  {1};
+    \node[node] (2)  [above left=1.4cm and 0.9cm of 1]  {2};
+    \node[node] (3)  [above right=1.4cm and 0.9cm of 1] {3};
+    \node[node] (4)  [above=1.4cm of 2]                  {4};
+    \node[node] (6)  [above right=1.4cm and 0.0cm of 2]  {6};
+    \node[node] (12) [above right=1.4cm and 0.0cm of 4]  {12};
+    \draw[hasseedge] (1)--(2); \draw[hasseedge] (1)--(3);
+    \draw[hasseedge] (2)--(4); \draw[hasseedge] (2)--(6);
+    \draw[hasseedge] (3)--(6);
+    \draw[hasseedge] (4)--(12);\draw[hasseedge] (6)--(12);
+  \end{tikzpicture}
+  \caption{The divisibility poset on $\{1, 2, 3, 4, 6, 12\}$.}
+\end{figure}
+
+% ── 1.4 Computation interlude ────────────────────────────────
+\FloatBarrier
+\section{Computation Interlude: Running the Divisibility Order}
+
+So far every definition has lived in \lc{Prop}. This section bridges that gap
+with a fully computable divisibility order on $\{1,\ldots,12\}$.
+
+\begin{minted}{lean4}
+def D12 : List Nat := [1, 2, 3, 4, 6, 12]
+def dvd12 (a b : Nat) : Bool := b % a == 0
+
+-- Supremum: smallest upper bound
+def upperBounds (xs : List Nat) : List Nat :=
+  D12.filter (fun u => xs.all (fun x => dvd12 x u))
+
+def sup12 (xs : List Nat) : Option Nat :=
+  let ubs := upperBounds xs
+  ubs.find? (fun s => ubs.all (fun u => dvd12 s u))
+
+#eval sup12 [4, 6]   -- some 12  (lcm)
+#eval sup12 [2, 3]   -- some 6
+
+-- Infimum: greatest lower bound
+def lowerBounds (xs : List Nat) : List Nat :=
+  D12.filter (fun l => xs.all (fun x => dvd12 l x))
+
+def inf12 (xs : List Nat) : Option Nat :=
+  let lbs := lowerBounds xs
+  lbs.find? (fun s => lbs.all (fun l => dvd12 l s))
+
+#eval inf12 [4, 6]   -- some 2  (gcd)
+#eval inf12 [3, 4]   -- some 1
+
+-- Print Hasse diagram edges
+def covers (a b : Nat) : Bool :=
+  dvd12 a b && a != b &&
+  !D12.any (fun c => c != a && c != b && dvd12 a c && dvd12 c b)
+
+def printHasse : IO Unit := do
+  for a in D12 do
+    for b in D12 do
+      if covers a b then IO.println s!"{a} ──► {b}"
+
+#eval printHasse  -- 1→2, 1→3, 2→4, 2→6, 3→6, 4→12, 6→12
+\end{minted}
+
+% ── 1.5 Exercises ───────────────────────────────────────────
+\section{Exercises}
+
+\begin{exercisebox}[Reflexivity and symmetry]
+  Show that a relation that is both symmetric and antisymmetric must be a
+  subset of the equality relation, i.e.\ $a \mathrel{R} b \to a = b$.
+  Prove this in Lean~4.
+  \begin{minted}{lean4}
+theorem symm_antisymm_eq {α : Type} (r : Rel α)
+    (hs : Symmetric r) (ha : Antisymm r) :
+    ∀ a b : α, r a b → a = b := by
+  intro a b h
+  exact ha a b h (hs a b h)
+  \end{minted}
+\end{exercisebox}
+
+\begin{exercisebox}[Divisibility on a small set]
+  Consider the divisibility relation restricted to the set $\{1,2,3,4,6,12\}$.
+  \begin{enumerate}[label=(\alph*), nosep]
+    \item Draw its Hasse diagram.
+    \item Which pairs of elements are incomparable?
+    \item In Lean~4, define a type \lc{D12} with six constructors and prove
+          that divisibility on it satisfies \lc{le\_refl}.
+  \end{enumerate}
+\end{exercisebox}
+
+\begin{exercisebox}[Product order]
+  Given two partial orders $(A, \leq_A)$ and $(B, \leq_B)$, define the
+  \emph{product order} on $A \times B$ by
+  $(a_1, b_1) \leq (a_2, b_2) \iff a_1 \leq_A a_2 \;\wedge\; b_1 \leq_B b_2$.
+  Prove in Lean~4 that this is indeed a partial order by implementing
+  the typeclass instance.
+  \begin{minted}{lean4}
+instance [OrderBook.PartialOrder α] [OrderBook.PartialOrder β] :
+    OrderBook.PartialOrder (α × β) where
+  le p q := PartialOrder.le p.1 q.1 ∧ PartialOrder.le p.2 q.2
+  le_refl := fun ⟨a, b⟩ => ⟨PartialOrder.le_refl a,
+                              PartialOrder.le_refl b⟩
+  le_antisymm := fun ⟨a1,b1⟩ ⟨a2,b2⟩ ⟨h1,h2⟩ ⟨h3,h4⟩ => by
+    have := PartialOrder.le_antisymm _ _ h1 h3
+    have := PartialOrder.le_antisymm _ _ h2 h4
+    simp_all
+  le_trans := fun ⟨a1,b1⟩ ⟨a2,b2⟩ ⟨a3,b3⟩ ⟨h1,h2⟩ ⟨h3,h4⟩ =>
+    ⟨PartialOrder.le_trans _ _ _ h1 h3,
+     PartialOrder.le_trans _ _ _ h2 h4⟩
+  \end{minted}
+\end{exercisebox}
+
+\begin{exercisebox}[Reverse order]
+  If $(A, \leq)$ is a partial order, then so is $(A, \geq)$ where
+  $a \geq b \iff b \leq a$.  This is called the \emph{dual} or \emph{opposite}
+  order.  Implement a \lc{Dual} wrapper type and its \lc{PartialOrder} instance.
+  We will use this construction crucially when encoding Sudoku domains in
+  Chapter~8.
+\end{exercisebox}
+
+% ============================================================
+\chapter{Special Elements and Monotone Maps}
+
+In a poset, certain elements play privileged roles (least, greatest, bounds),
+and certain functions are especially well-behaved (monotone maps).
+This chapter equips us with the vocabulary for both.
+
+\section{Extremal Elements}
+
+\begin{defbox}[Minimum, Maximum, Minimal, Maximal]
+  Let $(P, \leq)$ be a poset and $S \subseteq P$.
+  \begin{itemize}[nosep]
+    \item $m \in S$ is the \emph{minimum} of $S$ if $\forall s \in S,\; m \leq s$.
+    \item $m \in S$ is the \emph{maximum} of $S$ if $\forall s \in S,\; s \leq m$.
+    \item $m \in S$ is \emph{minimal} in $S$ if $\nexists s \in S,\; s < m$.
+    \item $m \in S$ is \emph{maximal} in $S$ if $\nexists s \in S,\; m < s$.
+  \end{itemize}
+\end{defbox}
+
+A minimum, if it exists, is unique (by antisymmetry). A minimal element need
+not be unique. When a poset has a unique minimum we call it $\bot$ (bottom),
+and a unique maximum $\top$ (top).
+
+The distinction between minimum and minimal is subtle but important.
+A \emph{minimum} beats every other element; a \emph{minimal} element
+merely has no element strictly below it.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{scope}[xshift=0cm]
+      \node[font=\small\itshape, above] at (1, 3.8) {has a minimum};
+      \node[node] (bot) at (1,0) {$a$};
+      \node[node] (b)   at (0,1.5) {$b$};
+      \node[node] (c)   at (2,1.5) {$c$};
+      \node[node] (top) at (1,3)   {$d$};
+      \draw[hasseedge] (bot)--(b); \draw[hasseedge] (bot)--(c);
+      \draw[hasseedge] (b)--(top); \draw[hasseedge] (c)--(top);
+      \node[right=0.15cm of bot, gray, font=\scriptsize] {minimum $= a$};
+      \node[right=0.15cm of bot, gray, font=\scriptsize, yshift=-0.35cm]
+        {(also minimal)};
+    \end{scope}
+    \begin{scope}[xshift=5cm]
+      \node[font=\small\itshape, above] at (1, 3.8)
+        {two minimals, no minimum};
+      \node[node] (p) at (0,0) {$p$};
+      \node[node] (q) at (2,0) {$q$};
+      \node[node] (r) at (0,1.8) {$r$};
+      \node[node] (s) at (2,1.8) {$s$};
+      \node[node] (t) at (1,3)  {$t$};
+      \draw[hasseedge] (p)--(r); \draw[hasseedge] (p)--(s);
+      \draw[hasseedge] (q)--(s);
+      \draw[hasseedge] (r)--(t); \draw[hasseedge] (s)--(t);
+      \node[left=0.1cm of p, gray, font=\scriptsize] {minimal};
+      \node[right=0.1cm of q, gray, font=\scriptsize] {minimal};
+      \node[gray, font=\scriptsize] at (1,-0.7)
+        {$p \not\leq q$ and $q \not\leq p$};
+      \node[gray, font=\scriptsize] at (1,-1.1)
+        {so neither is a minimum};
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Left: a poset with a unique minimum $a$ (every element is above $a$).
+           Right: a poset where $p$ and $q$ are both minimal (nothing is below
+           either) but there is no minimum (neither $p \leq q$ nor $q \leq p$).}
+\end{figure}
+
+\begin{minted}{lean4}
+namespace OrderBook
+
+-- Bottom and top elements
+class Bot (α : Type) where bot : α
+class Top (α : Type) where top : α
+
+notation "⊥" => Bot.bot
+notation "⊤" => Top.top
+
+-- Being a bounded partial order
+class BoundedPartialOrder (α : Type) extends PartialOrder α, Bot α, Top α where
+  bot_le : ∀ (a : α), (⊥ : α) ≤ a
+  le_top : ∀ (a : α), a ≤ (⊤ : α)
+
+end OrderBook
+\end{minted}
+
+\begin{exbox}[Bounded orders]
+  \begin{itemize}[nosep]
+    \item $(\mathcal{P}(S), \subseteq)$: $\bot = \varnothing$, $\top = S$.
+    \item $(\{0,1\}, \leq)$: $\bot = 0$, $\top = 1$.
+    \item $(\mathbb{N}, \leq)$: $\bot = 0$, no $\top$ (unbounded above).
+    \item The divisibility poset on $\{1,\ldots,12\}$: $\bot = 1$ (divides everything), no single $\top$.
+  \end{itemize}
+\end{exbox}
+
+\section{Upper and Lower Bounds}
+
+\begin{defbox}[Bounds]
+  Let $(P, \leq)$ be a poset and $S \subseteq P$.
+  \begin{itemize}[nosep]
+    \item $u \in P$ is an \emph{upper bound} of $S$ if $\forall s \in S,\; s \leq u$.
+    \item $l \in P$ is a \emph{lower bound} of $S$ if $\forall s \in S,\; l \leq s$.
+    \item The \emph{supremum} (or \emph{least upper bound}) of $S$, written $\sup S$, is the
+          smallest upper bound of $S$ when it exists.
+    \item The \emph{infimum} (or \emph{greatest lower bound}) of $S$, written $\inf S$, is the
+          largest lower bound of $S$ when it exists.
+  \end{itemize}
+\end{defbox}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \node[node] (a)   at (0,0)   {$a$};
+    \node[node] (b)   at (2,1)   {$b$};
+    \node[node,fill=blue!15,draw=blue!60!black] (c) at (0,2) {$c$};
+    \node[node,fill=blue!15,draw=blue!60!black] (d) at (2,2) {$d$};
+    \node[node] (e)   at (0,4)   {$e$};
+    \node[node] (f)   at (2,4)   {$f$};
+    \node[node] (top) at (1,5.5) {$g$};
+    \draw[hasseedge] (a)--(b);
+    \draw[hasseedge] (a)--(c); \draw[hasseedge] (b)--(c);
+    \draw[hasseedge] (b)--(d);
+    \draw[hasseedge] (c)--(e); \draw[hasseedge] (d)--(e);
+    \draw[hasseedge] (c)--(f); \draw[hasseedge] (d)--(f);
+    \draw[hasseedge] (e)--(top);\draw[hasseedge] (f)--(top);
+    \node[blue!70!black, font=\small\bfseries] at (-1.1, 2)
+      {$S = \{c,d\}$};
+    \node[gray, font=\scriptsize, right=2.5cm of c, yshift=0.5cm]
+      (ann1) {$e, f, g$ are upper bounds of $S$};
+    \node[gray, font=\scriptsize, below=0.05cm of ann1]
+      {$\sup S = e$? Only if $e \leq f$.};
+    \node[gray, font=\scriptsize, below=0.05cm of ann1, yshift=-0.4cm]
+      {Here $e$ and $f$ incomparable $\Rightarrow$};
+    \node[gray, font=\scriptsize, below=0.05cm of ann1, yshift=-0.75cm]
+      {$\sup S = g$ (least upper bound).};
+    \node[gray, font=\scriptsize, right=2.5cm of b, yshift=-0.2cm]
+      {$a, b$ are lower bounds of $S$};
+    \node[gray, font=\scriptsize, right=2.5cm of b, yshift=-0.6cm]
+      {$\inf S = b$ (greatest lower bound).};
+  \end{tikzpicture}
+  \caption{Illustration of upper bounds, lower bounds, supremum and infimum
+           for the subset $S = \{c, d\}$ (shaded blue) in a poset.
+           The upper bounds of $S$ are all elements $\geq$ both $c$ and $d$:
+           here $e$, $f$, and $g$. The \emph{supremum} is the \emph{least}
+           of these; since $e$ and $f$ are incomparable, the least upper
+           bound is $g$. The lower bounds are $a$ and $b$; the infimum
+           is $b$ since $a \leq b$.}
+\end{figure}
+
+\begin{thmbox}[Uniqueness of sup/inf]
+  In a poset, if $\sup S$ exists, it is unique. Similarly for $\inf S$.
+\end{thmbox}
+\begin{proof}
+  Suppose $u$ and $v$ are both least upper bounds of $S$. Since $u$ is an
+  upper bound and $v$ is a \emph{least} upper bound, $v \leq u$. By symmetry
+  $u \leq v$. Antisymmetry gives $u = v$.
+\end{proof}
+
+\begin{minted}{lean4}
+-- The supremum of two elements (binary version)
+-- (We'll generalise to arbitrary subsets in Chapter 4.)
+structure IsSupOf {α : Type} [OrderBook.PartialOrder α]
+    (a b sup : α) : Prop where
+  ge_a  : a ≤ sup
+  ge_b  : b ≤ sup
+  least : ∀ (u : α), a ≤ u → b ≤ u → sup ≤ u
+
+-- Uniqueness of the binary sup
+theorem sup_unique {α : Type} [OrderBook.PartialOrder α]
+    {a b s t : α}
+    (hs : IsSupOf a b s) (ht : IsSupOf a b t) : s = t := by
+  apply PartialOrder.le_antisymm
+  · exact hs.least t ht.ge_a ht.ge_b
+  · exact ht.least s hs.ge_a hs.ge_b
+\end{minted}
+
+\section{Monotone Maps}
+
+\begin{defbox}[Monotone Map]
+  A function $f : (P, \leq_P) \to (Q, \leq_Q)$ between posets is
+  \emph{monotone} (or \emph{order-preserving}) if
+  $\forall a, b \in P,\; a \leq_P b \to f(a) \leq_Q f(b)$.
+\end{defbox}
+
+Monotone maps are the morphisms of the category of posets. They will be
+central to propagators: every propagator is a monotone function on a lattice.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{scope}[xshift=0cm]
+      \node[font=\small\bfseries] at (1, 4.2) {$P$};
+      \node[node] (p1) at (0,0) {$a$};
+      \node[node] (p2) at (2,0) {$b$};
+      \node[node] (p3) at (1,2) {$c$};
+      \node[node] (p4) at (1,3.5) {$d$};
+      \draw[hasseedge] (p1)--(p3); \draw[hasseedge] (p2)--(p3);
+      \draw[hasseedge] (p3)--(p4);
+    \end{scope}
+    \draw[-{Stealth},thick,blue!60!black] (3.2,1.8)
+      -- node[above,font=\small,blue!60!black]{$f$ (monotone)} (4.8,1.8);
+    \begin{scope}[xshift=6cm]
+      \node[font=\small\bfseries] at (1, 4.2) {$Q$};
+      \node[node,minimum size=10mm,font=\tiny] (q1) at (1,0)
+        {$f(a){=}f(b)$};
+      \node[node] (q3) at (1,2)   {$f(c)$};
+      \node[node] (q4) at (1,3.5) {$f(d)$};
+      \draw[hasseedge] (q1)--(q3); \draw[hasseedge] (q3)--(q4);
+      \node[gray,font=\scriptsize,right=0.15cm of q1,yshift=0.7cm]
+        {collapsing $a,b$ is fine \checkmark};
+    \end{scope}
+    \draw[dashed,gray!50] (p1) -- (q1);
+    \draw[dashed,gray!50] (p2) -- (q1);
+    \draw[dashed,gray!50] (p3) -- (q3);
+    \draw[dashed,gray!50] (p4) -- (q4);
+    \begin{scope}[yshift=-3.5cm]
+      \begin{scope}[xshift=0cm]
+        \node[font=\small\bfseries] at (1, 2.7) {$P$};
+        \node[node] (r1) at (0,0) {$x$};
+        \node[node] (r2) at (1,2) {$y$};
+        \draw[hasseedge] (r1)--(r2);
+        \node[gray,font=\scriptsize,below=0.05cm of r1]{$x \leq y$};
+      \end{scope}
+      \draw[-{Stealth},thick,red!60!black] (3.2,1)
+        -- node[above,font=\small,red!60!black]{$g$ (not monotone)} (4.8,1);
+      \begin{scope}[xshift=6cm]
+        \node[font=\small\bfseries] at (1, 2.7) {$Q$};
+        \node[node] (s1) at (1,2) {$g(x)$};
+        \node[node] (s2) at (1,0) {$g(y)$};
+        \draw[hasseedge] (s2)--(s1);
+        \node[gray,font=\scriptsize,right=0.1cm of s2,yshift=1cm]
+          {\color{red!70!black}$g(x) > g(y)$: order violated!};
+      \end{scope}
+      \draw[dashed,gray!50] (r1) -- (s1);
+      \draw[dashed,gray!50] (r2) -- (s2);
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Top: a monotone map $f$ preserves the order --- whenever $a \leq_P b$
+           in the source, $f(a) \leq_Q f(b)$ in the target. Here $f$ collapses
+           the incomparable elements $a$ and $b$ to the same image, which is
+           permitted. Bottom: a non-monotone map $g$ where $x \leq y$ but
+           $g(x) > g(y)$, violating the order.}
+\end{figure}
+
+\begin{minted}{lean4}
+namespace OrderBook
+
+structure Monotone {α β : Type}
+    [PartialOrder α] [PartialOrder β] (f : α → β) : Prop where
+  map_le : ∀ (a b : α), a ≤ b → f a ≤ f b
+
+-- Composition of monotone maps is monotone
+theorem Monotone.comp {α β γ : Type}
+    [PartialOrder α] [PartialOrder β] [PartialOrder γ]
+    {f : α → β} {g : β → γ}
+    (hf : Monotone f) (hg : Monotone g) : Monotone (g ∘ f) where
+  map_le := fun a b h => hg.map_le _ _ (hf.map_le _ _ h)
+
+end OrderBook
+\end{minted}
+
+\begin{exbox}[Monotone functions]
+  \begin{itemize}[nosep]
+    \item $f(n) = n + 5$ is monotone on $(\mathbb{N}, \leq)$.
+    \item Set union $S \mapsto S \cup \{x\}$ is monotone on $(\mathcal{P}(A), \subseteq)$.
+    \item Set intersection $S \mapsto S \cap T$ is monotone on $(\mathcal{P}(A), \subseteq)$ for fixed $T$.
+    \item Any constant function $f(x) = c$ is monotone.
+    \item The identity function is always monotone.
+  \end{itemize}
+\end{exbox}
+
+\section{Exercises}
+
+\begin{exercisebox}[Monotone composition]
+  Give an example showing that the composition of two \emph{antitone} maps
+  (where $a \leq b \to f(b) \leq f(a)$) is monotone.
+\end{exercisebox}
+
+\begin{exercisebox}[Fixed points]
+  A \emph{fixed point} of $f : P \to P$ is an element $x$ with $f(x) = x$.
+  Show that if $f$ is monotone and $a \leq f(a)$, then the chain
+  $a \leq f(a) \leq f^2(a) \leq \cdots$ is indeed a chain (all elements
+  pairwise comparable with the given order).
+\end{exercisebox}
+
+\begin{exercisebox}[Characterising PartialOrder via Monotone]
+  Show that the identity map $\mathrm{id} : (P,\leq) \to (P,\leq)$ is always
+  monotone, and prove this in Lean~4 using your \lc{Monotone} structure.
+\end{exercisebox}
+
+\FloatBarrier
+\section{Computation Interlude: Running Monotone Maps}
+
+Building on the computable divisibility order from Chapter~1, we can now compute
+with monotone maps and verify their properties at runtime.
+
+\textbf{Checking monotonicity}
+
+Given a function on \lc{D12}, we can decide whether it is monotone by checking
+all pairs.
+
+\begin{minted}{lean4}
+-- Check all comparable pairs to see if f preserves the order
+def isMonotone (f : Nat → Nat) : Bool :=
+  D12.all (fun a =>
+  D12.all (fun b =>
+    -- if a | b then f(a) | f(b)
+    !dvd12 a b || dvd12 (f a) (f b)))
+
+-- The identity is monotone
+#eval isMonotone id                         -- true
+
+-- Multiplying by 2: if a | b then 2a | 2b
+#eval isMonotone (· * 2)                   -- true
+
+-- A non-monotone map: send every element to its "complement" 12/n
+-- 1↦12, 2↦6, 3↦4, 4↦3, 6↦2, 12↦1 — this reverses the order
+#eval isMonotone (fun n => 12 / n)         -- false (it's antitone)
+
+-- But composing it with itself gives monotone again
+#eval isMonotone (fun n => 12 / (12 / n)) -- true
+\end{minted}
+
+\textbf{Computing fixed points}
+
+A fixed point of $f$ is an element where $f(x) = x$. We can find them all.
+
+\begin{minted}{lean4}
+def fixedPoints (f : Nat → Nat) : List Nat :=
+  D12.filter (fun x => f x == x)
+
+#eval fixedPoints id                    -- [1, 2, 3, 4, 6, 12]
+#eval fixedPoints (fun _ => 1)          -- [1]
+#eval D12.filter (fun n => 12 / n == n) -- [] (no fixed points for n ↦ 12/n)
+\end{minted}
+
+\textbf{Iterating a monotone map}
+
+From Exercise~2.2, we know that if $f$ is monotone and $a \leq f(a)$, the chain
+$a, f(a), f^2(a), \ldots$ is ascending. We can watch it converge.
+
+\begin{minted}{lean4}
+-- Apply f repeatedly until fixpoint or step limit
+def iterToFixpoint (f : Nat → Nat) (start : Nat) (limit : Nat) : List Nat :=
+  let rec go (x : Nat) (n : Nat) (acc : List Nat) : List Nat :=
+    if n = 0 then acc.reverse
+    else let y := f x
+         if y == x then (acc.reverse ++ [x])
+         else go y (n - 1) (x :: acc)
+  go start limit []
+
+-- f(n) = if 2*n ∈ D12 then 2*n else n
+def double12 (n : Nat) : Nat :=
+  if D12.contains (n * 2) then n * 2 else n
+
+#eval iterToFixpoint double12 1 10   -- [1, 2, 4, 12] ascending chain!
+#eval iterToFixpoint double12 3 10   -- [3, 6, 12]
+#eval iterToFixpoint double12 12 10  -- [12] already a fixed point
+\end{minted}
+
+The output directly illustrates the ascending chain theorem: starting from 1, each
+application of \lc{double12} moves strictly upward in the divisibility order until
+reaching the fixed point 12.
+
+% ============================================================
+\chapter{Lattices}
+
+A poset in which every pair of elements has both a supremum and an infimum
+is called a \emph{lattice}. This apparently modest requirement turns out to
+yield a rich algebraic structure that shows up in logic, topology, computer
+science, and --- as we will see in Part~II --- concurrency and constraint solving.
+
+\section{Meet and Join}
+
+\begin{defbox}[Lattice]
+  A \emph{lattice} is a poset $(L, \leq)$ in which every two elements
+  $a, b \in L$ have:
+  \begin{itemize}[nosep]
+    \item a \emph{meet} (greatest lower bound) $a \sqcap b$, and
+    \item a \emph{join} (least upper bound) $a \sqcup b$.
+  \end{itemize}
+\end{defbox}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \node[node] (bot) at (1,0)   {$a \sqcap b$};
+    \node[node] (a)   at (0,1.8) {$a$};
+    \node[node] (b)   at (2,1.8) {$b$};
+    \node[node] (top) at (1,3.6) {$a \sqcup b$};
+    \draw[hasseedge] (bot)--(a); \draw[hasseedge] (bot)--(b);
+    \draw[hasseedge] (a)--(top); \draw[hasseedge] (b)--(top);
+    \node[right=0.2cm of top, gray, font=\scriptsize, text width=3.5cm]
+      {join $a \sqcup b$:\\least upper bound of $a$ and $b$};
+    \node[right=0.2cm of bot, gray, font=\scriptsize, text width=3.5cm]
+      {meet $a \sqcap b$:\\greatest lower bound of $a$ and $b$};
+    \node[left=0.1cm of a, gray, font=\scriptsize]
+      {$a \sqcap b \leq a \leq a \sqcup b$};
+    \node[right=0.1cm of b, gray, font=\scriptsize]
+      {$a \sqcap b \leq b \leq a \sqcup b$};
+  \end{tikzpicture}
+  \caption{The meet $a \sqcap b$ sits below both $a$ and $b$; the join
+           $a \sqcup b$ sits above both. In a lattice every pair of elements
+           has both.}
+\end{figure}
+
+The meet and join satisfy the following axioms (which can be taken as an
+equivalent \emph{algebraic} definition of a lattice):
+
+\begin{align}
+  a \sqcap b &= b \sqcap a   & a \sqcup b &= b \sqcup a \tag{commutativity}\\
+  (a \sqcap b) \sqcap c &= a \sqcap (b \sqcap c) &
+  (a \sqcup b) \sqcup c &= a \sqcup (b \sqcup c) \tag{associativity}\\
+  a \sqcap a &= a  &  a \sqcup a &= a \tag{idempotence}\\
+  a \sqcap (a \sqcup b) &= a &  a \sqcup (a \sqcap b) &= a \tag{absorption}
+\end{align}
+
+The order relation can be recovered from meet or join:
+$$a \leq b \iff a \sqcap b = a \iff a \sqcup b = b.$$
+
+In Lean~4:
+
+\begin{minted}{lean4}
+namespace OrderBook
+
+class Lattice (α : Type) extends PartialOrder α where
+  inf : α → α → α    -- meet  (⊓)
+  sup : α → α → α    -- join  (⊔)
+  -- meet is a lower bound
+  inf_le_left  : ∀ (a b : α), inf a b ≤ a
+  inf_le_right : ∀ (a b : α), inf a b ≤ b
+  -- meet is the greatest lower bound
+  le_inf : ∀ (a b c : α), a ≤ b → a ≤ c → a ≤ inf b c
+  -- join is an upper bound
+  sup_le_left  : ∀ (a b : α), a ≤ sup a b
+  sup_le_right : ∀ (a b : α), b ≤ sup a b
+  -- join is the least upper bound
+  le_sup : ∀ (a b c : α), a ≤ c → b ≤ c → sup a b ≤ c
+
+-- Notation
+infixl:70 " ⊓ " => Lattice.inf
+infixl:65 " ⊔ " => Lattice.sup
+
+end OrderBook
+\end{minted}
+
+\subsection{Derived Properties}
+
+We can immediately derive commutativity and idempotence from the axioms:
+
+\begin{minted}{lean4}
+namespace OrderBook
+open Lattice PartialOrder
+
+variable {α : Type} [Lattice α]
+
+-- Commutativity of meet
+theorem inf_comm (a b : α) : a ⊓ b = b ⊓ a := by
+  apply le_antisymm
+  · apply le_inf
+    · exact inf_le_right a b
+    · exact inf_le_left a b
+  · apply le_inf
+    · exact inf_le_right b a
+    · exact inf_le_left b a
+
+-- Idempotence of meet
+theorem inf_idem (a : α) : a ⊓ a = a := by
+  apply le_antisymm
+  · exact inf_le_left a a
+  · exact le_inf a a a (le_refl a) (le_refl a)
+
+-- Commutativity of join
+theorem sup_comm (a b : α) : a ⊔ b = b ⊔ a := by
+  apply le_antisymm
+  · apply le_sup
+    · exact sup_le_right b a
+    · exact sup_le_left b a
+  · apply le_sup
+    · exact sup_le_right a b
+    · exact sup_le_left a b
+
+-- Absorption: a ⊔ (a ⊓ b) = a
+theorem sup_inf_self (a b : α) : a ⊔ (a ⊓ b) = a := by
+  apply le_antisymm
+  · apply le_sup
+    · exact le_refl a
+    · exact inf_le_left a b
+  · exact sup_le_left a (a ⊓ b)
+
+end OrderBook
+\end{minted}
+
+\section{The Duality Principle}
+
+Every lattice has a \emph{dual}: swap $\sqcap \leftrightarrow \sqcup$ and
+$\leq\, \leftrightarrow\, \geq$. Any theorem proved in a lattice has a dual
+theorem for free.
+
+\begin{thmbox}[Duality Principle]
+  If $\varphi$ is a theorem about lattices, then so is the statement obtained
+  by replacing every occurrence of $\sqcap$ with $\sqcup$, $\sqcup$ with $\sqcap$,
+  $\leq$ with $\geq$, $\bot$ with $\top$, and $\top$ with $\bot$.
+\end{thmbox}
+
+\begin{minted}{lean4}
+structure Dual (α : Type) where
+  val : α
+
+-- Step 1: flip ≤.  a ≤_dual b  means  b.val ≤_orig a.val.
+instance {α : Type} [LE α] : LE (Dual α) where
+  le a b := LE.le (α := α) b.val a.val
+
+-- Step 2: the dual partial order.
+instance {α : Type} [LE α] [PartialOrder α] : PartialOrder (Dual α) where
+  le_refl {a}       := PartialOrder.le_refl (α := α) a.val
+  le_antisymm {a b} := fun h1 h2 => by
+    cases a; cases b; congr 1
+    exact PartialOrder.le_antisymm (α := α) h2 h1
+  le_trans {a b c}  := fun h1 h2 => by
+    cases a; cases b; cases c
+    exact PartialOrder.le_trans (α := α) h2 h1
+
+-- Step 3: the dual lattice swaps inf and sup.
+instance {α : Type} [Lattice α] : Lattice (Dual α) where
+  inf          := fun a b => ⟨Lattice.sup (α := α) a.val b.val⟩
+  sup          := fun a b => ⟨Lattice.inf (α := α) a.val b.val⟩
+  inf_le_left  := fun a b => Lattice.sup_le_left  (α := α) a.val b.val
+  inf_le_right := fun a b => Lattice.sup_le_right (α := α) a.val b.val
+  sup_le_left  := fun a b => Lattice.inf_le_left  (α := α) a.val b.val
+  sup_le_right := fun a b => Lattice.inf_le_right (α := α) a.val b.val
+  le_inf := fun a b c h1 h2 => by
+    change Lattice.sup (α := α) b.val c.val ≤ a.val
+    exact Lattice.le_sup (α := α) b.val c.val a.val h1 h2
+  le_sup := fun a b c h1 h2 => by
+    change LE.le (α := α) c.val (Lattice.inf (α := α) a.val b.val)
+    exact Lattice.le_inf (α := α) c.val a.val b.val h1 h2
+\end{minted}
+
+\begin{notebox}
+  \textbf{\lc{structure} vs \lc{def}.} Using \lc{structure Dual} rather
+  than \lc{def Dual α := α} makes \lc{Dual α} and \lc{α} genuinely
+  distinct types. With a transparent \lc{def}, Lean's elaborator
+  sometimes picks up the wrong \lc{LE} instance for hypotheses, causing
+  type mismatches even when the terms are definitionally equal. The
+  \lc{structure} version forces explicit \lc{.val} unwrapping and
+  \lc{⟨...⟩} rewrapping, which is more verbose but unambiguous.
+
+  \textbf{Why \lc{cases} in \lc{le\_antisymm} and \lc{le\_trans}?}
+  \lc{cases a} destructs \lc{Dual.mk v} into the underlying \lc{v : α},
+  so subsequent lemmas see plain \lc{α} inequalities rather than
+  \lc{Dual}-typed ones. In \lc{le\_antisymm}, \lc{congr 1} further
+  reduces \lc{Dual.mk x = Dual.mk y} to \lc{x = y}.
+
+  \textbf{Why \lc{change} in \lc{le\_inf} and \lc{le\_sup}?} After
+  destructuring \lc{⟨a⟩ ⟨b⟩ ⟨c⟩}, the hypotheses \lc{h1} and \lc{h2}
+  are still elaborated under the dual \lc{LE}. \lc{change} restates the
+  goal entirely in terms of \lc{α}'s operations, giving Lean enough
+  information to match the original lemma's type.
+
+  \textbf{Why \lc{inf} and \lc{sup} swap} is the whole point: turning
+  the Hasse diagram upside down exchanges every meet with every join.
+\end{notebox}
+
+\FloatBarrier
+\section{Important Lattice Examples}
+
+\subsection{The Two-Element Lattice $\mathbf{2}$}
+
+\begin{minted}{lean4}
+-- Bool as a lattice: false < true
+instance : OrderBook.Lattice Bool where
+  le          := (· ≤ ·)   -- Bool has a built-in LE in core Lean 4
+  le_refl     := Bool.le_refl
+  le_antisymm := Bool.le_antisymm
+  le_trans    := Bool.le_trans
+  inf         := (· && ·)
+  sup         := (· || ·)
+  inf_le_left  := by decide
+  inf_le_right := by decide
+  le_inf       := by decide
+  sup_le_left  := by decide
+  sup_le_right := by decide
+  le_sup       := by decide
+\end{minted}
+
+\noindent The \lc{by decide} tactic works here because \lc{Bool} is a finite
+type and all the statements are decidable.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \node[node] (f) at (0,0) {\texttt{false}};
+    \node[node] (t) at (0,2) {\texttt{true}};
+    \draw[hasseedge] (f)--(t);
+    \node[right=0.3cm of t, gray, font=\scriptsize] {$\top$: \texttt{true || x = true}};
+    \node[right=0.3cm of f, gray, font=\scriptsize] {$\bot$: \texttt{false \&\& x = false}};
+    \node[right=0.3cm of t, gray, font=\scriptsize, yshift=-0.4cm]
+      {\texttt{false} $\sqcup$ \texttt{true} $=$ \texttt{true}};
+    \node[right=0.3cm of f, gray, font=\scriptsize, yshift=0.4cm]
+      {\texttt{false} $\sqcap$ \texttt{true} $=$ \texttt{false}};
+  \end{tikzpicture}
+  \caption{The two-element lattice $\mathbf{2}$ on \texttt{Bool}.
+           Meet is \texttt{\&\&}, join is \texttt{||}.}
+\end{figure}
+
+\subsection{The Powerset Lattice}
+
+\begin{minted}{lean4}
+-- Sets (α → Prop) form a lattice under subset inclusion
+def Set.inter {α : Type} (s t : Set α) : Set α := fun a => s a ∧ t a
+def Set.union {α : Type} (s t : Set α) : Set α := fun a => s a ∨ t a
+
+instance {α : Type} : OrderBook.Lattice (Set α) where
+  le          := Set.subset
+  le_refl     := fun s a ha => ha
+  le_antisymm := fun s t h1 h2 => funext fun a => propext ⟨h1 a, h2 a⟩
+  le_trans    := fun s t u h1 h2 a ha => h2 a (h1 a ha)
+  inf         := Set.inter
+  sup         := Set.union
+  inf_le_left  := fun s t a ⟨hs, _⟩ => hs
+  inf_le_right := fun s t a ⟨_, ht⟩ => ht
+  le_inf       := fun s t u hst hsu a ha => ⟨hst a ha, hsu a ha⟩
+  sup_le_left  := fun s t a hs => Or.inl hs
+  sup_le_right := fun s t a ht => Or.inr ht
+  le_sup       := fun s t u hsu htu a h =>
+    h.elim (hsu a) (htu a)
+\end{minted}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[node distance=1.4cm]
+    \node[node] (bot)  at (1.5, 0)   {$\varnothing$};
+    \node[node] (x)    at (0,   1.8) {$\{x\}$};
+    \node[node] (y)    at (3,   1.8) {$\{y\}$};
+    \node[node] (top)  at (1.5, 3.6) {$\{x,y\}$};
+    \draw[hasseedge] (bot)--(x); \draw[hasseedge] (bot)--(y);
+    \draw[hasseedge] (x)--(top); \draw[hasseedge] (y)--(top);
+    \node[right=0.2cm of top, gray, font=\scriptsize, text width=3.5cm]
+      {$\{x\} \sqcup \{y\} = \{x,y\}$ (union)};
+    \node[right=0.2cm of bot, gray, font=\scriptsize, text width=3.5cm]
+      {$\{x\} \sqcap \{y\} = \varnothing$ (intersection)};
+  \end{tikzpicture}
+  \caption{The powerset lattice $\mathcal{P}(\{x,y\})$.
+           Meet is $\cap$, join is $\cup$.
+           $\{x\}$ and $\{y\}$ are incomparable.}
+\end{figure}
+
+\subsection{The Divisibility Lattice on Divisors of $n$}
+
+For divisors of a fixed natural number $n$, divisibility is a lattice where
+$\gcd$ is the meet and $\mathrm{lcm}$ is the join.
+
+\begin{minted}{lean4}
+-- On natural numbers: gcd is meet, lcm is join under divisibility order
+instance : OrderBook.Lattice Nat where
+  le          := (· ∣ ·)   -- divisibility
+  le_refl     := Nat.dvd_refl
+  le_antisymm := fun a b => Nat.dvd_antisymm
+  le_trans    := fun a b c => Nat.dvd_trans
+  inf         := Nat.gcd
+  sup         := Nat.lcm
+  inf_le_left  := Nat.gcd_dvd_left
+  inf_le_right := Nat.gcd_dvd_right
+  le_inf       := fun a b c => Nat.dvd_gcd
+  sup_le_left  := Nat.dvd_lcm_left
+  sup_le_right := Nat.dvd_lcm_right
+  le_sup       := fun a b c ha hb => Nat.lcm_dvd ha hb
+\end{minted}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \node[node] (n1)  at (3,   0) {1};
+    \node[node] (n2)  at (0,   2) {2};
+    \node[node] (n3)  at (6,   2) {3};
+    \node[node] (n4)  at (0,   4) {4};
+    \node[node] (n6)  at (4.5, 4) {6};
+    \node[node] (n12) at (2.25,6) {12};
+    \draw[hasseedge] (n1)--(n2);  \draw[hasseedge] (n1)--(n3);
+    \draw[hasseedge] (n2)--(n4);  \draw[hasseedge] (n2)--(n6);
+    \draw[hasseedge] (n3)--(n6);
+    \draw[hasseedge] (n4)--(n12); \draw[hasseedge] (n6)--(n12);
+    \node[gray, font=\scriptsize] at (-1.5, 3)
+      {$4 \sqcap 6 = \gcd(4,6) = 2$};
+    \node[gray, font=\scriptsize] at (-1.5, 3.5)
+      {$4 \sqcup 6 = \mathrm{lcm}(4,6) = 12$};
+    \node[gray, font=\scriptsize] at (8, 3)
+      {$3 \sqcap 4 = \gcd(3,4) = 1$};
+    \node[gray, font=\scriptsize] at (8, 3.5)
+      {$3 \sqcup 4 = \mathrm{lcm}(3,4) = 12$};
+  \end{tikzpicture}
+  \caption{The divisibility lattice on divisors of $12$.
+           Meet is $\gcd$, join is $\mathrm{lcm}$.
+           Every incomparable pair still has a $\gcd$ and $\mathrm{lcm}$
+           in the set, confirming this is a lattice.}
+\end{figure}
+
+\section{Distributive Lattices}
+
+Not every lattice satisfies the distributive law; those that do are especially
+well-behaved.
+
+\begin{defbox}[Distributive Lattice]
+  A lattice is \emph{distributive} if
+  $a \sqcap (b \sqcup c) = (a \sqcap b) \sqcup (a \sqcap c)$
+  (equivalently, the dual law holds too).
+\end{defbox}
+
+The powerset lattice and Boolean lattices are distributive.
+Figure~\ref{fig:m3n5} shows the two smallest non-distributive lattices.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \begin{scope}[xshift=0cm]
+      \node[font=\small\bfseries] at (1.5, 5.0) {$\mathbf{M}_3$};
+      \node[node] (bot) at (1.5,0)   {$\bot$};
+      \node[node] (a)   at (0,2)     {$a$};
+      \node[node] (b)   at (1.5,2)   {$b$};
+      \node[node] (c)   at (3,2)     {$c$};
+      \node[node] (top) at (1.5,4)   {$\top$};
+      \draw[hasseedge] (bot)--(a); \draw[hasseedge] (bot)--(b);
+      \draw[hasseedge] (bot)--(c);
+      \draw[hasseedge] (a)--(top); \draw[hasseedge] (b)--(top);
+      \draw[hasseedge] (c)--(top);
+      \node[gray,font=\scriptsize,text width=3cm] at (1.5,-0.8)
+        {$a \sqcap (b \sqcup c) = a \sqcap \top = a$\\
+         $(a \sqcap b) \sqcup (a \sqcap c) = \bot \sqcup \bot = \bot$\\
+         $a \neq \bot$: \textbf{not distributive}};
+    \end{scope}
+    \begin{scope}[xshift=6cm]
+      \node[font=\small\bfseries] at (1.5, 5.0) {$\mathbf{N}_5$};
+      \node[node] (bot2) at (1.5,0)  {$\bot$};
+      \node[node] (p)    at (0,1.5)  {$p$};
+      \node[node] (q)    at (2.5,1.5){$q$};
+      \node[node] (r)    at (2.5,3)  {$r$};
+      \node[node] (top2) at (1.5,4.5){$\top$};
+      \draw[hasseedge] (bot2)--(p); \draw[hasseedge] (bot2)--(q);
+      \draw[hasseedge] (q)--(r);
+      \draw[hasseedge] (p)--(top2); \draw[hasseedge] (r)--(top2);
+      \node[gray,font=\scriptsize,text width=3cm] at (1.5,-0.8)
+        {Also non-distributive.\\
+         Every non-distributive\\
+         lattice contains $\mathbf{M}_3$\\
+         or $\mathbf{N}_5$ as a sublattice.};
+    \end{scope}
+  \end{tikzpicture}
+  \caption{The two smallest non-distributive lattices.
+           $\mathbf{M}_3$ (left) has three mutually incomparable middle
+           elements; the distributive law fails because the meet
+           does not distribute over the join.
+           $\mathbf{N}_5$ (right) is the pentagon lattice.
+           A classical theorem states that a lattice is distributive if
+           and only if it contains neither as a sublattice.}
+  \label{fig:m3n5}
+\end{figure}
+
+\section{Exercises}
+
+\begin{exercisebox}[Lattice of intervals]
+  Define the type \lc{Interval} of pairs $[l, h]$ with $l, h : \mathbb{Z}$ and
+  $l \leq h$. Define an order where $[l_1, h_1] \leq [l_2, h_2]$ iff
+  $l_2 \leq l_1$ and $h_1 \leq h_2$ (i.e.\ ``containment by a smaller interval'',
+  the \emph{precision} or \emph{information} order).
+  Prove that this is a partial order in Lean~4.
+  What are the meet and join in this order?
+\end{exercisebox}
+
+\begin{exercisebox}[Absorb, then join]
+  Prove in Lean~4 that in any lattice:
+  $a \sqcap (a \sqcup b) = a$ (absorption).
+\end{exercisebox}
+
+\begin{exercisebox}[Characterising the order]
+  Prove the equivalence $a \leq b \iff a \sqcup b = b$ in Lean~4, using only
+  the lattice axioms.
+  \begin{minted}{lean4}
+theorem le_iff_sup_eq {α : Type} [OrderBook.Lattice α] (a b : α) :
+    a ≤ b ↔ a ⊔ b = b := by
+  constructor
+  · intro h
+    apply PartialOrder.le_antisymm
+    · exact Lattice.le_sup a b b h (PartialOrder.le_refl b)
+    · exact Lattice.sup_le_right a b
+  · intro h
+    have : b = a ⊔ b := h.symm
+    rw [this]
+    exact Lattice.sup_le_left a b
+  \end{minted}
+\end{exercisebox}
+
+\begin{exercisebox}[The product lattice]
+  Given two lattices \lc{[Lattice α]} and \lc{[Lattice β]}, define a
+  \lc{Lattice (α × β)} instance with the component-wise order:
+  $(a_1, b_1) \leq (a_2, b_2) \iff a_1 \leq a_2 \wedge b_1 \leq b_2$,
+  and component-wise meet and join:
+  $(a_1, b_1) \sqcap (a_2, b_2) = (a_1 \sqcap a_2,\, b_1 \sqcap b_2)$,
+  $(a_1, b_1) \sqcup (a_2, b_2) = (a_1 \sqcup a_2,\, b_1 \sqcup b_2)$.
+  Prove all eight lattice axioms.
+  (\emph{Hint}: each axiom reduces to the corresponding axiom applied component-wise.)
+\end{exercisebox}
+
+% ============================================================
+\chapter{Complete Lattices and the Fixed-Point Theorem}
+
+Lattices let us take meets and joins of \emph{pairs} of elements. A
+\emph{complete} lattice extends this to arbitrary (possibly infinite) subsets.
+This extra power buys us one of the most useful theorems in theoretical
+computer science: the Knaster--Tarski fixed-point theorem.
+
+\section{Complete Lattices}
+
+\begin{defbox}[Complete Lattice]
+  A lattice $(L, \leq)$ is \emph{complete} if every subset $S \subseteq L$
+  has a supremum $\bigvee S$ and an infimum $\bigwedge S$ in $L$.
+\end{defbox}
+
+\begin{notebox}
+  In particular, the empty set has a supremum (which becomes $\bot$) and
+  infimum (which becomes $\top$), so every complete lattice is bounded.
+  Taking $S = L$ gives $\bigvee L = \top$ and $\bigwedge L = \bot$.
+\end{notebox}
+
+We encode complete lattices using a predicate representing a subset:
+
+\begin{minted}{lean4}
+namespace OrderBook
+
+-- We represent a "subset" as a predicate α → Prop.
+-- This is the same definition as `Set α` from Chapter 1
+-- (`def Set (α : Type) : Type := α → Prop`).
+-- We use `abbrev` rather than `def` so that Lean treats `Pred α`
+-- as completely transparent — unfolding it automatically during
+-- elaboration without needing `simp` or `unfold`.  This makes the
+-- `sSup`/`sInf` signatures below easier to work with.
+-- `def Set` was opaque because we wanted `Set α` to have its own
+-- identity for attaching instances; here we just want a readable alias.
+abbrev Pred (α : Type) := α → Prop
+
+class CompleteLattice (α : Type) extends Lattice α where
+  sSup : Pred α → α    -- supremum of a set  (⨆)
+  sInf : Pred α → α    -- infimum of a set   (⨅)
+  le_sSup : ∀ (s : Pred α) (a : α), s a → a ≤ sSup s
+  sSup_le : ∀ (s : Pred α) (u : α), (∀ a, s a → a ≤ u) → sSup s ≤ u
+  sInf_le : ∀ (s : Pred α) (a : α), s a → sInf s ≤ a
+  le_sInf : ∀ (s : Pred α) (l : α), (∀ a, s a → l ≤ a) → l ≤ sInf s
+
+end OrderBook
+\end{minted}
+
+The powerset lattice is the canonical example of a complete lattice:
+$\bigvee \mathcal{F} = \bigcup \mathcal{F}$ and
+$\bigwedge \mathcal{F} = \bigcap \mathcal{F}$.
+
+\begin{minted}{lean4}
+-- Set α is a complete lattice
+instance {α : Type} : OrderBook.CompleteLattice (Set α) where
+  -- (inheriting the Lattice instance from Chapter 3)
+  sSup := fun F a => ∃ s : Set α, F s ∧ s a    -- union of a family
+  sInf := fun F a => ∀ s : Set α, F s → s a    -- intersection of a family
+  le_sSup := fun F s hs a ha => ⟨s, hs, ha⟩
+  sSup_le := fun F u hu a ⟨s, hs, ha⟩ => hu s hs a ha
+  sInf_le := fun F s hs a ha => ha s hs
+  le_sInf := fun F l hl a ha s hs => hl s hs a ha
+  -- (le, inf, sup fields inherited)
+  le          := Set.subset
+  le_refl     := fun s a h => h
+  le_antisymm := fun s t h1 h2 => funext fun a => propext ⟨h1 a, h2 a⟩
+  le_trans    := fun s t u h1 h2 a ha => h2 a (h1 a ha)
+  inf         := Set.inter; sup := Set.union
+  inf_le_left  := fun s t a ⟨hs,_⟩ => hs
+  inf_le_right := fun s t a ⟨_,ht⟩ => ht
+  le_inf       := fun s t u hst hsu a ha => ⟨hst a ha, hsu a ha⟩
+  sup_le_left  := fun s t a hs => Or.inl hs
+  sup_le_right := fun s t a ht => Or.inr ht
+  le_sup       := fun s t u hsu htu a h => h.elim (hsu a) (htu a)
+\end{minted}
+
+\section{Why Fixed Points Matter}
+
+A \emph{fixed point} of $f : L \to L$ is an element $x$ where $f(x) = x$.
+This is where an iterative process \emph{stabilises}: no further application
+of $f$ changes anything.
+
+\begin{itemize}
+  \item \textbf{Propagator networks.} Cell values stop changing when the
+    propagators reach a fixed point of ``apply all propagators once''. That
+    stable state is the least fixed point --- the most conservative set of
+    conclusions forced by the constraints, nothing more.
+
+  \item \textbf{Dataflow analysis.} A compiler iterates a flow function until
+    it stabilises. The result is the least fixed point of that function.
+
+  \item \textbf{Denotational semantics.} The meaning of a recursive program
+    is the least fixed point of a semantic functional.
+
+  \item \textbf{Regular expressions.} The set matched by $a^*$ is the least
+    fixed point of $S \mapsto \{\varepsilon\} \cup a \cdot S$.
+\end{itemize}
+
+\begin{notebox}
+  We will return to the propagator connection in Chapter~6, where network
+  execution terminates at the least fixed point of the combined propagation
+  function.
+\end{notebox}
+
+\section{The Knaster--Tarski Fixed-Point Theorem}
+
+\begin{thmbox}[Knaster--Tarski (1955)]
+  Let $(L, \leq)$ be a complete lattice and $f : L \to L$ a monotone function.
+  Then $f$ has a \emph{least fixed point}
+  $\mu f = \bigwedge \{ x \mid f(x) \leq x \}$
+  and a \emph{greatest fixed point}
+  $\nu f = \bigvee \{ x \mid x \leq f(x) \}$.
+\end{thmbox}
+
+\begin{proof}
+  Let $P = \{ x \in L \mid f(x) \leq x \}$ (the set of \emph{pre-fixed points})
+  and let $m = \bigwedge P$.
+
+  \textit{Step 1: $f(m) \leq m$.}
+  For every $x \in P$ we have $m \leq x$, so $f(m) \leq f(x) \leq x$ by
+  monotonicity. Hence $f(m)$ is a lower bound of $P$, so $f(m) \leq m$.
+
+  \textit{Step 2: $m \leq f(m)$.}
+  From Step~1, $f(f(m)) \leq f(m)$ (applying $f$ to $f(m) \leq m$ and using
+  monotonicity gives $f(f(m)) \leq f(m)$, so $f(m) \in P$). Since $m$ is the
+  infimum of $P$, we have $m \leq f(m)$.
+
+  \textit{Conclusion:} $f(m) = m$, so $m$ is a fixed point. Any other fixed
+  point $x^*$ satisfies $f(x^*) = x^* \leq x^*$, so $x^* \in P$, hence
+  $m \leq x^*$. So $m$ is the \emph{least} fixed point.
+\end{proof}
+
+\begin{minted}{lean4}
+namespace OrderBook
+open CompleteLattice PartialOrder
+
+-- Knaster-Tarski: least fixed point of a monotone function
+-- on a complete lattice
+theorem knaster_tarski {α : Type} [CompleteLattice α]
+    (f : α → α) (hf : Monotone f) :
+    ∃ (lfp : α), f lfp = lfp ∧
+      ∀ (x : α), f x = x → lfp ≤ x := by
+  -- Define P = {x | f(x) ≤ x} and m = ⊓ P
+  let P : Pred α := fun x => f x ≤ x
+  let m := sInf P
+  -- Step 1: f(m) ≤ m
+  have step1 : f m ≤ m := by
+    apply le_sInf
+    intro x hx
+    -- m ≤ x, so f(m) ≤ f(x) ≤ x
+    exact le_trans (hf.map_le m x (sInf_le P x hx)) hx
+  -- Step 2: m ≤ f(m)  (f(m) ∈ P since f(f(m)) ≤ f(m))
+  have step2 : m ≤ f m := by
+    apply sInf_le
+    exact hf.map_le _ _ step1
+  -- Conclude m is a fixed point
+  have fixed : f m = m := le_antisymm step1 step2
+  refine ⟨m, fixed, ?_⟩
+  -- Minimality
+  intro x hx
+  apply sInf_le
+  show f x ≤ x
+  exact le_of_eq hx
+end OrderBook
+\end{minted}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    \node[node,fill=green!10,draw=green!50!black] (b)  at (0,0)   {$\bot$};
+    \node[node,fill=green!10,draw=green!50!black] (f1) at (0,1.5) {$f(\bot)$};
+    \node[node,fill=green!10,draw=green!50!black] (f2) at (0,3)   {$f^2(\bot)$};
+    \node[gray,font=\small]                       (dots) at (0,4.2){$\vdots$};
+    \node[node,fill=orange!15,draw=orange!70!black,
+          minimum size=9mm]                       (lfp) at (0,5.4) {$\mu f$};
+    \node[gray,font=\small]                       (d2)  at (0,6.5) {$\vdots$};
+    \node[node]                                   (top) at (0,7.5) {$\top$};
+    \draw[hasseedge] (b)--(f1);  \draw[hasseedge] (f1)--(f2);
+    \draw[hasseedge] (f2)--(dots);\draw[hasseedge] (dots)--(lfp);
+    \draw[hasseedge] (lfp)--(d2); \draw[hasseedge] (d2)--(top);
+    \draw[-{Stealth},blue!60,thick,bend right=50]
+      (b.east)  to node[right,font=\scriptsize,blue!60]{$f$} (f1.east);
+    \draw[-{Stealth},blue!60,thick,bend right=50]
+      (f1.east) to node[right,font=\scriptsize,blue!60]{$f$} (f2.east);
+    \node[right=1.2cm of b,  gray,font=\scriptsize]{no information yet};
+    \node[right=1.2cm of lfp,font=\scriptsize,
+          orange!70!black,text width=3.5cm]
+      {least fixed point:\\$f(\mu f) = \mu f$\\reached when chain stabilises};
+    \draw[decorate,decoration={brace,amplitude=6pt},gray!60]
+      (-0.7,0) -- (-0.7,5.4)
+      node[midway,left=8pt,gray,font=\scriptsize,text width=2cm,align=right]
+        {ascending\\Kleene chain};
+  \end{tikzpicture}
+  \caption{The ascending Kleene chain starting from $\bot$ under a
+           monotone function $f$. Each application of $f$ moves upward.
+           If the lattice satisfies the ascending chain condition the
+           sequence stabilises at the least fixed point $\mu f$.}
+\end{figure}
+
+\section{Chains and Convergence}
+
+Chains are the lattice-theoretic version of sequences in calculus, and understanding
+them is essential for understanding why iterative computations terminate.
+
+\begin{defbox}[Chain]
+  A \emph{chain} in a poset $(P, \leq)$ is a subset $C \subseteq P$ where every
+  pair of elements is comparable: for all $a, b \in C$, either $a \leq b$ or
+  $b \leq a$. An \emph{ascending chain} is a chain written as a sequence
+  $a_0 \leq a_1 \leq a_2 \leq \cdots$.
+\end{defbox}
+
+The parallel with calculus sequences is direct:
+
+\begin{center}
+\begin{tabular}{ll}
+  \textbf{Calculus} & \textbf{Lattice theory} \\
+  \hline
+  Sequence $a_0 \leq a_1 \leq a_2 \leq \cdots$ & Ascending chain \\
+  Limit $\lim_{n\to\infty} a_n$ & Supremum $\bigsqcup_n a_n$ \\
+  Convergence & Chain stabilising \\
+  Completeness of $\mathbb{R}$ & Completeness of the lattice \\
+  Cauchy sequence & Ascending chain condition \\
+\end{tabular}
+\end{center}
+
+Just as the completeness of $\mathbb{R}$ guarantees that every bounded ascending
+sequence has a limit, the completeness of a lattice guarantees that every chain
+has a supremum. Without completeness, the supremum might not exist in your
+structure --- exactly as $\sqrt{2}$ does not exist in $\mathbb{Q}$ even though
+there are rational sequences converging to it.
+
+\subsection*{The Ascending Chain Condition}
+
+A poset satisfies the \emph{ascending chain condition} (ACC) if every strictly
+ascending chain $a_0 < a_1 < a_2 < \cdots$ is finite --- there are no infinite
+strictly ascending sequences.
+
+This is the lattice analogue of a sequence that reaches its limit in finite steps
+rather than merely approaching it. When the ACC holds, the Kleene chain
+$$\bot \leq f(\bot) \leq f^2(\bot) \leq \cdots$$
+must eventually stabilise at some $f^n(\bot) = f^{n+1}(\bot)$, giving a fixed
+point in finite iterations.
+
+\begin{exbox}[ACC in practice]
+  \lc{FlatNat} satisfies the ACC: the only strictly ascending chains are
+  $\bot < \mathrm{known}(n)$, which have length 2. So any propagator network
+  using \lc{FlatNat} cells terminates after at most two updates per cell.
+
+  The interval lattice does \emph{not} satisfy the ACC in general: you can have
+  $[0,10] < [0,9] < [0,8] < \cdots$ (an infinite strictly descending chain in
+  the information order, equivalently an infinite strictly ascending chain in
+  the reverse order). This is why interval propagators can require a widening
+  operator to force termination.
+\end{exbox}
+
+\subsection*{$\bot$ is the starting point, not the limit}
+
+A common point of confusion: the supremum of the Kleene chain is \emph{not}
+$\bot$. $\bot$ is the \emph{minimum} of the chain --- the smallest element in
+it. The supremum is the smallest element above the whole chain, which is
+wherever the iteration converges.
+
+In the calculus analogy: for the sequence $0, \tfrac{1}{2}, \tfrac{3}{4},
+\tfrac{7}{8}, \ldots$ converging to 1, the minimum of the sequence is 0 but
+the supremum (limit) is 1. The starting point and the limit are different
+objects. The Kleene chain behaves the same way: $\bot$ is where you start,
+$\mu f$ is where you end up.
+
+\section{Exercises}
+
+\begin{exercisebox}[Greatest fixed point]
+  Using the Knaster--Tarski proof as a template, prove the existence of the
+  \emph{greatest} fixed point $\nu f = \bigvee \{ x \mid x \leq f(x) \}$.
+\end{exercisebox}
+
+\begin{exercisebox}[Ascending Kleene chain]
+  For a complete lattice with a bottom element $\bot$ and a monotone $f$,
+  the sequence $\bot \leq f(\bot) \leq f^2(\bot) \leq \cdots$ is called the
+  \emph{ascending Kleene chain}. If the lattice satisfies the
+  \emph{ascending chain condition} (every ascending chain eventually stabilises),
+  this chain reaches $\mu f$ in finitely many steps.
+  Prove in Lean~4 that each element of this sequence is $\leq$ the next.
+\end{exercisebox}
+
+% ============================================================
+\part{Propagator Networks}
+
+% ============================================================
+\chapter{The Propagator Model}
+
+\begin{quote}
+  \itshape
+  ``A propagator network is a collection of machines that compute
+  values for cells by combining information from other cells.''\\
+  --- G.J.\ Sussman \& A.\ Radul, \emph{The Art of the Propagator}, 2009
+\end{quote}
+
+We now have all the mathematical machinery we need. This chapter explains the
+propagator model from first principles and makes precise why lattices are not
+merely convenient but \emph{necessary}.
+
+\section{Cells: Accumulating Partial Information}
+
+The central insight of propagator networks is a shift in perspective:
+
+\begin{center}
+  \begin{tikzpicture}
+    \node[draw=gray,fill=gray!10,rounded corners,minimum width=5cm,
+          minimum height=0.8cm, font=\small]
+      (old) {Traditional cell: stores a \textbf{single value}};
+    \node[draw=blue!60!black,fill=blue!6,rounded corners,minimum width=5cm,
+          minimum height=0.8cm, font=\small, below=0.6cm of old]
+      (new) {Propagator cell: accumulates \textbf{partial information}};
+    \draw[-{Stealth},thick,blue!60!black] (old) -- (new)
+      node[midway,right=4pt,font=\small\itshape]{evolution};
+  \end{tikzpicture}
+\end{center}
+
+A cell does not \emph{store a value}; it stores \emph{everything we know so
+far} about a value. New information can arrive from multiple sources and be
+merged in. The key requirement is that information can only \emph{increase}:
+once we know something, we cannot un-know it.
+
+This is precisely the structure of a \emph{join-semilattice with a bottom
+element}: the bottom represents ``we know nothing'', and merging two pieces of
+information is the join $(\sqcup)$.
+
+\begin{defbox}[Information Order]
+  A \emph{bounded join-semilattice} is a partial order $(J, \leq)$ equipped with
+  a join $\sqcup$ and a bottom $\bot$ such that:
+  \begin{itemize}[nosep]
+    \item $a \sqcup b$ is the least upper bound of $a$ and $b$,
+    \item $\bot \leq a$ for all $a$,
+    \item $a \leq b$ is read as ``$b$ contains at least as much information as $a$''.
+  \end{itemize}
+  We call this the \emph{information order}.
+\end{defbox}
+
+\begin{minted}{lean4}
+namespace Propagators
+
+class BoundedJoinSemilattice (α : Type) extends OrderBook.PartialOrder α where
+  sup : α → α → α
+  bot : α
+  le_sup_left  : ∀ (a b : α), a ≤ sup a b
+  le_sup_right : ∀ (a b : α), b ≤ sup a b
+  sup_le       : ∀ (a b c : α), a ≤ c → b ≤ c → sup a b ≤ c
+  bot_le       : ∀ (a : α), bot ≤ a
+
+-- Convenient notation
+infixl:65 " ⊔ " => BoundedJoinSemilattice.sup
+notation    "⊥"  => BoundedJoinSemilattice.bot
+
+end Propagators
+\end{minted}
+
+\section{Why Information Can Only Increase}
+
+Suppose a propagator computes that ``$x$ is between 3 and 7''. Later another
+propagator deduces that ``$x$ is between 5 and 12''. Combining these we know
+``$x$ is between 5 and 7''. Notice: the combined knowledge is \emph{strictly
+more specific} than either input.
+
+If we allowed information to \emph{decrease} (e.g., forgetting the $[3,7]$
+constraint and keeping only $[5,12]$), we would lose soundness: our cell might
+claim values that the original propagators had ruled out.
+
+\begin{thmbox}[Monotonicity Ensures Soundness]
+  In a propagator network over a bounded join-semilattice, if every propagator
+  is monotone, then the network is \emph{sound}: the final cell values are
+  consistent with all constraints.
+\end{thmbox}
+
+Intuitively: since each step can only add information (move up in the lattice),
+the final state contains at least as much information as any intermediate state.
+Nothing is lost; nothing false is added (assuming correct propagators).
+
+\section{Propagators as Monotone Functions}
+
+\begin{defbox}[Propagator]
+  Given cells with values in $(J, \leq)$, a \emph{propagator} is a monotone
+  function $f : J^n \to J$ (reading from $n$ input cells and writing to one
+  output cell by merging the result).
+\end{defbox}
+
+Writing is done by merging: the output cell $c$ receives $c \leftarrow c \sqcup f(\text{inputs})$.
+Since $\sqcup$ is the least upper bound, this can only increase $c$.
+
+\begin{minted}{lean4}
+namespace Propagators
+
+-- A unary propagator: a pure function with a bundled monotonicity proof.
+-- The condition fn a ≤ fn b is the standard order-theoretic definition.
+-- (Equivalent to BoundedJoinSemilattice.sup (fn a) (fn b) = fn b,
+--  but the ≤ form is cleaner to state and prove.)
+structure Propagator1 (α β : Type)
+    [BoundedJoinSemilattice α]
+    [BoundedJoinSemilattice β] where
+  fn       : α → β
+  monotone : ∀ (a b : α), a ≤ b → fn a ≤ fn b
+
+-- A binary propagator: monotone in both arguments.
+structure Propagator2 (α β γ : Type)
+    [BoundedJoinSemilattice α]
+    [BoundedJoinSemilattice β]
+    [BoundedJoinSemilattice γ] where
+  fn       : α → β → γ
+  monotone : ∀ (a1 a2 : α) (b1 b2 : β),
+    a1 ≤ a2 → b1 ≤ b2 → fn a1 b1 ≤ fn a2 b2
+
+end Propagators
+\end{minted}
+
+\begin{notebox}
+  \textbf{Specification vs.\ implementation.}
+  \lc{Propagator1} and \lc{Propagator2} capture what a propagator
+  \emph{is} mathematically: a function with a bundled monotonicity proof.
+  They are the \emph{specification}.
+
+  In practice we use \lc{PropStep = IO Bool}: a plain \lc{IO} action that
+  reads cells, computes, writes, and returns whether anything changed.
+  There is no bundled proof --- the user is trusted to write monotone
+  propagators. Section~\ref{sec:flatnat-monotone} below proves that
+  \lc{addProp} and \lc{subProp} do in fact satisfy the \lc{Propagator2}
+  specification. For the capstone projects the proofs would be analogous
+  but verbose, so we omit them.
+\end{notebox}
+
+\section{Networks, Scheduling, and Quiescence}
+
+A \emph{propagator network} is a directed graph where nodes are cells and edges
+are propagators. Execution proceeds as follows:
+
+\begin{enumerate}
+  \item Initialise all cells to $\bot$.
+  \item Place all propagators on a \emph{work queue}.
+  \item While the queue is non-empty:
+    \begin{enumerate}
+      \item Take a propagator $p$ from the queue.
+      \item Compute the new value $v = p(\text{input cells})$.
+      \item Merge $v$ into the output cell: $c \leftarrow c \sqcup v$.
+      \item If $c$ changed, add all propagators that read from $c$ back to the queue.
+    \end{enumerate}
+  \item The network has reached \emph{quiescence} when the queue is empty.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    cell/.style={draw=blue!60!black, fill=blue!6, rounded corners=4pt,
+                 minimum width=1.1cm, minimum height=0.7cm, font=\small},
+    prop/.style={draw=orange!70!black, fill=orange!8, diamond,
+                 minimum width=1.3cm, minimum height=0.7cm, font=\scriptsize,
+                 inner sep=1pt},
+    arr/.style={-{Stealth[scale=0.8]}, thick, gray!70},
+  ]
+    \node[cell] (cx)   at (0, 0)    {$c_x$};
+    \node[cell] (cy)   at (0, -2.5) {$c_y$};
+    \node[cell] (csum) at (4, -1.2) {$c_\text{sum}$};
+    \node[cell] (ck)   at (4, 1.2)  {$c_k$};
+    \node[cell] (cz)   at (8, -1.2) {$c_z$};
+    \node[prop] (add)  at (2, -1.2) {\texttt{add}};
+    \node[prop] (mul)  at (6, -1.2) {\texttt{mul}};
+    \draw[arr] (cx) -- (add); \draw[arr] (cy) -- (add);
+    \draw[arr] (csum) -- (mul); \draw[arr] (ck) -- (mul);
+    \draw[arr] (add) -- (csum) node[midway,above,gray,font=\scriptsize]{writes};
+    \draw[arr] (mul) -- (cz)   node[midway,above,gray,font=\scriptsize]{writes};
+    \draw[arr,bend left=25,dashed,blue!50] (csum) to
+      node[above,font=\scriptsize,blue!60]{back-prop} (add);
+    \node[below=0.05cm of cx,   gray,font=\scriptsize]{val: $\bot \to 3$};
+    \node[below=0.05cm of cy,   gray,font=\scriptsize]{val: $\bot \to 7$};
+    \node[below=0.05cm of csum, gray,font=\scriptsize]{val: $\bot \to 10$};
+    \node[above=0.05cm of ck,   gray,font=\scriptsize]{val: $\bot \to 7$};
+    \node[below=0.05cm of cz,   gray,font=\scriptsize]{val: $\bot \to 70$};
+    \node[cell, right=0.3cm] at (0,-4.2) {};
+    \node[font=\scriptsize,right=1.3cm] at (0,-4.2) {Cell (stores a lattice value)};
+    \node[prop] at (4.5,-4.2) {};
+    \node[font=\scriptsize,right=5.5cm] at (0,-4.2) {Propagator (monotone function)};
+  \end{tikzpicture}
+  \caption{A small propagator network computing $x + y = \mathrm{sum}$ and
+           $\mathrm{sum} \times k = z$ (with $x=3$, $y=7$, $k=7$).
+           Cells hold lattice values initialised to $\bot$. Propagators
+           read from inputs and merge results into output cells via $\sqcup$.
+           The dashed arrow shows back-propagation: when $c_\text{sum}$ is
+           updated the \texttt{add} propagator is re-queued.}
+\end{figure}
+
+\begin{thmbox}[Convergence]
+  If the lattice satisfies the \emph{ascending chain condition}
+  (every strictly ascending sequence is finite), then the network reaches
+  quiescence in finite time.
+\end{thmbox}
+
+This is immediate: each cell value is non-decreasing and the chain condition
+guarantees it cannot increase indefinitely.
+
+For our capstone projects, the domain lattice is always finite, so convergence
+is guaranteed.
+
+\section{The Fundamental Role of the Lattice}
+
+Let us be precise about why we need a lattice rather than merely some arbitrary
+type.
+
+\begin{itemize}
+  \item \textbf{Join ($\sqcup$) for merging.}
+    When two propagators independently derive information about the same cell,
+    we need to combine their results. The join gives the \emph{least informative}
+    value that is \emph{at least as informative} as both. No information is lost;
+    no information is invented.
+
+  \item \textbf{Bottom ($\bot$) for initialisation.}
+    Before any propagator has run, a cell contains \emph{no information}.
+    The bottom element represents this ``empty'' state.
+
+  \item \textbf{Partial order ($\leq$) for monitoring change.}
+    We must know whether a cell's value actually changed after merging, to
+    decide whether to re-schedule dependent propagators. The partial order
+    provides this: if $c \sqcup v = c$ (the new value adds no information),
+    nothing changed.
+
+  \item \textbf{Antisymmetry for termination.}
+    If a cell's value can only go up and the lattice is finite, the antisymmetry
+    of $\leq$ ensures each value is visited at most once.
+\end{itemize}
+
+Any type that fails to be a join-semilattice with $\bot$ is simply not a valid
+cell domain for a propagator network. The lattice structure is not a convenience
+--- it is a prerequisite.
+
+% ============================================================
+\chapter{Building a Propagator Network in Lean~4}
+
+Theory in hand, we now build a complete, runnable propagator network in Lean~4,
+starting from our typeclass definitions and ending with a working scheduler.
+
+\section{Mutable Cells}
+
+Lean~4 has an \lc{IO} monad with mutable references (\lc{IO.Ref}). We use
+these to implement cells.
+
+\begin{minted}{lean4}
+namespace Propagators
+
+-- A Cell wraps an IO.Ref and a type with a BoundedJoinSemilattice
+structure Cell (α : Type) where
+  ref      : IO.Ref α
+
+variable {α : Type} [BoundedJoinSemilattice α] [DecidableEq α]
+
+-- Create a new cell initialised to ⊥
+def Cell.new : IO (Cell α) := do
+  let r ← IO.mkRef (BoundedJoinSemilattice.bot (α := α))
+  return { ref := r }
+
+-- Read the current value
+def Cell.read (c : Cell α) : IO α := c.ref.get
+
+-- Attempt to write new information.
+-- Returns true if the cell's value increased.
+def Cell.write (c : Cell α) (v : α) : IO Bool := do
+  let old ← c.ref.get
+  let merged := old ⊔ v
+  if merged == old then
+    return false          -- no new information
+  else
+    c.ref.set merged
+    return true           -- cell updated, re-schedule dependents
+
+end Propagators
+\end{minted}
+
+\begin{notebox}
+  We require \lc{DecidableEq α} to compare \lc{merged == old}. For the
+  finite lattices we use in our capstone projects this is always available.
+\end{notebox}
+
+\section{The Network and Scheduler}
+
+\begin{minted}{lean4}
+namespace Propagators
+
+-- A propagator step is an IO action that returns
+-- true if it caused any cell to change.
+abbrev PropStep := IO Bool
+
+-- Run a list of propagators to fixpoint.
+-- Each pass re-runs all propagators; we stop when
+-- a full pass causes no changes.
+def runToFixpoint (steps : Array PropStep) : IO Unit := do
+  let mut changed := true
+  while changed do
+    changed := false
+    for step in steps do
+      let c ← step
+      if c then changed := true
+
+-- A smarter scheduler that only re-runs propagators
+-- whose inputs changed (using a dependency queue).
+structure Network where
+  steps    : Array PropStep
+  -- In a production implementation, steps would be indexed
+  -- and cells would hold lists of dependent propagator IDs.
+  -- For clarity we use the simple "run all" scheduler here.
+
+def Network.run (n : Network) : IO Unit :=
+  runToFixpoint n.steps
+
+end Propagators
+\end{minted}
+
+\section{Building Propagators: Numeric Example}
+
+Let us define the \emph{flat natural number lattice}: information is either
+``unknown'' ($\bot$), a specific number, or ``contradiction'' ($\top$).
+
+\begin{minted}{lean4}
+namespace Propagators
+
+inductive FlatNat where
+  | unknown      : FlatNat         -- ⊥: no information
+  | known (n : Nat) : FlatNat      -- exactly n
+  | conflict     : FlatNat         -- ⊤: contradiction
+
+instance : OrderBook.PartialOrder FlatNat where
+  le a b := match a, b with
+    | .unknown, _      => True     -- unknown ≤ everything
+    | _, .conflict     => True     -- everything ≤ conflict
+    | .known m, .known n => m = n  -- known values only ≤ themselves
+    | .conflict, .unknown => False
+    | .conflict, .known _ => False
+    | .known _, .unknown  => False
+  le_refl  := by intro a; cases a <;> simp
+  le_antisymm := by
+    intro a b hab hba
+    cases a <;> cases b <;> simp_all
+  le_trans := by
+    intro a b c hab hbc
+    cases a <;> cases b <;> cases c <;> simp_all
+
+instance : BoundedJoinSemilattice FlatNat where
+  le          := OrderBook.PartialOrder.le
+  le_refl     := OrderBook.PartialOrder.le_refl
+  le_antisymm := OrderBook.PartialOrder.le_antisymm
+  le_trans    := OrderBook.PartialOrder.le_trans
+  bot         := .unknown
+  sup a b := match a, b with
+    | .unknown, x      => x
+    | x, .unknown      => x
+    | .known m, .known n => if m = n then .known m else .conflict
+    | _, _             => .conflict
+  bot_le      := by intro a; cases a <;> simp [OrderBook.PartialOrder.le]
+  le_sup_left  := by
+    intro a b
+    cases a <;> cases b <;> simp_all [OrderBook.PartialOrder.le]
+    rename_i m n
+    by_cases h : m = n <;> simp [OrderBook.PartialOrder.le, h]
+  le_sup_right := by
+    intro a b
+    cases a <;> cases b <;> simp_all [OrderBook.PartialOrder.le]
+    rename_i m n
+    by_cases h : m = n <;> simp [OrderBook.PartialOrder.le, h]
+  sup_le       := by
+    intro a b c hac hbc
+    cases a <;> cases b <;> cases c <;> simp_all [OrderBook.PartialOrder.le]
+
+deriving instance DecidableEq for FlatNat
+
+end Propagators
+\end{minted}
+
+\section{Monotonicity Proofs for \texttt{addProp} and \texttt{subProp}}
+\label{sec:flatnat-monotone}
+
+The \lc{PropStep} actions \lc{addProp} and \lc{subProp} implement pure functions
+on \lc{FlatNat}. We can extract those functions and prove they satisfy the
+\lc{Propagator2} specification.
+
+\textbf{Why conflict propagates.}
+There is a subtlety: the pure function must return \lc{conflict} (not \lc{unknown})
+when an input is \lc{conflict}, otherwise monotonicity fails.
+If we returned \lc{unknown} for conflicted inputs, then
+\lc{known 3 ≤ conflict} would hold in \lc{FlatNat} but
+\lc{addFn (known 3) (known 2) = known 5 \not\leq unknown = addFn conflict x},
+violating monotonicity.
+Returning \lc{conflict} fixes this: \lc{known 5 ≤ conflict} always holds.
+
+\begin{minted}{lean4}
+namespace Propagators
+
+-- Pure addition: both inputs known → known sum.
+-- Either input conflicted → conflict propagates.
+-- Otherwise → unknown (no information yet).
+def FlatNat.addFn : FlatNat → FlatNat → FlatNat
+  | .known a,  .known b  => .known (a + b)
+  | .conflict, _         => .conflict
+  | _,         .conflict => .conflict
+  | _,         _         => .unknown
+
+-- Pure subtraction: known total - known a, with conflict on underflow.
+def FlatNat.subFn (s x : FlatNat) : FlatNat :=
+  match s, x with
+  | .known total, .known a =>
+      if total ≥ a then .known (total - a) else .conflict
+  | .conflict, _ | _, .conflict => .conflict
+  | _,         _               => .unknown
+
+-- Proof: addFn is monotone.
+-- Strategy: case-split all 81 constructor combinations (3 × 3 × 3 × 3).
+-- Most cases are trivial:
+--   • unknown ≤ anything  →  addFn unknown ... = unknown ≤ anything.
+--   • anything ≤ conflict  →  addFn ... conflict = conflict, and anything ≤ conflict.
+--   • known m ≤ unknown is False  →  hypothesis contradiction closes the goal.
+-- The only non-trivial case is known m / known n where ha : m = n forces m = n,
+-- and known p / known q where hb : p = q forces p = q, so both sides are equal.
+def addPropagator : Propagator2 FlatNat FlatNat FlatNat where
+  fn       := FlatNat.addFn
+  monotone := by
+    intro a1 a2 b1 b2 ha hb
+    cases a1 <;> cases a2 <;> cases b1 <;> cases b2
+      <;> simp_all [FlatNat.addFn, OrderBook.PartialOrder.le]
+
+-- Proof: subFn is monotone.
+-- Same strategy. The known/known/known/known case reduces to
+-- (if m ≥ p ...) ≤ (if m ≥ p ...) since ha : m = m' and hb : p = p'
+-- force both sides to be identical, which is le_refl.
+def subPropagator : Propagator2 FlatNat FlatNat FlatNat where
+  fn       := FlatNat.subFn
+  monotone := by
+    intro a1 a2 b1 b2 ha hb
+    cases a1 <;> cases a2 <;> cases b1 <;> cases b2
+      <;> simp_all [FlatNat.subFn, OrderBook.PartialOrder.le]
+    rename_i m n
+    by_cases h : m ≥ n <;> simp [OrderBook.PartialOrder.le, h]
+
+-- Connection to PropStep actions:
+-- addProp cx cy csum is addPropagator.fn wrapped in IO:
+--   it reads cx and cy, computes addFn, and writes to csum.
+-- subProp csum cx cy implements subPropagator.fn similarly.
+-- The Propagator2 instances certify that these IO actions are sound.
+
+end Propagators
+\end{minted}
+
+\section{A Complete Running Example}
+
+\begin{exbox}[Arithmetic propagation]
+  We know: $x + y = 10$ and $x = 3$. A propagator should deduce $y = 7$.
+\end{exbox}
+
+\begin{minted}{lean4}
+namespace Propagators
+
+open FlatNat
+
+-- Addition propagator: given x and y cells, write x+y to sum cell
+def addProp (cx cy csum : Cell FlatNat) : PropStep := do
+  let x ← cx.read
+  let y ← cy.read
+  match x, y with
+  | .known a, .known b => csum.write (.known (a + b))
+  | _, _ => return false
+
+-- Subtraction (used to deduce y = sum - x)
+def subProp (csum cx cy : Cell FlatNat) : PropStep := do
+  let s ← csum.read
+  let x ← cx.read
+  match s, x with
+  | .known total, .known a =>
+    if total ≥ a
+    then cy.write (.known (total - a))
+    else cy.write .conflict
+  | _, _ => return false
+
+def exampleNetwork : IO Unit := do
+  let cx   ← Cell.new (α := FlatNat)
+  let cy   ← Cell.new (α := FlatNat)
+  let csum ← Cell.new (α := FlatNat)
+
+  -- Seed known facts
+  let _ ← cx.write (.known 3)
+  let _ ← csum.write (.known 10)
+
+  let net : Network := {
+    steps := #[
+      addProp cx cy csum,
+      subProp csum cx cy,
+      subProp csum cy cx
+    ]
+  }
+
+  net.run
+
+  let yVal ← cy.read
+  match yVal with
+  | .known n => IO.println s!"y = {n}"   -- prints: y = 7
+  | .unknown  => IO.println "y is unknown"
+  | .conflict => IO.println "contradiction!"
+
+end Propagators
+\end{minted}
+
+\section{Why the Lattice Is Load-Bearing Here}
+
+Notice several things:
+\begin{itemize}
+  \item \lc{Cell.write} can be called multiple times from different propagators
+    without coordination. The join ensures the final value is consistent with
+    all of them.
+  \item Running \lc{addProp} when either input is \lc{unknown} correctly does
+    nothing (returns \lc{false}), waiting for more information.
+  \item The \lc{conflict} element propagates correctly: if two propagators
+    derive incompatible values, the join produces \lc{conflict}, which then
+    propagates to any cell that depends on this one.
+  \item The whole system terminates because \lc{FlatNat} has height 2: after at
+    most two increases, any cell stabilises.
+\end{itemize}
+
+\section{Exercises}
+
+\begin{exercisebox}[Three-cell constraint]
+  Add a \lc{mulProp} propagator for $x \times y = z$ with the \lc{FlatNat}
+  lattice. Build a network with $x \times y = 12$, $x = 3$, and verify it
+  deduces $y = 4$.
+\end{exercisebox}
+
+\begin{exercisebox}[Conflict detection]
+  Seed a network with $x = 3$ from one source and $x = 5$ from another.
+  Verify that \lc{cx.read} returns \lc{.conflict}.
+\end{exercisebox}
+
+% ============================================================
+\chapter{The Interval Lattice}
+
+Flat lattices are powerful but coarse: a cell either knows the exact value or
+knows nothing. \emph{Interval lattices} let us represent partial numeric
+knowledge as a range, enabling \emph{bound propagation} --- the engine behind
+many real-world constraint solvers.
+
+\section{Intervals as Partial Information}
+
+An interval $[l, h]$ says: ``the true value lies between $l$ and $h$''. The
+wider the interval, the less we know. The narrowest possible interval is a
+single point $[n, n]$, meaning we know the value exactly.
+
+\begin{defbox}[Interval Lattice]
+  Let the domain be extended integers $\mathbb{Z}_\infty = \mathbb{Z} \cup
+  \{-\infty, +\infty\}$. Define:
+  \begin{itemize}[nosep]
+    \item An \emph{interval} is either $\bot$ (no values possible, contradiction) or
+          $[l, h]$ with $l \leq h$.
+    \item The \emph{information order}: $[l_1, h_1] \leq [l_2, h_2] \iff
+          l_2 \leq l_1 \wedge h_1 \leq h_2$
+          (a narrower interval contains more information).
+    \item $\bot \leq [l, h]$ for all intervals.
+    \item The \emph{join} (merge two pieces of information):
+          $[l_1, h_1] \sqcup [l_2, h_2] = [\min(l_1,l_2), \max(h_1,h_2)]$
+          (the smallest interval containing both).
+    \item $\bot$ is the identity for $\sqcup$.
+  \end{itemize}
+\end{defbox}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}
+    % Number line at top for reference
+    \draw[gray,->] (-0.5,7.8) -- (11,7.8) node[right,gray,font=\small]{value};
+    \foreach \x in {0,1,...,10}
+      \draw[gray] (\x,7.85)--(\x,7.75)
+        node[above,gray,font=\scriptsize]{\x};
+    % bot at BOTTOM
+    \node[red!70!black,font=\scriptsize] at (5, 0.3)
+      {$\bot$ (\texttt{empty}) --- contradiction / identity for $\sqcup$};
+    \filldraw[orange!80!black] (5,1.5) circle (3pt);
+    \node[right=0.3cm,font=\scriptsize,orange!70!black] at (10,1.5)
+      {$[5,5]$ --- most specific};
+    \draw[blue!90,line width=4pt] (5,2.7) -- (6,2.7);
+    \node[right=0.1cm,font=\scriptsize,blue!90!black] at (10,2.7) {$[5,6]$};
+    \draw[blue!75,line width=4pt] (4,3.9) -- (7,3.9);
+    \node[right=0.1cm,font=\scriptsize,blue!75!black] at (10,3.9) {$[4,7]$};
+    \draw[blue!55,line width=4pt] (2,5.1) -- (8,5.1);
+    \node[right=0.1cm,font=\scriptsize,blue!55!black] at (10,5.1) {$[2,8]$};
+    \draw[blue!30,line width=4pt] (0,6.3) -- (10,6.3);
+    \node[right=0.1cm,font=\scriptsize,blue!50!black] at (10,6.3)
+      {$[0,10]$ --- widest shown ($\top = [-\infty,+\infty]$)};
+    \draw[-{Stealth},gray!60,thick] (-0.3,1.5)--(-0.3,6.3)
+      node[midway,left,gray,font=\scriptsize,rotate=90,yshift=4pt]
+        {widening (join $\sqcup$ goes upward)};
+  \end{tikzpicture}
+  \caption{The interval lattice order. $\bot$ sits at the bottom as the
+           join identity. Going upward, intervals widen: the join
+           (\texttt{Interval.sup}) produces the hull (smallest interval
+           containing both), which is at least as wide as either input.
+           The meet (\texttt{Interval.intersect}) produces the intersection,
+           which is narrower and thus lower.}
+\end{figure}
+
+\begin{minted}{lean4}
+namespace Intervals
+
+inductive Interval where
+  | empty              : Interval   -- ⊥
+  | range (lo hi : Int) (h : lo ≤ hi) : Interval
+
+-- Information order: narrower = more informative = higher
+def Interval.le (a b : Interval) : Prop :=
+  match a, b with
+  | .empty, _                => True
+  | .range _ _ _, .empty     => False
+  | .range l1 h1 _, .range l2 h2 _ => l2 ≤ l1 ∧ h1 ≤ h2
+
+-- Join: widen to contain both intervals
+def Interval.sup (a b : Interval) : Interval :=
+  match a, b with
+  | .empty, x => x
+  | x, .empty => x
+  | .range l1 h1 _, .range l2 h2 _ =>
+    let l := min l1 l2
+    let h := max h1 h2
+    .range l h (by omega)
+
+instance : OrderBook.PartialOrder Interval where
+  le          := Interval.le
+  le_refl     := by intro a; cases a <;> simp [Interval.le]
+  le_antisymm := by
+    intro a b hab hba
+    cases a <;> cases b <;>
+      simp [Interval.le] at * <;> omega
+  le_trans    := by
+    intro a b c hab hbc
+    cases a <;> cases b <;> cases c <;>
+      simp [Interval.le] at * <;> omega
+
+-- BoundedJoinSemilattice: ⊥ = empty, join = hull (Interval.sup)
+instance : Propagators.BoundedJoinSemilattice Interval where
+  le          := Interval.le
+  le_refl     := OrderBook.PartialOrder.le_refl
+  le_antisymm := OrderBook.PartialOrder.le_antisymm
+  le_trans    := OrderBook.PartialOrder.le_trans
+  bot         := .empty
+  sup         := Interval.sup
+  bot_le      := by intro a; cases a <;> simp [Interval.le]
+  le_sup_left  := by
+    intro a b; cases a <;> cases b <;> simp [Interval.sup, Interval.le]
+    exact ⟨Int.min_le_left _ _, Int.le_max_left _ _⟩
+  le_sup_right := by
+    intro a b; cases a <;> cases b <;> simp [Interval.sup, Interval.le]
+    exact ⟨Int.min_le_right _ _, Int.le_max_right _ _⟩
+  sup_le       := by
+    intro a b c hac hbc
+    cases a <;> cases b <;> cases c <;>
+      simp [Interval.sup, Interval.le] at * <;> omega
+
+-- DecidableEq needed by Cell.write
+instance : DecidableEq Interval := by
+  intro a b
+  cases a <;> cases b
+  · exact isTrue rfl
+  · exact isFalse (by simp)
+  · exact isFalse (by simp)
+  · rename_i l1 h1 _ l2 h2 _
+    by_cases hl : l1 = l2
+    · by_cases hh : h1 = h2
+      · subst hl; subst hh; exact isTrue (by congr 1; exact Subsingleton.elim _ _)
+      · exact isFalse (by intro heq; cases heq; exact hh rfl)
+    · exact isFalse (by intro heq; cases heq; exact hl rfl)
+
+end Intervals
+\end{minted}
+
+\section{Interval Arithmetic Propagators}
+
+To use \lc{Interval} with the \lc{Cell} infrastructure from Chapter~6, we need two
+instances: \lc{BoundedJoinSemilattice Interval} (so the scheduler can merge values
+with $\sqcup$ and initialise cells to $\bot$) and \lc{DecidableEq Interval}
+(so \lc{Cell.write} can detect whether the value actually changed).
+Both are provided above.
+
+With the interval lattice, we can implement real \emph{bound propagation}.
+
+\begin{minted}{lean4}
+namespace Intervals
+
+-- Add two intervals
+def Interval.add (a b : Interval) : Interval :=
+  match a, b with
+  | .empty, _ | _, .empty => .empty
+  | .range l1 h1 _, .range l2 h2 _ =>
+    .range (l1 + l2) (h1 + h2) (by omega)
+
+-- Subtract: a - b = [l1-h2, h1-l2]
+def Interval.sub (a b : Interval) : Interval :=
+  match a, b with
+  | .empty, _ | _, .empty => .empty
+  | .range l1 h1 _, .range l2 h2 _ =>
+    .range (l1 - h2) (h1 - l2) (by omega)
+
+-- Intersect (meet in the information order — more precise)
+def Interval.intersect (a b : Interval) : Interval :=
+  match a, b with
+  | .empty, _ | _, .empty => .empty
+  | .range l1 h1 _, .range l2 h2 _ =>
+    let l := max l1 l2
+    let h := min h1 h2
+    if h_le : l ≤ h then .range l h h_le else .empty
+
+end Intervals
+\end{minted}
+
+\section{A Worked Example: Bound Propagation}
+
+\begin{exbox}[{$x + y = 10$, $x \in [2, 8]$}]
+  What is the tightest interval for $y$?
+
+  From $x + y = 10$ we get $y = 10 - x$. Since $x \in [2, 8]$, we have
+  $y \in [10 - 8, 10 - 2] = [2, 8]$. The propagator should derive this
+  automatically.
+\end{exbox}
+
+\begin{minted}{lean4}
+namespace Intervals
+
+-- Propagator: sum = x + y (bidirectional: also narrows x and y)
+def addConstraint
+    (cx cy csum : Propagators.Cell Interval) : Array Propagators.PropStep :=
+  #[
+    -- Forward: sum ← x + y
+    do
+      let x ← cx.read; let y ← cy.read
+      csum.write (Interval.add x y),
+    -- Backward: x ← sum - y
+    do
+      let s ← csum.read; let y ← cy.read
+      cx.write (Interval.sub s y),
+    -- Backward: y ← sum - x
+    do
+      let s ← csum.read; let x ← cx.read
+      cy.write (Interval.sub s x)
+  ]
+
+def intervalExample : IO Unit := do
+  let cx   ← Propagators.Cell.new (α := Interval)
+  let cy   ← Propagators.Cell.new (α := Interval)
+  let csum ← Propagators.Cell.new (α := Interval)
+
+  -- x ∈ [2, 8], sum = 10
+  let _ ← cx.write (.range 2 8 (by omega))
+  let _ ← csum.write (.range 10 10 (by omega))
+
+  let steps := addConstraint cx cy csum
+  Propagators.runToFixpoint steps
+
+  let yVal ← cy.read
+  match yVal with
+  | .empty        => IO.println "y: impossible"
+  | .range l h _  => IO.println s!"y ∈ [{l}, {h}]"   -- y ∈ [2, 8]
+
+end Intervals
+\end{minted}
+
+\begin{notebox}
+  \textbf{The join in action.}
+  When the backward propagator writes $[2,8]$ to $c_y$ and $c_y$ already holds
+  $\bot$, the join $\bot \sqcup [2,8] = [2,8]$ correctly updates the cell.
+  On the next pass, the forward propagator reads $x = [2,8]$ and $y = [2,8]$,
+  computes $\mathrm{add} = [4, 16]$, and writes to $c_\text{sum}$. Since
+  $[10,10] \sqcup [4,16] = [4,16]$ would \emph{widen} the constraint (lose
+  information), we could use \lc{intersect} here for a more powerful solver.
+  We leave this as Exercise~7.1.
+\end{notebox}
+
+\section{Exercises}
+
+\begin{exercisebox}[Intersection for tighter bounds]
+  Replace \lc{Interval.sup} (widening join) with \lc{Interval.intersect}
+  (narrowing meet) in the cell write operation for the sum constraint.
+  Explain why the information order must be \emph{reversed} when you switch from
+  widening to narrowing. What does this say about the dual lattice?
+\end{exercisebox}
+
+\begin{exercisebox}[Multiplication intervals]
+  Implement \lc{Interval.mul}. Be careful: multiplying negative intervals
+  requires considering all four corner products.
+\end{exercisebox}
+
+% ============================================================
+\part{Capstone Projects}
+
+% ============================================================
+\chapter{Capstone I: A Sudoku Solver}
+
+\section{What is Sudoku?}
+
+Sudoku is a logic puzzle played on a $9 \times 9$ grid. The grid is divided into
+nine $3 \times 3$ \emph{boxes}. Some cells are pre-filled with digits; your task
+is to fill in the rest.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[scale=0.55]
+    % Outer border
+    \draw[line width=2pt] (0,0) rectangle (9,9);
+    % Thin grid lines
+    \foreach \x in {1,...,8} \draw[gray!50, line width=0.4pt] (\x,0)--(\x,9);
+    \foreach \y in {1,...,8} \draw[gray!50, line width=0.4pt] (0,\y)--(9,\y);
+    % Thick box borders
+    \foreach \x in {3,6} \draw[line width=1.5pt] (\x,0)--(\x,9);
+    \foreach \y in {3,6} \draw[line width=1.5pt] (0,\y)--(9,\y);
+    % Given digits (example puzzle)
+    \foreach \row/\col/\val in {
+      9/1/5, 9/2/3, 9/5/7,
+      8/1/6, 8/4/1, 8/5/9, 8/6/5,
+      7/2/9, 7/3/8, 7/6/6,
+      6/1/8, 6/5/6, 6/9/3,
+      5/1/4, 5/4/8, 5/6/3, 5/9/1,
+      4/1/7, 4/5/2, 4/9/6,
+      3/2/6, 3/7/2, 3/8/8,
+      2/4/4, 2/5/1, 2/6/9, 2/9/5,
+      1/5/8, 1/8/7, 1/9/9
+    } {
+      \node[font=\small\bfseries] at (\col-0.5, \row-0.5) {\val};
+    }
+    % Solved digits (lighter)
+    \foreach \row/\col/\val in {
+      9/3/1, 9/4/6, 9/6/8, 9/7/9, 9/8/4, 9/9/2,
+      8/2/7, 8/3/2, 8/7/4, 8/8/3, 8/9/8,
+      7/1/1, 7/4/9, 7/5/4, 7/7/6, 7/8/5, 7/9/7
+    } {
+      \node[font=\small, gray!70] at (\col-0.5, \row-0.5) {\val};
+    }
+    % Box labels
+    \node[font=\tiny, gray] at (1.5, 7.85) {box};
+    \node[font=\tiny, gray] at (1.5, 7.5) {(top-left)};
+    % Row/col annotations
+    \foreach \c in {1,...,9}
+      \node[font=\tiny, gray] at (\c-0.5, -0.35) {c\c};
+    \foreach \r/\rl in {1/9,2/8,3/7,4/6,5/5,6/4,7/3,8/2,9/1}
+      \node[font=\tiny, gray] at (-0.4, \r-0.5) {r\rl};
+  \end{tikzpicture}
+  \caption{A Sudoku puzzle. Bold digits are givens; light grey digits show
+           a few solved cells. The thick lines divide the grid into nine
+           $3 \times 3$ boxes.}
+\end{figure}
+
+\textbf{The three rules.} Every digit $1$--$9$ must appear \emph{exactly once}
+in each of:
+\begin{itemize}[nosep]
+  \item each \textbf{row} (9 rows, one per horizontal strip),
+  \item each \textbf{column} (9 columns, one per vertical strip),
+  \item each \textbf{box} (9 boxes, each a $3 \times 3$ sub-grid).
+\end{itemize}
+
+That is the entire rule set. No arithmetic is involved --- the digits could
+equally well be colours, letters, or symbols. The puzzle is purely about
+placement constraints.
+
+\textbf{How to solve by hand.}
+The standard technique is \emph{elimination}: for each empty cell, maintain the
+set of digits that could still legally go there given the filled cells in the
+same row, column, and box. If a cell's candidate set shrinks to a single digit,
+that digit is determined. Filling it in eliminates that digit from the candidate
+sets of neighbouring cells, which may in turn determine more cells. This
+cascading process is exactly what a propagator network formalises.
+
+\begin{exbox}[A simple deduction]
+  Suppose row 1 already contains $1, 2, 3, 4, 6, 7, 8, 9$ in various cells.
+  The only missing digit is $5$, so the one remaining empty cell in row 1
+  must be $5$ --- no other placement is consistent with the row constraint.
+\end{exbox}
+
+\begin{exbox}[Elimination across constraints]
+  Suppose a cell sits in row 3, column 5, box 5 (the centre box). Row 3 already
+  contains $\{1,3,4,6,7\}$, column 5 contains $\{2,3,6,8\}$, and box 5 contains
+  $\{1,2,5,6,9\}$. The candidates for this cell are all digits \emph{not} ruled
+  out by any of its three units:
+  $$\{1,\ldots,9\} \setminus \{1,3,4,6,7\} \setminus \{2,3,6,8\} \setminus
+    \{1,2,5,6,9\} = \{5\} \setminus \{5\} \cup \ldots$$
+  Working through it: combining the three sets of forbidden digits gives
+  $\{1,2,3,4,5,6,7,8,9\}$ minus what is already placed. The intersection of
+  three elimination sets can be computed with \lc{CandidateSet.inter}, which
+  is exactly the join in the information order.
+\end{exbox}
+
+\textbf{Why propagator networks are a natural fit.}
+Each constraint (row, column, box) is a propagator that reads the determined
+cells in its unit and writes the resulting eliminations to undetermined cells.
+The network runs until quiescence --- no propagator can make further
+eliminations. This is guaranteed to terminate because candidate sets can only
+shrink, and a finite set can only shrink finitely many times. Whether it
+\emph{solves} the puzzle completely depends on the puzzle; harder puzzles
+require search in addition to propagation.
+
+\section{The Domain Lattice}
+
+Sudoku is a constraint satisfaction problem: each of 81 cells must receive a
+digit $1$--$9$ subject to row, column, and box uniqueness constraints.
+Propagator networks handle this beautifully. We build a complete solver
+using nothing but lattice-ordered propagation.
+
+Each Sudoku cell can be modelled as a set of \emph{candidate digits}. Initially
+every cell can hold any of $\{1,\ldots,9\}$. Constraints eliminate candidates.
+
+\begin{defbox}[Candidate Set Lattice]
+  Let $D = \{1,\ldots,9\}$. The \emph{candidate-set lattice} is the powerset
+  $\mathcal{P}(D)$ ordered by \emph{reverse inclusion}:
+  $$S \leq T \iff T \subseteq S.$$
+  The bottom $\bot = D$ (no information: any digit possible),
+  the top $\top = \varnothing$ (contradiction: no digit possible).
+  The join is intersection: $S \sqcup T = S \cap T$
+  (the smallest set of candidates consistent with both sources).
+\end{defbox}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[node distance=1cm]
+    \node[node,minimum size=1.1cm] (bot) {\tiny $\{1..9\}$};
+    \node[node,minimum size=1.1cm] (mid1) [above left=1.1cm and 1.8cm of bot] {\tiny $\{1,2,3\}$};
+    \node[node,minimum size=1.1cm] (mid2) [above=1.4cm of bot]               {\tiny $\{4,5\}$};
+    \node[node,minimum size=1.1cm] (mid3) [above right=1.1cm and 1.8cm of bot]{\tiny $\{7,8,9\}$};
+    \node[node,minimum size=1.1cm] (hi1)  [above left=1.1cm and 0.8cm of mid1]{\tiny $\{2\}$};
+    \node[node,minimum size=1.1cm] (hi2)  [above=1.1cm of mid2]               {\tiny $\{5\}$};
+    \node[node,minimum size=1.1cm] (hi3)  [above right=1.1cm and 0.8cm of mid3]{\tiny $\{8\}$};
+    \node[node,minimum size=1.1cm] (top)  [above=1.4cm of hi2]                {\tiny $\varnothing$};
+    \draw[hasseedge] (bot)--(mid1); \draw[hasseedge] (bot)--(mid2);
+    \draw[hasseedge] (bot)--(mid3);
+    \draw[hasseedge] (mid1)--(hi1); \draw[hasseedge] (mid2)--(hi2);
+    \draw[hasseedge] (mid3)--(hi3);
+    \draw[hasseedge] (hi1)--(top);  \draw[hasseedge] (hi2)--(top);
+    \draw[hasseedge] (hi3)--(top);
+    \node[right=0.2cm of top, gray, font=\small\itshape] {$\top$: contradiction};
+    \node[right=0.2cm of bot, gray, font=\small\itshape] {$\bot$: no info};
+  \end{tikzpicture}
+  \caption{A fragment of the candidate-set lattice (reverse inclusion order).}
+\end{figure}
+
+This is precisely the \emph{dual} powerset lattice from Exercise~1.4!
+
+\begin{minted}{lean4}
+namespace Sudoku
+
+-- Digits 1..9, represented as Fin 9 (0..8 internally, displayed as 1..9)
+abbrev Digit := Fin 9
+
+-- A candidate set: which digits are still possible for this cell
+-- We represent it as a Bool array of length 9
+structure CandidateSet where
+  present : Fin 9 → Bool
+
+def CandidateSet.full : CandidateSet :=
+  { present := fun _ => true }
+
+def CandidateSet.empty : CandidateSet :=
+  { present := fun _ => false }
+
+def CandidateSet.singleton (d : Digit) : CandidateSet :=
+  { present := fun i => i == d }
+
+def CandidateSet.remove (s : CandidateSet) (d : Digit) : CandidateSet :=
+  { present := fun i => s.present i && !(i == d) }
+
+def CandidateSet.inter (s t : CandidateSet) : CandidateSet :=
+  { present := fun i => s.present i && t.present i }
+
+def CandidateSet.union (s t : CandidateSet) : CandidateSet :=
+  { present := fun i => s.present i || t.present i }
+
+-- The information order: s ≤ t iff t ⊆ s (t is more specific)
+def CandidateSet.le (s t : CandidateSet) : Prop :=
+  ∀ i : Digit, t.present i = true → s.present i = true
+
+instance : OrderBook.PartialOrder CandidateSet where
+  le          := CandidateSet.le
+  le_refl     := fun s i h => h
+  le_antisymm := fun s t h1 h2 =>
+    show s = t from by
+      cases s; cases t
+      congr 1; funext i
+      cases hi : t.present i
+      · simp [CandidateSet.le] at h1
+        cases hs : s.present i
+        · rfl
+        · exact absurd (h1 i hs) (by simp [hi])
+      · exact h2 i hi
+  le_trans    := fun s t u hst htu i hi => hst i (htu i hi)
+
+-- Join = intersection (combines constraints)
+instance : Propagators.BoundedJoinSemilattice CandidateSet where
+  le          := CandidateSet.le
+  le_refl     := fun s i h => h
+  le_antisymm := OrderBook.PartialOrder.le_antisymm (α := CandidateSet)
+  le_trans    := OrderBook.PartialOrder.le_trans (α := CandidateSet)
+  bot         := CandidateSet.full
+  sup         := CandidateSet.inter    -- ⊔ = ∩ in information order!
+  bot_le      := fun s i _ => rfl     -- full ≤ s since s ⊆ full
+  le_sup_left  := fun s t i h => (Bool.and_eq_true.mp h).1
+  le_sup_right := fun s t i h => (Bool.and_eq_true.mp h).2
+  sup_le       := fun s t u hsu htu i h =>
+    Bool.and_eq_true.mpr ⟨hsu i h, htu i h⟩
+
+instance : DecidableEq CandidateSet :=
+  fun s t =>
+    if h : ∀ i, s.present i = t.present i
+    then isTrue  (by cases s; cases t; congr 1; funext i; exact h i)
+    else isFalse (fun heq => h (fun i => by rw [heq]))
+
+end Sudoku
+\end{minted}
+
+\section{Representing the Grid}
+
+\begin{minted}{lean4}
+namespace Sudoku
+
+-- 81 cells indexed by row and column (both Fin 9)
+abbrev Grid := Fin 9 → Fin 9 → Propagators.Cell CandidateSet
+
+def makeGrid : IO Grid := do
+  let mut rows : Array (Array (Propagators.Cell CandidateSet)) := #[]
+  for _ in [:9] do
+    let mut row : Array (Propagators.Cell CandidateSet) := #[]
+    for _ in [:9] do
+      let c ← Propagators.Cell.new (α := CandidateSet)
+      row := row.push c
+    rows := rows.push row
+  -- Convert to function (safe because sizes match)
+  return fun r c => rows[r.val]![c.val]!
+
+-- Seed a given digit into a cell
+def seedCell (grid : Grid) (r c : Fin 9) (d : Digit) : IO Unit := do
+  let _ ← (grid r c).write (CandidateSet.singleton d)
+
+end Sudoku
+\end{minted}
+
+\section{Constraint Propagators}
+
+Sudoku has three families of constraints: row, column, and $3\times 3$ box
+uniqueness. Each is expressed as a propagator that, given a cell known to hold
+digit $d$, removes $d$ from all peers.
+
+\begin{minted}{lean4}
+namespace Sudoku
+
+-- If cell (r,c) is determined to be d, remove d from all other cells in row r
+def rowPropagator (grid : Grid) (r c : Fin 9) : Propagators.PropStep := do
+  let cands ← (grid r c).read
+  -- Check if this cell is a singleton
+  let det : Option Digit := Id.run do
+    let mut found : Option Digit := none
+    let mut count := 0
+    for i in [:9] do
+      let i' : Digit := ⟨i, by omega⟩
+      if cands.present i' then
+        found := some i'; count := count + 1
+    if count = 1 then found else none
+  match det with
+  | none   => return false
+  | some d =>
+    let mut changed := false
+    for j in [:9] do
+      let j' : Fin 9 := ⟨j, by omega⟩
+      if j' ≠ c then
+        let removed := { present := fun i => (grid r j').read.present i && !(i == d) }
+        -- We re-read and merge
+        let old ← (grid r j').read
+        let upd := CandidateSet.inter old { present := fun i => !(i == d) }
+        let c ← (grid r j').write upd
+        if c then changed := true
+    return changed
+
+-- Analogous: column propagator
+def colPropagator (grid : Grid) (r c : Fin 9) : Propagators.PropStep := do
+  let cands ← (grid r c).read
+  let det : Option Digit := Id.run do
+    let mut found : Option Digit := none
+    let mut count := 0
+    for i in [:9] do
+      let i' : Digit := ⟨i, by omega⟩
+      if cands.present i' then found := some i'; count := count + 1
+    if count = 1 then found else none
+  match det with
+  | none => return false
+  | some d =>
+    let mut changed := false
+    for i in [:9] do
+      let i' : Fin 9 := ⟨i, by omega⟩
+      if i' ≠ r then
+        let old ← (grid i' c).read
+        let upd := CandidateSet.inter old { present := fun k => !(k == d) }
+        let ch ← (grid i' c).write upd
+        if ch then changed := true
+    return changed
+
+-- Box propagator (which 3×3 box contains (r,c)?)
+def boxPropagator (grid : Grid) (r c : Fin 9) : Propagators.PropStep := do
+  let cands ← (grid r c).read
+  let det : Option Digit := Id.run do
+    let mut found : Option Digit := none; let mut count := 0
+    for i in [:9] do
+      let i' : Digit := ⟨i, by omega⟩
+      if cands.present i' then found := some i'; count := count + 1
+    if count = 1 then found else none
+  match det with
+  | none => return false
+  | some d =>
+    let boxR := r.val / 3 * 3
+    let boxC := c.val / 3 * 3
+    let mut changed := false
+    for dr in [:3] do
+      for dc in [:3] do
+        let r' : Fin 9 := ⟨boxR + dr, by omega⟩
+        let c' : Fin 9 := ⟨boxC + dc, by omega⟩
+        if !(r' = r && c' = c) then
+          let old ← (grid r' c').read
+          let upd := CandidateSet.inter old { present := fun k => !(k == d) }
+          let ch ← (grid r' c').write upd
+          if ch then changed := true
+    return changed
+
+end Sudoku
+\end{minted}
+
+\section{Assembling and Running the Solver}
+
+\begin{minted}{lean4}
+namespace Sudoku
+
+def buildNetwork (grid : Grid) : Array Propagators.PropStep := Id.run do
+  let mut steps : Array Propagators.PropStep := #[]
+  for r in [:9] do
+    for c in [:9] do
+      let r' : Fin 9 := ⟨r, by omega⟩
+      let c' : Fin 9 := ⟨c, by omega⟩
+      steps := steps.push (rowPropagator grid r' c')
+      steps := steps.push (colPropagator grid r' c')
+      steps := steps.push (boxPropagator grid r' c')
+  return steps
+
+-- Print the grid (showing the unique digit or '?' for unsolved cells)
+def printGrid (grid : Grid) : IO Unit := do
+  for r in [:9] do
+    let mut row := ""
+    for c in [:9] do
+      let r' : Fin 9 := ⟨r, by omega⟩
+      let c' : Fin 9 := ⟨c, by omega⟩
+      let cands ← (grid r' c').read
+      let mut digit := '?'
+      let mut count := 0
+      for i in [:9] do
+        let i' : Digit := ⟨i, by omega⟩
+        if cands.present i' then digit := Char.ofNat (i + 49); count := count + 1
+      row := row ++ (if count = 1 then s!"{digit}" else "?")
+      if c % 3 == 2 && c < 8 then row := row ++ "|"
+    IO.println row
+    if r % 3 == 2 && r < 8 then IO.println "-----------"
+
+-- Example: a simple Sudoku puzzle
+-- (0 = unknown, digits are given clues)
+def examplePuzzle : Array (Array Nat) := #[
+  #[5, 3, 0, 0, 7, 0, 0, 0, 0],
+  #[6, 0, 0, 1, 9, 5, 0, 0, 0],
+  #[0, 9, 8, 0, 0, 0, 0, 6, 0],
+  #[8, 0, 0, 0, 6, 0, 0, 0, 3],
+  #[4, 0, 0, 8, 0, 3, 0, 0, 1],
+  #[7, 0, 0, 0, 2, 0, 0, 0, 6],
+  #[0, 6, 0, 0, 0, 0, 2, 8, 0],
+  #[0, 0, 0, 4, 1, 9, 0, 0, 5],
+  #[0, 0, 0, 0, 8, 0, 0, 7, 9]
+]
+
+def solveSudoku : IO Unit := do
+  let grid ← makeGrid
+  -- Seed known digits
+  for r in [:9] do
+    for c in [:9] do
+      let d := examplePuzzle[r]![c]!
+      if d ≠ 0 then
+        let r' : Fin 9 := ⟨r, by omega⟩
+        let c' : Fin 9 := ⟨c, by omega⟩
+        seedCell grid r' c' ⟨d - 1, by omega⟩
+  -- Build and run the propagator network
+  let steps := buildNetwork grid
+  Propagators.runToFixpoint steps
+  -- Print the result
+  IO.println "Solution:"
+  printGrid grid
+
+end Sudoku
+\end{minted}
+
+\section{Why This Works: The Lattice Perspective}
+
+\begin{itemize}
+  \item Each cell starts at $\bot = \{1,\ldots,9\}$: no information.
+  \item Every propagator only writes using \lc{CandidateSet.inter} (the join
+    in the information order), which can only \emph{reduce} candidate sets ---
+    i.e., move \emph{up} in the information order.
+  \item The network terminates because the candidate-set lattice is finite and
+    the cells only move upward.
+  \item Reaching $\top = \varnothing$ in any cell signals a contradiction.
+  \item A solved cell is one that has reached a singleton $\{d\}$.
+\end{itemize}
+
+The elegant insight: \emph{solving Sudoku is computing the least fixed point of
+the combined propagation function}, where the partial order is the information
+order on candidate sets. Knaster--Tarski guarantees it exists; our scheduler
+computes it.
+
+\begin{exercisebox}[Naked pair]
+  A \emph{naked pair} occurs when two cells in the same unit both have exactly
+  the same two candidates $\{a, b\}$. Then $a$ and $b$ can be removed from all
+  other cells in that unit. Implement this as an additional propagator.
+\end{exercisebox}
+
+\begin{exercisebox}[Contradiction detection]
+  Add a \lc{contradictionProp} that checks every cell; if any cell reaches
+  $\top = \varnothing$, print a diagnostic and halt. Why is this detection
+  sound (i.e., why can't a cell reach $\varnothing$ unless the puzzle is truly
+  unsatisfiable)?
+\end{exercisebox}
+
+% ============================================================
+\chapter{Capstone II: Type Inference via Propagation}
+
+Our second capstone takes us into programming language theory.
+Type inference --- the process of automatically deducing types of expressions
+--- is naturally formulated as constraint propagation on a type lattice.
+
+\section{A Simple Expression Language}
+
+We work with a fragment of the lambda calculus extended with integers and
+booleans.
+
+\begin{minted}{lean4}
+namespace TypeInfer
+
+-- Expressions
+inductive Expr where
+  | intLit  (n : Int)        : Expr
+  | boolLit (b : Bool)       : Expr
+  | var     (x : String)     : Expr
+  | add     (e1 e2 : Expr)   : Expr
+  | ifExpr  (cond t f : Expr): Expr
+  | lam     (x : String) (body : Expr) : Expr
+  | app     (fn arg : Expr)  : Expr
+  | letExpr (x : String) (e body : Expr) : Expr
+
+end TypeInfer
+\end{minted}
+
+\section{The Type Lattice}
+
+Rather than types being a simple set, we arrange them in a lattice that
+captures the degree to which a type is \emph{known}.
+
+\begin{defbox}[Flat Type Lattice]
+  Define the type information domain:
+  \begin{itemize}[nosep]
+    \item $\bot$ (\lc{Unknown}): no type information yet.
+    \item \lc{TInt}, \lc{TBool}: concrete base types.
+    \item \lc{TFun s t}: function type, parameterised by the type information
+          for the domain and codomain (which are themselves in the lattice).
+    \item $\top$ (\lc{TypeError}): contradiction (incompatible constraints).
+  \end{itemize}
+  The order is: $\bot \leq$ everything, everything $\leq \top$, and
+  base types are only $\leq$ themselves (and $\bot / \top$).
+  Function types: \lc{TFun s1 t1 ≤ TFun s2 t2 iff s1 ≤ s2 ∧ t1 ≤ t2}.
+\end{defbox}
+
+\begin{minted}{lean4}
+namespace TypeInfer
+
+inductive Ty where
+  | unknown            : Ty    -- ⊥
+  | int                : Ty
+  | bool               : Ty
+  | fun_ (dom cod : Ty): Ty    -- dom → cod
+  | typeError          : Ty    -- ⊤
+
+-- Unification of two types: compute their join
+def Ty.unify : Ty → Ty → Ty
+  | .unknown, t          => t
+  | t, .unknown          => t
+  | .typeError, _        => .typeError
+  | _, .typeError        => .typeError
+  | .int, .int           => .int
+  | .bool, .bool         => .bool
+  | .fun_ d1 c1, .fun_ d2 c2 => .fun_ (Ty.unify d1 d2) (Ty.unify c1 c2)
+  | _, _                 => .typeError   -- incompatible types
+
+-- The information order
+def Ty.le : Ty → Ty → Prop
+  | .unknown, _            => True
+  | _, .typeError          => True
+  | .int, .int             => True
+  | .bool, .bool           => True
+  | .fun_ d1 c1, .fun_ d2 c2 => Ty.le d1 d2 ∧ Ty.le c1 c2
+  | _, _                   => False
+
+instance : OrderBook.PartialOrder Ty where
+  le          := Ty.le
+  le_refl     := by intro t; induction t <;> simp [Ty.le, *]
+  le_antisymm := by
+    intro t1 t2 h12 h21
+    induction t1 <;> cases t2 <;> simp [Ty.le] at * <;>
+      try (first | rfl | exact absurd h12 id | exact absurd h21 id)
+    case fun_.fun_ d1 c1 ih_d ih_c d2 c2 =>
+      have := ih_d h12.1 h21.1; have := ih_c h12.2 h21.2; simp_all
+  le_trans    := by
+    intro t1 t2 t3 h12 h23
+    induction t1 <;> cases t2 <;> cases t3 <;>
+      simp [Ty.le] at * <;> try tauto
+    case fun_.fun_.fun_ => exact ⟨by tauto, by tauto⟩
+
+instance : Propagators.BoundedJoinSemilattice Ty where
+  le          := Ty.le
+  le_refl     := OrderBook.PartialOrder.le_refl
+  le_antisymm := OrderBook.PartialOrder.le_antisymm
+  le_trans    := OrderBook.PartialOrder.le_trans
+  bot         := .unknown
+  sup         := Ty.unify
+  bot_le      := fun _ => trivial
+  le_sup_left  := by
+    intro a b; induction a <;> cases b <;>
+      simp [Ty.le, Ty.unify, *] <;> try exact ⟨by assumption, by assumption⟩
+  le_sup_right := by
+    intro a b; induction b <;> cases a <;>
+      simp [Ty.le, Ty.unify, *] <;> try exact ⟨by assumption, by assumption⟩
+  sup_le       := by
+    intro a b c hac hbc
+    induction a <;> cases b <;> cases c <;>
+      simp [Ty.le, Ty.unify] at * <;> tauto
+
+deriving instance DecidableEq for Ty
+
+end TypeInfer
+\end{minted}
+
+\section{Type Constraint Generation}
+
+We generate constraints by walking the expression tree. Each sub-expression
+gets a fresh \emph{type cell}. Constraints are propagators that merge type
+information into these cells.
+
+\begin{minted}{lean4}
+namespace TypeInfer
+
+-- A typing context maps variable names to type cells
+abbrev Context := List (String × Propagators.Cell Ty)
+
+def Context.lookup (ctx : Context) (x : String) :
+    Option (Propagators.Cell Ty) :=
+  ctx.find? (fun p => p.1 == x) |>.map (·.2)
+
+-- Generate type cells and propagators for an expression
+-- Returns the type cell for this expression.
+partial def inferExpr
+    (ctx : Context)
+    (e : Expr)
+    (steps : IO.Ref (Array Propagators.PropStep)) :
+    IO (Propagators.Cell Ty) := do
+  match e with
+  | .intLit _ =>
+    let c ← Propagators.Cell.new (α := Ty)
+    let _ ← c.write .int
+    return c
+
+  | .boolLit _ =>
+    let c ← Propagators.Cell.new (α := Ty)
+    let _ ← c.write .bool
+    return c
+
+  | .var x =>
+    match ctx.lookup x with
+    | some c => return c
+    | none   =>
+      let c ← Propagators.Cell.new (α := Ty)
+      let _ ← c.write .typeError  -- unbound variable
+      return c
+
+  | .add e1 e2 =>
+    let c1 ← inferExpr ctx e1 steps
+    let c2 ← inferExpr ctx e2 steps
+    let cOut ← Propagators.Cell.new (α := Ty)
+    -- Propagator: both inputs and output must be Int
+    steps.modify (· .push do
+      let _ ← c1.write .int
+      let _ ← c2.write .int
+      cOut.write .int)
+    return cOut
+
+  | .ifExpr cond t f =>
+    let ccond ← inferExpr ctx cond steps
+    let ct    ← inferExpr ctx t    steps
+    let cf    ← inferExpr ctx f    steps
+    let cOut  ← Propagators.Cell.new (α := Ty)
+    -- Propagator: cond must be Bool; t and f must agree; out = t
+    steps.modify (· .push do
+      let _ ← ccond.write .bool
+      let tv ← ct.read; let fv ← cf.read
+      let _ ← ct.write fv; let _ ← cf.write tv
+      let tv' ← ct.read
+      cOut.write tv')
+    return cOut
+
+  | .lam x body =>
+    let cDom  ← Propagators.Cell.new (α := Ty)
+    let ctx'  := (x, cDom) :: ctx
+    let cBody ← inferExpr ctx' body steps
+    let cOut  ← Propagators.Cell.new (α := Ty)
+    -- Propagator: out = dom → body
+    steps.modify (· .push do
+      let d ← cDom.read; let b ← cBody.read
+      cOut.write (.fun_ d b))
+    return cOut
+
+  | .app fn arg =>
+    let cFn  ← inferExpr ctx fn  steps
+    let cArg ← inferExpr ctx arg steps
+    let cOut ← Propagators.Cell.new (α := Ty)
+    -- Propagator: fn must be (arg → out)
+    steps.modify (· .push do
+      let fv ← cFn.read; let av ← cArg.read
+      let ov ← cOut.read
+      match fv with
+      | .fun_ d r =>
+        let _ ← cArg.write d   -- arg type must match domain
+        let _ ← cOut.write r   -- result type from codomain
+        let _ ← cFn.write (.fun_ av ov) -- refine fn type
+        return false            -- (actual change tracked by writes)
+      | .unknown =>
+        let _ ← cFn.write (.fun_ av ov)
+        return false
+      | _ =>
+        let _ ← cFn.write .typeError; return false)
+    return cOut
+
+  | .letExpr x e body =>
+    let ce   ← inferExpr ctx  e    steps
+    let ctx' := (x, ce) :: ctx
+    inferExpr ctx' body steps
+
+end TypeInfer
+\end{minted}
+
+\section{Running the Type Inferencer}
+
+\begin{minted}{lean4}
+namespace TypeInfer
+
+def infer (e : Expr) : IO Ty := do
+  let stepsRef ← IO.mkRef (Array.empty : Array Propagators.PropStep)
+  let cResult  ← inferExpr [] e stepsRef
+  let steps    ← stepsRef.get
+  Propagators.runToFixpoint steps
+  cResult.read
+
+-- Helper to show types
+def Ty.toString : Ty → String
+  | .unknown       => "?"
+  | .int           => "Int"
+  | .bool          => "Bool"
+  | .fun_ d r      => s!"({Ty.toString d} → {Ty.toString r})"
+  | .typeError     => "TypeError"
+
+-- Examples
+def ex1 : Expr := .add (.intLit 1) (.intLit 2)
+-- Expected: Int
+
+def ex2 : Expr := .lam "x" (.add (.var "x") (.intLit 1))
+-- Expected: (Int → Int)
+
+def ex3 : Expr := .ifExpr (.boolLit true) (.intLit 1) (.intLit 2)
+-- Expected: Int
+
+def ex4 : Expr := .add (.boolLit true) (.intLit 1)
+-- Expected: TypeError (Bool ≠ Int)
+
+def runExamples : IO Unit := do
+  for (name, e) in [("1 + 2", ex1), ("λx. x+1", ex2),
+                    ("if true 1 2", ex3), ("true + 1", ex4)] do
+    let ty ← infer e
+    IO.println s!"{name} : {Ty.toString ty}"
+
+end TypeInfer
+\end{minted}
+
+Expected output:
+\begin{minted}{text}
+1 + 2 : Int
+λx. x+1 : (Int → Int)
+if true 1 2 : Int
+true + 1 : TypeError
+\end{minted}
+
+\section{What the Lattice Buys Us Here}
+
+\begin{itemize}
+  \item \textbf{Bidirectional propagation is free.}
+    When we call \lc{cArg.write d} inside the \lc{app} propagator, we are
+    propagating type information \emph{backwards}: from the function type to
+    the argument. The lattice join ensures this never loses previously-inferred
+    information.
+
+  \item \textbf{Inconsistency is explicit.}
+    \lc{TypeError} is the $\top$ element. When two incompatible type
+    constraints are merged (\lc{Ty.unify .int .bool = .typeError}), the cell
+    value jumps to $\top$ and stays there. No exception is thrown; the type
+    error propagates naturally through the lattice.
+
+  \item \textbf{Incrementality is free.}
+    If we learn a new fact about $x$'s type (say, $x$ appears in another
+    expression), we just write to $x$'s type cell and re-run the network.
+    The lattice join handles merging old and new constraints correctly.
+
+  \item \textbf{Ordering captures ``how much we know''.}
+    $\bot = \texttt{Unknown} < \texttt{Int} < \texttt{TypeError} = \top$.
+    The height of a cell's value in the lattice is a measure of how constrained
+    it is. A fully-typed program has all cells at concrete types (neither
+    $\bot$ nor $\top$).
+\end{itemize}
+
+\section{Exercises}
+
+\begin{exercisebox}[Let-polymorphism]
+  Lean's type system supports polymorphism. Extend \lc{Ty} with a
+  \lc{TVar (name : String)} constructor and modify \lc{Ty.unify} to
+  do proper unification (substituting type variables).
+  How does this affect the lattice structure?
+\end{exercisebox}
+
+\begin{exercisebox}[Recursive types]
+  Add a \lc{letRec} construct to \lc{Expr} and extend the inferencer to
+  handle it. Note: the type cell for the recursive binding must be
+  initialised to \lc{Unknown} and refined by propagation, enabling
+  inference of e.g.\ \lc{let rec f x = if x = 0 then 1 else x * f (x-1)}.
+\end{exercisebox}
+
+\begin{exercisebox}[Error messages]
+  When a cell reaches \lc{TypeError}, record \emph{why} (which two types
+  conflicted). Augment the \lc{Ty} type so that \lc{TypeError} carries a
+  \lc{String} explanation, and thread error messages through \lc{Ty.unify}.
+\end{exercisebox}
+
+% ============================================================
+\appendix
+\chapter{Lean~4 Quick Reference}
+
+\section{Basic Types and Syntax}
+
+\begin{minted}{lean4}
+-- Type universes
+#check Nat       -- Nat : Type
+#check Type      -- Type : Type 1
+#check Prop      -- Prop : Sort 0
+
+-- Function types
+def f : Nat → Nat → Nat := fun a b => a + b
+def g (a b : Nat) : Nat := a + b    -- same, different syntax
+
+-- Dependent types
+def myList (α : Type) (n : Nat) : Type := ...
+
+-- Let bindings
+def h : Nat :=
+  let x := 5
+  let y := x + 1
+  x * y
+\end{minted}
+
+\section{Typeclasses}
+
+\begin{minted}{lean4}
+-- Declaring a typeclass
+class MyClass (α : Type) where
+  someMethod : α → Nat
+  someProperty : ∀ (a : α), someMethod a ≥ 0
+
+-- Providing an instance
+instance : MyClass Nat where
+  someMethod := id
+  someProperty := Nat.zero_le
+
+-- Using an instance
+def useMyClass [MyClass α] (a : α) : Nat :=
+  MyClass.someMethod a
+\end{minted}
+
+\section{Tactics Reference}
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    Tactic & Usage \\
+    \midrule
+    \lc{rfl}          & Prove $a = a$ by reflexivity \\
+    \lc{exact h}      & Close goal with proof term \lc{h} \\
+    \lc{apply f}      & Apply function/lemma \lc{f} \\
+    \lc{intro h}      & Introduce a hypothesis \\
+    \lc{cases h}      & Case split on \lc{h} \\
+    \lc{induction n}  & Induction on \lc{n} \\
+    \lc{simp}         & Simplify using simp lemmas \\
+    \lc{simp\_all}    & Simplify using all hypotheses \\
+    \lc{omega}        & Linear arithmetic over $\mathbb{Z}$ \\
+    \lc{decide}       & Decide propositions by computation \\
+    \lc{constructor}  & Introduce an And/Iff/... \\
+    \lc{have h := ...}& Introduce a local lemma \\
+    \lc{tauto}        & Tautology checker \\
+    \lc{funext}       & Function extensionality \\
+    \lc{congr}        & Congruence \\
+    \bottomrule
+  \end{tabular}
+  \caption{Commonly used Lean~4 tactics in this book.}
+\end{table}
+
+\section{Unicode Input}
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{lll}
+    \toprule
+    Symbol & Input & Meaning \\
+    \midrule
+    \lc{≤}  & \texttt{\textbackslash{}le}   & Less-than-or-equal \\
+    \lc{≥}  & \texttt{\textbackslash{}ge}   & Greater-than-or-equal \\
+    \lc{→}  & \texttt{\textbackslash{}to}   & Function/implication arrow \\
+    \lc{←}  & \texttt{\textbackslash{}l}    & Reverse arrow \\
+    \lc{↔}  & \texttt{\textbackslash{}iff}  & If and only if \\
+    \lc{∀}  & \texttt{\textbackslash{}fa}   & For all \\
+    \lc{∃}  & \texttt{\textbackslash{}ex}   & There exists \\
+    \lc{⊓}  & \texttt{\textbackslash{}sqcap}& Meet (inf) \\
+    \lc{⊔}  & \texttt{\textbackslash{}sqcup}& Join (sup) \\
+    \lc{⊥}  & \texttt{\textbackslash{}bot}  & Bottom \\
+    \lc{⊤}  & \texttt{\textbackslash{}top}  & Top \\
+    \lc{∈}  & \texttt{\textbackslash{}in}   & Set membership \\
+    \lc{∉}  & \texttt{\textbackslash{}notin}& Non-membership \\
+    \lc{α}  & \texttt{\textbackslash{}a}    & Greek alpha \\
+    \lc{β}  & \texttt{\textbackslash{}b}    & Greek beta \\
+    \lc{ℕ}  & \texttt{\textbackslash{}N}    & Natural numbers \\
+    \lc{∧}  & \texttt{\textbackslash{}and}  & Logical and \\
+    \lc{∨}  & \texttt{\textbackslash{}or}   & Logical or \\
+    \lc{¬}  & \texttt{\textbackslash{}n}    & Logical not \\
+    \bottomrule
+  \end{tabular}
+  \caption{Lean~4 Unicode inputs used in this book.}
+\end{table}
+
+% ── Bibliography / Further Reading ──────────────────────────
+\chapter*{Selected Solutions}
+\addcontentsline{toc}{chapter}{Selected Solutions}
+
+This appendix contains solutions to exercises with a single definitive
+Lean~4 answer. Open-ended exercises are left to the reader.
+
+% ── Chapter 1 ────────────────────────────────────────────────
+\section*{Chapter 1}
+
+\textbf{Exercise 1.1} (Reflexivity and symmetry)
+
+\begin{minted}{lean4}
+theorem symm_antisymm_eq {α : Type} (r : Rel α)
+    (hs : Symmetric r) (ha : Antisymm r) :
+    ∀ a b : α, r a b → a = b := by
+  intro a b h
+  exact ha a b h (hs a b h)
+\end{minted}
+
+\textbf{Exercise 1.3} (Product order)
+
+\begin{minted}{lean4}
+instance [OrderBook.PartialOrder α] [OrderBook.PartialOrder β] :
+    OrderBook.PartialOrder (α × β) where
+  le p q := PartialOrder.le p.1 q.1 ∧ PartialOrder.le p.2 q.2
+  le_refl := fun ⟨a, b⟩ =>
+    ⟨PartialOrder.le_refl a, PartialOrder.le_refl b⟩
+  le_antisymm := fun ⟨a1,b1⟩ ⟨a2,b2⟩ ⟨h1,h2⟩ ⟨h3,h4⟩ => by
+    have ha := PartialOrder.le_antisymm _ _ h1 h3
+    have hb := PartialOrder.le_antisymm _ _ h2 h4
+    simp_all
+  le_trans := fun ⟨a1,b1⟩ ⟨a2,b2⟩ ⟨a3,b3⟩ ⟨h1,h2⟩ ⟨h3,h4⟩ =>
+    ⟨PartialOrder.le_trans _ _ _ h1 h3,
+     PartialOrder.le_trans _ _ _ h2 h4⟩
+\end{minted}
+
+% ── Chapter 2 ────────────────────────────────────────────────
+\section*{Chapter 2}
+
+\textbf{Exercise 2.1} (Monotone composition)
+
+\begin{minted}{lean4}
+theorem antitone_comp_antitone {α β γ : Type}
+    [LE α] [LE β] [LE γ]
+    [PartialOrder α] [PartialOrder β] [PartialOrder γ]
+    {f : α → β} {g : β → γ}
+    (hf : ∀ a b : α, a ≤ b → f b ≤ f a)
+    (hg : ∀ a b : β, a ≤ b → g b ≤ g a) :
+    Monotone (g ∘ f) where
+  map_le := fun a b h => hg (f b) (f a) (hf a b h)
+\end{minted}
+
+\textbf{Exercise 2.2} (Fixed points --- ascending chain)
+
+\begin{minted}{lean4}
+def iter {α : Type} (f : α → α) : Nat → α → α
+  | 0,     x => x
+  | n + 1, x => f (iter f n x)
+
+theorem iter_chain {α : Type} [LE α] [PartialOrder α]
+    {f : α → α} (hf : Monotone f)
+    {a : α} (ha : a ≤ f a) :
+    ∀ n : Nat, iter f n a ≤ iter f (n + 1) a := by
+  intro n
+  induction n with
+  | zero => exact ha
+  | succ n ih => exact hf.map_le _ _ ih
+\end{minted}
+
+\textbf{Exercise 2.3} (Identity is monotone)
+
+\begin{minted}{lean4}
+theorem Monotone.id {α : Type} [LE α] [PartialOrder α] :
+    Monotone (id : α → α) where
+  map_le := fun _ _ h => h
+\end{minted}
+
+% ── Chapter 3 ────────────────────────────────────────────────
+\section*{Chapter 3}
+
+\textbf{Exercise 3.1} (Interval partial order)
+
+\begin{minted}{lean4}
+structure Interval where
+  l      : Int
+  h      : Int
+  l_le_h : l ≤ h
+
+instance : LE Interval where
+  le := fun i j => j.l ≤ i.l ∧ i.h ≤ j.h
+
+instance : PartialOrder Interval where
+  le_refl := fun a => ⟨Int.le_refl a.l, Int.le_refl a.h⟩
+  le_antisymm {a b} := fun hyp₁ hyp₂ => by
+    cases a; cases b
+    rename_i l₁ h₁ l₁_le_h₁ l₂ h₂ l₂_le_h₂
+    congr 1
+    · exact Int.le_antisymm hyp₂.left hyp₁.left
+    · exact Int.le_antisymm hyp₁.right hyp₂.right
+    -- l_le_h closed by proof irrelevance
+  le_trans {a b c} := fun hyp₁ hyp₂ => by
+    rcases a with ⟨a_l, a_h, a_le⟩
+    rcases b with ⟨b_l, b_h, b_le⟩
+    rcases c with ⟨c_l, c_h, c_le⟩
+    have hl_ba : b_l ≤ a_l := hyp₁.left
+    have hl_cb : c_l ≤ b_l := hyp₂.left
+    have hh_ab : a_h ≤ b_h := hyp₁.right
+    have hh_bc : b_h ≤ c_h := hyp₂.right
+    exact ⟨Int.le_trans hl_cb hl_ba, Int.le_trans hh_ab hh_bc⟩
+\end{minted}
+
+\textbf{Exercise 3.3} (Characterising the order)
+
+\begin{minted}{lean4}
+theorem le_iff_sup_eq {α : Type} [Lattice α] {a b : α} :
+    a ≤ b ↔ a ⊔ b = b := by
+  apply Iff.intro
+  · intro h
+    apply PartialOrder.le_antisymm
+    · apply Lattice.le_sup
+      · exact h
+      · exact PartialOrder.le_refl b
+    · exact Lattice.sup_le_right a b
+  · intro h
+    rw [← h]
+    exact Lattice.sup_le_left a b
+\end{minted}
+
+\textbf{Exercise 3.4} (Product lattice)
+
+\begin{minted}{lean4}
+instance {α β : Type} [Lattice α] [Lattice β] : Lattice (α × β) where
+  le            := fun a b => (a.fst ≤ b.fst) ∧ (a.snd ≤ b.snd)
+  le_refl       := fun a => by
+    apply And.intro
+    · apply PartialOrder.le_refl
+    · apply PartialOrder.le_refl
+  le_antisymm {a b} := fun hyp₁ hyp₂ => by
+    rcases a with ⟨l₁, r₁⟩; rcases b with ⟨l₂, r₂⟩; congr 1
+    · exact PartialOrder.le_antisymm hyp₁.left hyp₂.left
+    · exact PartialOrder.le_antisymm hyp₁.right hyp₂.right
+  le_trans {a b c} := fun hyp₁ hyp₂ => by
+    apply And.intro
+    · exact PartialOrder.le_trans hyp₁.left hyp₂.left
+    · exact PartialOrder.le_trans hyp₁.right hyp₂.right
+  inf           := fun a b =>
+    ⟨Lattice.inf a.fst b.fst, Lattice.inf a.snd b.snd⟩
+  sup           := fun a b =>
+    ⟨Lattice.sup a.fst b.fst, Lattice.sup a.snd b.snd⟩
+  inf_le_left   := fun a b => ⟨Lattice.inf_le_left a.fst b.fst,
+                                Lattice.inf_le_left a.snd b.snd⟩
+  inf_le_right  := fun a b => ⟨Lattice.inf_le_right a.fst b.fst,
+                                Lattice.inf_le_right a.snd b.snd⟩
+  le_inf        := fun a b c hyp₁ hyp₂ =>
+    ⟨Lattice.le_inf a.fst b.fst c.fst hyp₁.left hyp₂.left,
+     Lattice.le_inf a.snd b.snd c.snd hyp₁.right hyp₂.right⟩
+  sup_le_left   := fun a b => ⟨Lattice.sup_le_left a.fst b.fst,
+                                Lattice.sup_le_left a.snd b.snd⟩
+  sup_le_right  := fun a b => ⟨Lattice.sup_le_right a.fst b.fst,
+                                Lattice.sup_le_right a.snd b.snd⟩
+  le_sup        := fun a b c hyp₁ hyp₂ =>
+    ⟨Lattice.le_sup a.fst b.fst c.fst hyp₁.left hyp₂.left,
+     Lattice.le_sup a.snd b.snd c.snd hyp₁.right hyp₂.right⟩
+\end{minted}
+
+% ── Chapter 6 ────────────────────────────────────────────────
+\section*{Chapter 6}
+
+\textbf{Exercise 6.1} (Three-cell multiplication constraint)
+
+The pattern mirrors the addition network: one forward propagator and two
+backward propagators, one for each variable that can be derived from the
+other two. Division by zero writes \lc{.conflict}.
+
+\begin{minted}{lean4}
+def mulProp (cx cy cz : Cell FlatNat) : PropStep := do
+  let x ← cx.read
+  let y ← cy.read
+  match x, y with
+    | .known a, .known b => cz.write (.known (a * b))
+    | _,        _        => return false
+
+-- z / x → y  (or conflict if x ∤ z)
+def divProp (cz cx cy : Cell FlatNat) : PropStep := do
+  let z ← cz.read
+  let x ← cx.read
+  match z, x with
+    | .known z, .known x =>
+      if x ∣ z then cy.write (.known (z / x))
+               else cy.write (.conflict)
+    | _, _ => return false
+
+def mulNetwork : IO Unit := do
+  let cx ← Cell.new (α := FlatNat)
+  let cy ← Cell.new (α := FlatNat)
+  let cz ← Cell.new (α := FlatNat)
+
+  let _ ← cx.write (.known 3)
+  let _ ← cz.write (.known 12)
+
+  let net : Network := Network.mk #[
+    mulProp cx cy cz,
+    divProp cz cx cy,   -- z / x → y
+    divProp cz cy cx    -- z / y → x
+  ]
+  net.run
+
+  let yVal ← cy.read
+  match yVal with
+    | .known n  => IO.println s!"y = {n}"   -- y = 4
+    | .unknown  => IO.println "y is unknown"
+    | .conflict => IO.println "contradiction"
+
+#eval mulNetwork   -- y = 4
+\end{minted}
+
+The three propagators cover all three ``solve for one variable'' cases.
+Remove \lc{divProp cz cx cy} and \lc{y} stays unknown; remove
+\lc{mulProp} and you lose the ability to derive \lc{cz} from both inputs.
+
+\textbf{Exercise 6.2} (Conflict detection)
+
+Two independent writes of different values to the same cell produce
+\lc{.conflict} via the join in \lc{Cell.write}: \lc{known 3 ⊔ known 5 = conflict}.
+No propagators are needed --- the conflict arises purely from the two seeds.
+
+\begin{minted}{lean4}
+def conflictExample : IO Unit := do
+  let cx ← Cell.new (α := FlatNat)
+
+  -- Two independent sources disagree about x
+  let _ ← cx.write (.known 3)
+  let _ ← cx.write (.known 5)
+
+  let xVal ← cx.read
+  match xVal with
+    | .conflict => IO.println "contradiction (expected)"
+    | .known n  => IO.println s!"x = {n}"
+    | .unknown  => IO.println "x unknown"
+
+#eval conflictExample   -- contradiction (expected)
+\end{minted}
+
+The key is in \lc{Cell.write}: it merges the new value with the old via
+\lc{sup}, so the second write computes
+\lc{known 3 ⊔ known 5 = conflict} and stores that.
+From this point any further \lc{write} leaves \lc{conflict} unchanged
+(since \lc{conflict ⊔ x = conflict} for all \lc{x}), and any propagator
+reading \lc{cx} will receive \lc{conflict} and propagate it downstream.
+
+To demonstrate downstream propagation, add a dependent cell:
+
+\begin{minted}{lean4}
+def conflictPropagates : IO Unit := do
+  let cx   ← Cell.new (α := FlatNat)
+  let cy   ← Cell.new (α := FlatNat)
+  let csum ← Cell.new (α := FlatNat)
+
+  let _ ← cx.write (.known 3)
+  let _ ← cx.write (.known 5)   -- cx is now conflict
+  let _ ← cy.write (.known 7)
+
+  let net : Network := Network.mk #[addProp cx cy csum]
+  net.run
+
+  let s ← csum.read
+  match s with
+    | .conflict => IO.println "sum is conflict (expected)"
+    | .known n  => IO.println s!"sum = {n}"
+    | .unknown  => IO.println "sum unknown"
+
+#eval conflictPropagates   -- sum is conflict (expected)
+\end{minted}
+
+\FloatBarrier
+\chapter*{Further Reading}
+\addcontentsline{toc}{chapter}{Further Reading}
+
+\begin{itemize}
+  \item \textbf{Davey \& Priestley}, \emph{Introduction to Lattices and Order},
+    2nd ed., Cambridge University Press, 2002.
+    The standard introductory text on lattice theory, accessible and rigorous.
+
+  \item \textbf{Radul \& Sussman}, \emph{The Art of the Propagator}, MIT CSAIL
+    Technical Report, 2009.
+    The foundational paper for the propagator model used in this book.
+
+  \item \textbf{Tate, Stepp, Lerner \& Chambers}, \emph{Equality Saturation: a
+    New Approach to Optimization}, POPL 2009.
+    An application of lattice-based fixed-point algorithms to compiler optimization.
+
+  \item \textbf{Nielson, Nielson \& Hankin}, \emph{Principles of Program Analysis},
+    Springer, 1999.
+    Covers dataflow analysis (a lattice-based framework) and abstract interpretation.
+
+  \item \textbf{The Lean~4 Documentation}, \url{https://lean-lang.org}.
+    Official reference for Lean~4 syntax, tactics, and the core library.
+
+  \item \textbf{Mathlib4}, \url{https://leanprover-community.github.io/mathlib4_docs/}.
+    The community mathematics library for Lean~4.
+    Once you have finished this book, exploring \texttt{Mathlib.Order} will
+    show you how the constructions here scale to a large, verified library.
+\end{itemize}
+
+\end{document}
