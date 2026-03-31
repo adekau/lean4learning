@@ -841,25 +841,56 @@ def exampleNetwork : IO Unit := do
 #eval exampleNetwork
 
 -- Exercise 6.1
+def FlatNat.mul : FlatNat → FlatNat → FlatNat
+  | .known a , .known b   => .known (a * b)
+  | .conflict, _          => .conflict
+  | _        , .conflict  => .conflict
+  | _        , _          => .unknown
+
+def mulPropagator : Propagator2 FlatNat FlatNat FlatNat where
+  fn        := FlatNat.mul
+  monotone  := by
+    intro a1 a2 b1 b2 ha hb
+    cases a1 <;> cases a2 <;> cases b1 <;> cases b2
+    all_goals (simp_all [FlatNat.mul, FlatNat.le, LE.le])
+
 def mulProp (cx cy cz : Cell FlatNat) : PropStep := do
   let x ← cx.read
   let y ← cy.read
+  let prod := FlatNat.mul x y
+  cz.write prod
 
-  match x, y with
-    | .known a, .known b => cz.write (.known (a * b))
-    | _       , _        => return false
+def FlatNat.div : FlatNat → FlatNat → FlatNat
+  | .known z  , .known x  =>
+    if x ∣ z  then .known (z / x)
+              else .conflict
+  | .conflict , _         => .conflict
+  | _         , .conflict => .conflict
+  | _         , _         => .unknown
+
+def divPropagator : Propagator2 FlatNat FlatNat FlatNat where
+  fn        := FlatNat.div
+  monotone  := by
+    intro a1 a2 b1 b2 ha hb
+    cases a1 <;> cases a2 <;> cases b1 <;> cases b2
+    all_goals (simp_all [FlatNat.div, FlatNat.le, LE.le])
+    · rename_i a1 a2 b1 b2
+      by_cases h : b2 ∣ a2 <;> simp_all
+    · split
+      · exact True.intro
+      · exact True.intro
+      · contradiction
+      · contradiction
+      · contradiction
+      · contradiction
+    · split <;> trivial
+    · split <;> trivial
 
 def divProp (cz cx cy : Cell FlatNat) : PropStep := do
   let z ← cz.read
   let x ← cx.read
-
-  match z, x with
-    | .known z, .known x =>
-      if x ∣ z then
-        cy.write (.known (z / x))
-      else
-        cy.write (.conflict)
-    | _       , _        => return false
+  let dvd := FlatNat.div z x
+  cy.write dvd
 
 def mulNetwork : IO Unit := do
   let cx ← Cell.new (α := FlatNat)
