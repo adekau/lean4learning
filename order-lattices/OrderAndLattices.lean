@@ -668,13 +668,13 @@ notation  "⊥"   => BoundedJoinSemilattice.bot
 structure Propagator1 (α β : Type)
   [BoundedJoinSemilattice α] [BoundedJoinSemilattice β] where
   fn        : α → β
-  monotone  : ∀ (a b : α), a ≤ b → BoundedJoinSemilattice.sup (fn a) (fn b) = fn b
+  monotone  : ∀ (a b : α), a ≤ b → fn a ≤ fn b
 
 structure Propagator2 (α β γ : Type)
   [BoundedJoinSemilattice α] [BoundedJoinSemilattice β] [BoundedJoinSemilattice γ] where
   fn        : α → β → γ
   monotone  : ∀ (a₁ a₂ : α) (b₁ b₂ : β),
-    a₁ ≤ a₂ → b₁ ≤ b₂ → BoundedJoinSemilattice.sup (fn a₁ b₁) (fn a₂ b₂) = fn a₂ b₂
+    a₁ ≤ a₂ → b₁ ≤ b₂ → fn a₁ b₁ ≤ fn a₂ b₂
 
 structure Cell (α : Type) where
   ref : IO.Ref α
@@ -723,8 +723,8 @@ instance : ToString FlatNat where
     | .known n  => ToString.toString n
     | .conflict => "conflict"
 
-instance : LE FlatNat where
-  le a b := match a, b with
+def FlatNat.le (a b : FlatNat) : Prop :=
+  match a, b with
     | .unknown , _         => True
     | _        , .conflict => True
     | .known m , .known n  => m = n
@@ -732,20 +732,22 @@ instance : LE FlatNat where
     | .conflict, .known _  => False
     | .known _ , .unknown  => False
 
+instance : LE FlatNat := ⟨FlatNat.le⟩
+
 instance : PartialOrder FlatNat where
   le_refl       := by
     intro a
-    cases a <;> simp only [LE.le]
+    cases a <;> trivial
     -- · simp only [LE.le]
     -- · rename_i n
     --   simp only [LE.le]
     -- · simp only [LE.le]
   le_antisymm   := by
     intro a b hab hba
-    cases a <;> cases b <;> simp_all [LE.le]
+    cases a <;> cases b <;> simp_all [LE.le, FlatNat.le]
   le_trans      := by
     intro a b c hab hbc
-    cases a <;> cases b <;> cases c <;> simp_all [LE.le]
+    cases a <;> cases b <;> cases c <;> simp_all [LE.le, FlatNat.le]
 
 instance : BoundedJoinSemilattice FlatNat where
   bot         := .unknown
@@ -756,40 +758,66 @@ instance : BoundedJoinSemilattice FlatNat where
     | _       , _         => .conflict
   bot_le      := by
     intro a
-    cases a <;> simp [LE.le]
+    cases a <;> simp [LE.le, FlatNat.le]
   le_sup_left := by
     intro a b
-    cases a <;> cases b <;> simp_all [LE.le]
+    cases a <;> cases b <;> simp_all [LE.le, FlatNat.le]
     rename_i m n
     by_cases h : m = n <;> simp [h]
   le_sup_right := by
     intro a b
-    cases a <;> cases b <;> simp_all [LE.le]
+    cases a <;> cases b <;> simp_all [LE.le, FlatNat.le]
     rename_i m n
     by_cases h : m = n <;> simp [h]
   sup_le      := by
     intro a b c hac hbc
-    cases a <;> cases b <;> cases c <;> simp_all [LE.le]
+    cases a <;> cases b <;> cases c <;> simp_all [LE.le, FlatNat.le]
     rename_i m n
     by_cases h : m = n <;> simp [h]
 
-def addProp (cx cy csum : Cell FlatNat) : PropStep := do
-  let x ← cx.read
-  let y ← cy.read
+def FlatNat.add (x y : FlatNat) : FlatNat :=
   match x, y with
-    | .known a, .known b => csum.write (.known (a + b))
-    | _       , _        => return false
+    | .known a  , .known b  => .known (a + b)
+    | .conflict , _         => .conflict
+    | _         , .conflict => .conflict
+    | _         , _         => .unknown
 
-def subProp (csum cx cy : Cell FlatNat) : PropStep := do
-  let s ← csum.read
+def addPropagator : Propagator2 FlatNat FlatNat FlatNat where
+  fn        := FlatNat.add
+  monotone  := by
+    intro a1 a2 b1 b2 ha hb
+    cases a1 <;> cases a2 <;> cases b1 <;> cases b2
+      <;> simp_all [FlatNat.add, FlatNat.le, LE.le]
+
+def FlatNat.sub (total x : FlatNat) : FlatNat :=
+  match total, x with
+    | .known t  , .known a  =>
+      if a ≤ t then .known (t - a)
+               else .conflict
+    | .conflict , _         => .conflict
+    | _         , .conflict => .conflict
+    | _         , _         => .unknown
+
+def subPropagator : Propagator2 FlatNat FlatNat FlatNat where
+  fn        := FlatNat.sub
+  monotone := by
+    intro a1 a2 b1 b2 ha hb
+    simp only [FlatNat.le, LE.le] at ha hb ⊢
+    cases a1 <;> cases a2 <;> cases b1 <;> cases b2
+      <;> simp_all [FlatNat.sub]
+      <;> split <;> simp_all
+
+def addProp (cx cy csum : Cell FlatNat) : PropStep := do
+  let cx ← cx.read
+  let cy ← cy.read
+  let sum := FlatNat.add cx cy
+  csum.write sum
+
+def subProp (ctotal cx cy : Cell FlatNat) : PropStep := do
+  let total ← ctotal.read
   let x ← cx.read
-  match s, x with
-    | .known total, .known a =>
-      if total ≥ a then
-        cy.write (.known (total - a))
-      else
-        cy.write (.conflict)
-    | _           , _        => return false
+  let diff := FlatNat.sub total x
+  cy.write diff
 
 def exampleNetwork : IO Unit := do
   let cx ← Cell.new (α := FlatNat)
