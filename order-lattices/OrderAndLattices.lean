@@ -912,3 +912,103 @@ def mulNetwork : IO Unit := do
   IO.println s!"y is {yVal}"
 
 #eval mulNetwork
+
+namespace Ch7
+inductive Interval where
+  | empty                             : Interval
+  | range (lo hi : Int) (h : lo ≤ hi) : Interval
+
+def Interval.le (a b : Interval) : Prop :=
+  match a, b with
+    | .empty        , _               => True
+    | .range _ _ _  , .empty          => False
+    | .range l1 h1 _, .range l2 h2 _  => l2 ≤ l1 ∧ h1 ≤ h2
+
+def Interval.sup (a b : Interval) : Interval :=
+  match a, b with
+    | .empty        , x               => x
+    | x             , .empty          => x
+    | .range l1 h1 _, .range l2 h2 _  =>
+      let l := min l1 l2
+      let h := max h1 h2
+      .range l h (by omega)
+
+instance : LE Interval := ⟨Interval.le⟩
+
+instance : PartialOrder Interval where
+  le_refl := by
+    intro a
+    cases a <;> simp [Interval.le, LE.le]
+    apply And.intro
+    all_goals (apply Int.le_refl)
+  le_antisymm := by
+    intro a b hab hba
+    cases a <;> cases b
+    · rfl
+    · contradiction
+    · contradiction
+    · rename_i lo1 hi1 h1 lo2 hi2 h2
+      simp only [Interval.le, LE.le] at hab hba
+      have h_lo_eq : lo1 = lo2 := Int.le_antisymm hba.left hab.left
+      have h_hi_eq : hi1 = hi2 := Int.le_antisymm hab.right hba.right
+      congr 1
+  le_trans := by
+    intro a b c hab hbc
+    cases a <;> cases b <;> cases c
+    all_goals (simp_all [LE.le, Interval.le])
+    rename_i lo1 hi1 ha lo2 hi2 hb lo3 hi3 hc
+    apply And.intro
+    · exact Int.le_trans hbc.left hab.left
+    · exact Int.le_trans hab.right hbc.right
+
+instance : BoundedJoinSemilattice Interval where
+  sup := Interval.sup
+  bot := .empty
+  bot_le := by
+    intro a
+    simp [Interval.le, LE.le]
+  le_sup_left := by
+    intro a b
+    -- cases a <;> cases b <;> simp [Interval.sup]
+    -- · apply PartialOrder.le_refl
+    -- · trivial
+    -- · apply And.intro <;> apply Int.le_refl
+    -- · exact ⟨Int.min_le_left _ _, Int.le_max_left _ _⟩
+    simp [Interval.sup]
+    split
+    · trivial
+    · apply PartialOrder.le_refl
+    · apply And.intro
+      · apply Int.min_le_left
+      · apply Int.le_max_left
+  le_sup_right := by
+    intro a b
+    cases a <;> cases b <;> simp [Interval.sup, Interval.le, LE.le]
+    · apply And.intro <;> apply Int.le_refl
+    · apply And.intro
+      · apply Int.min_le_right
+      · apply Int.le_max_right
+  sup_le := by
+    intro a b c hac hbc
+    cases a <;> cases b <;> cases c <;> simp [Interval.sup]
+    any_goals contradiction
+    any_goals trivial
+    simp [Interval.le, LE.le] at hac hbc
+    apply And.intro
+    · apply Int.le_min.mpr
+      exact ⟨hac.left, hbc.left⟩
+    · apply Int.max_le.mpr
+      exact ⟨hac.right, hbc.right⟩
+
+deriving instance DecidableEq for Interval
+
+def Interval.add (a b : Interval) : Interval :=
+  match a, b with
+  | .empty        , _               => .empty
+  | _             , .empty          => .empty
+  | .range l1 h1 _, .range l2 h2 _  => .range (l1 + l2) (h1 + h2) (by omega)
+
+def Interval.sub : Interval → Interval → Interval
+  | .empty        , _               => .empty
+  | _             , .empty          => .empty
+  | .range l1 h1 _, .range l2 h2 _  => .range (l1 - h2) (h1 - l2) (by omega)
