@@ -1008,7 +1008,68 @@ def Interval.add (a b : Interval) : Interval :=
   | _             , .empty          => .empty
   | .range l1 h1 _, .range l2 h2 _  => .range (l1 + l2) (h1 + h2) (by omega)
 
+theorem add_le_add_left {a b : Int} (h : a ≤ b) (c : Int) : c + a ≤ c + b := by
+  have ⟨n, hn⟩ := Int.le.dest h
+  have q : c + a + ↑n = c + b := hn ▸ Int.add_assoc c a ↑n
+  exact Int.le.intro n q
+
+theorem add_le_add_right {a b : Int} (h : a ≤ b) (c : Int) : a + c ≤ b + c := by
+  have ⟨n, hn⟩ := Int.le.dest h
+  have q : a + c + ↑n = b + c := calc
+    a + c + ↑n = a + ↑n + c := by rw [Int.add_right_comm]
+    _           = b + c     := by rw [←hn]
+  exact Int.le.intro n q
+
+theorem add_le_add {a b c d : Int} (hl : a ≤ b) (hr : c ≤ d) : a + c ≤ b + d := by
+  have ⟨n1, hn1⟩ := Int.le.dest hl
+  have ⟨n2, hn2⟩ := Int.le.dest hr
+  have r := add_le_add_left hl c
+  have w := add_le_add_right hr b
+  have q := Int.le_trans r w
+  simp [Int.add_comm] at q
+  exact q
+
+theorem sub_le_sub_left {a b : Int} (h : a ≤ b) (c : Int) : c - b ≤ c - a := by
+  exact add_le_add_left (Int.neg_le_neg h) (c)
+
+theorem sub_le_sub_right {a b : Int} (h : a ≤ b) (c : Int) : a - c ≤ b - c := by
+  exact add_le_add_right h (-c)
+
+theorem sub_le_sub {a b c d : Int} (hl : a ≤ b) (hr : c ≤ d) : a - d ≤ b - c := by
+  exact add_le_add hl (Int.neg_le_neg hr)
+
+def Interval.addPropagator : Propagator2 Interval Interval Interval where
+  fn        := Interval.add
+  monotone  := by
+    intro a1 a2 b1 b2 ha hb
+    cases a1 <;> cases a2 <;> cases b1 <;> cases b2
+    all_goals (simp [Interval.add])
+    any_goals trivial
+    apply And.intro
+    · apply add_le_add
+      · exact ha.left
+      · exact hb.left
+    · apply add_le_add
+      · exact ha.right
+      · exact hb.right
+
 def Interval.sub : Interval → Interval → Interval
   | .empty        , _               => .empty
   | _             , .empty          => .empty
   | .range l1 h1 _, .range l2 h2 _  => .range (l1 - h2) (h1 - l2) (by omega)
+
+def Interval.subPropagator : Propagator2 Interval Interval Interval where
+  fn        := Interval.sub
+  monotone  := by
+    intro a1 a2 b1 b2 ha hb
+    cases a1 <;> cases a2 <;> cases b1 <;> cases b2
+    all_goals (simp [Interval.sub])
+    any_goals trivial
+    simp [Interval.le, LE.le] at ha hb
+    apply And.intro
+    · apply sub_le_sub
+      · exact ha.left
+      · exact hb.right
+    · apply sub_le_sub
+      · exact ha.right
+      · exact hb.left
