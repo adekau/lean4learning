@@ -1073,3 +1073,54 @@ def Interval.subPropagator : Propagator2 Interval Interval Interval where
     · apply sub_le_sub
       · exact ha.right
       · exact hb.left
+
+def Interval.intersection : Interval → Interval → Interval
+  | .empty        , _               => .empty
+  | _             , .empty          => .empty
+  | .range l1 h1 _, .range l2 h2 _  =>
+    let l := max l1 l2
+    let h := min h1 h2
+    if h_le : l ≤ h
+      then .range l h h_le
+      else .empty
+
+def Interval.intersectionPropagator : Propagator2 Interval Interval Interval where
+  fn        := Interval.intersection
+  monotone  := by
+    intro a1 a2 b1 b2 ha hb
+    cases a1 <;> cases a2 <;> cases b1 <;> cases b2
+    all_goals (simp [Interval.intersection])
+    any_goals trivial
+    split <;> split
+    simp [Interval.le, LE.le] at *
+    any_goals trivial
+    rename_i a1_lo a1_hi a1_le a2_lo a2_hi a2_le
+      b1_lo b1_hi b1_le b2_lo b2_hi b2_le h_le1 h_le2
+    apply And.intro
+    · apply Int.max_le.mpr
+      apply And.intro
+      · have q := ha.left
+        have r := Int.le_max_left a1_lo b1_lo
+        exact Int.le_trans q r
+      · have q := hb.left
+        have r := Int.le_max_right a1_lo b1_lo
+        exact Int.le_trans q r
+    · apply Int.le_min.mpr
+      apply And.intro
+      · have q := ha.right
+        have r := Int.min_le_left a1_hi b1_hi
+        exact Int.le_trans r q
+      · have q := hb.right
+        have r := Int.min_le_right a1_hi b1_hi
+        exact Int.le_trans r q
+    · rename_i a1_lo a1_hi a1_le a2_lo a2_hi a2_le
+        b1_lo b1_hi b1_le b2_lo b2_hi b2_le q r
+      apply r
+      apply Int.le_trans
+      · apply Int.max_le.mpr
+        exact ⟨Int.le_trans ha.left (Int.le_max_left _ _),
+              Int.le_trans hb.left (Int.le_max_right a1_lo b1_lo)⟩
+      · apply Int.le_trans q
+        apply Int.le_min.mpr
+        exact ⟨Int.le_trans (Int.min_le_left _ _) ha.right,
+              Int.le_trans (Int.min_le_right _ _) hb.right⟩
