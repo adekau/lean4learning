@@ -98,5 +98,55 @@ theorem MyNat.le_antisymm (n m : MyNat) : n ≤ m → m ≤ n → n = m := by
 theorem MyNat.le_trans (a b c : MyNat) : a ≤ b → b ≤ c → a ≤ c := by
   intro ⟨k, hk⟩ ⟨j, hj⟩
   have h := hk ▸ hj
-  refine ⟨k + j, ?_⟩
-  rwa [MyNat.add_assoc] at h
+  refine ⟨k + j, ?hkj⟩
+  case hkj => rwa [MyNat.add_assoc] at h
+
+theorem MyNat.le_zero_mp (n : MyNat) : n ≤ .zero → n = .zero := by
+  intro ⟨k, hk⟩
+  exact MyNat.add_eq_zero_left hk
+
+theorem MyNat.not_lt_zero (n : MyNat) : ¬(MyNat.lt n .zero) := by
+  apply Not.intro
+  intro h
+  simp [MyNat.lt] at h
+  obtain ⟨k, hk⟩ := h.left
+  change n + k = .zero at hk
+  have h0 := MyNat.add_eq_zero_left hk
+  exact absurd h0 h.right
+
+theorem even_of_double (n : Nat) : 2 ∣ (n + n) := by
+  suffices h : n + n = 2 * n from by
+    simp [Dvd.dvd]
+    exact ⟨n, h⟩
+  omega
+
+#check Nat.lt_or_eq_of_le
+
+theorem MyNat.lt_or_eq_of_le {n m : MyNat} (h : n ≤ m) : n.lt m ∨ n = m := by
+  simp [MyNat.le] at h
+  simp [MyNat.lt]
+  apply Or.intro_right
+  obtain ⟨k, hk⟩ := h
+  induction k with
+  | zero => simp at hk; assumption
+  | succ k ih => sorry
+
+theorem MyNat.strong_ind (P : MyNat → Prop)
+  (step : ∀ n : MyNat, (∀ k : MyNat, k.lt n → P k) → P n) :
+    ∀ n, P n := by
+suffices h : ∀ n, ∀ k, k ≤ n → P k from by
+  intro n
+  have refl_eq := h n n
+  exact refl_eq (MyNat.le_refl n)
+intro n
+induction n with
+| zero =>
+  intro k hk
+  have hkz := MyNat.le_zero_mp k hk
+  subst hkz
+  have : ∀ (k : MyNat), k.lt zero → P k := fun k hlt => by
+    exact absurd hlt (MyNat.not_lt_zero k)
+  exact step .zero this
+| succ n ih =>
+  intro k hk
+  sorry
