@@ -1124,3 +1124,39 @@ def Interval.intersectionPropagator : Propagator2 Interval Interval Interval whe
         apply Int.le_min.mpr
         exact ⟨Int.le_trans (Int.min_le_left _ _) ha.right,
               Int.le_trans (Int.min_le_right _ _) hb.right⟩
+
+def addConstraint
+  (cx cy csum : Cell Interval) : Array PropStep :=
+  #[
+  -- Forward: sum ← x + y
+  do
+    -- let x ← cx.read; let y ← cy.read
+    -- csum.write (Interval.add x y),
+  -- Backward: x ← sum - y
+  do
+    let s ← csum.read; let y ← cy.read
+    cx.write (Interval.sub s y),
+  -- Backward: y ← sum - x
+  do
+    let s ← csum.read; let x ← cx.read
+    cy.write (Interval.sub s x)
+  ]
+
+  def intervalExample : IO Unit := do
+    let cx ← Cell.new (α := Interval)
+    let cy ← Cell.new (α := Interval)
+    let csum ← Cell.new (α := Interval)
+
+    -- x ∈ [2, 8], sum = 10
+    let _ ← cx.write (.range 2 8 (by omega))
+    let _ ← csum.write (.range 10 10 (by omega))
+
+    let steps := addConstraint cx cy csum
+    runToFixpoint steps
+
+    let yVal ← cy.read
+    match yVal with
+    | .empty => IO.println "y: impossible"
+    | .range l h _ => IO.println s!"y ∈ [{l}, {h}]" -- y ∈ [2, 8]
+
+#eval intervalExample
