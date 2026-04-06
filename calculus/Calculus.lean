@@ -158,6 +158,17 @@ theorem MyNat.lt_or_eq_of_le {n m : MyNat} (h : n ≤ m) : n.lt m ∨ n = m := b
     contradiction
 
 
+theorem MyNat.lt_succ_mp {n m : MyNat} : n.lt m.succ → n.le m := by
+  intro h
+  simp_all [MyNat.le, MyNat.lt]
+  obtain ⟨hl, hr⟩ := h
+  obtain ⟨k, hk⟩ := hl
+  cases k
+  · simp [MyNat.add] at hk; contradiction
+  · rename_i k
+    refine ⟨k, ?_⟩
+    simpa [MyNat.add] using hk
+
 theorem MyNat.strong_ind (P : MyNat → Prop)
   (step : ∀ n : MyNat, (∀ k : MyNat, k.lt n → P k) → P n) :
     ∀ n, P n := by
@@ -176,4 +187,9 @@ induction n with
   exact step .zero this
 | succ n ih =>
   intro k hk
-  sorry
+  rcases MyNat.lt_or_eq_of_le hk with hlt | rfl
+  · have := MyNat.lt_succ_mp hlt
+    exact ih k this
+  · refine step n.succ (fun j hj => ?_)
+    have := MyNat.lt_succ_mp hj
+    exact ih j this
