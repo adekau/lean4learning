@@ -120,16 +120,43 @@ theorem even_of_double (n : Nat) : 2 ∣ (n + n) := by
     exact ⟨n, h⟩
   omega
 
-#check Nat.lt_or_eq_of_le
+theorem MyNat.add_comm_succ_right (n m : MyNat) : n.succ.add m = n.add m.succ := by
+  induction m with
+  | zero => rfl
+  | succ m ih =>
+    simp [MyNat.add]
+    exact ih
+
+theorem MyNat.add_comm_succ_left (n m : MyNat) : n.succ.add m = (n.add m).succ := by
+  induction m with
+  | zero => rfl
+  | succ m ih =>
+    simp [MyNat.add]
+    exact ih
+
+theorem MyNat.succ_le_succ {n m : MyNat} (h : n ≤ m) : n.succ ≤ m.succ := by
+  simp_all
+  obtain ⟨k, hk⟩ := h
+  refine ⟨k, ?_⟩
+  subst hk
+  apply MyNat.add_comm_succ_left
 
 theorem MyNat.lt_or_eq_of_le {n m : MyNat} (h : n ≤ m) : n.lt m ∨ n = m := by
-  simp [MyNat.le] at h
-  simp [MyNat.lt]
-  apply Or.intro_right
   obtain ⟨k, hk⟩ := h
   induction k with
-  | zero => simp at hk; assumption
-  | succ k ih => sorry
+  | zero =>
+    apply Or.inr
+    simpa [MyNat.add] using hk
+  | succ k ih =>
+    apply Or.inl
+    simp [MyNat.le, MyNat.lt]
+    refine ⟨⟨k.succ, hk⟩, ?_⟩
+    apply Not.intro
+    intro heq
+    subst heq
+    have := MyNat.add_eq_self n k.succ hk
+    contradiction
+
 
 theorem MyNat.strong_ind (P : MyNat → Prop)
   (step : ∀ n : MyNat, (∀ k : MyNat, k.lt n → P k) → P n) :
