@@ -100,6 +100,32 @@ theorem MyNat.zero_le (n : MyNat) : .zero ≤ n := by
     refine ⟨n.succ, ?_⟩
     apply MyNat.zero_add
 
+inductive MyNat.le2 (n : MyNat) : MyNat → Prop where
+  | refl      : MyNat.le2 n n
+  | step {m}  : MyNat.le2 n m → MyNat.le2 n m.succ
+
+-- n.succ ≤ m implies n ≤ m (weakening)
+theorem MyNat.le2.le_of_succ_le {n m : MyNat} (h : n.succ.le2 m) : n.le2 m := by
+  induction h with
+  | refl      => exact .step .refl      -- n ≤ n.succ
+  | step _ ih => exact .step ih         -- n ≤ k, so n ≤ k.succ
+
+theorem MyNat.le_of_succ_le_succ {n m : MyNat} (h : n.succ.le2 m.succ) : n.le2 m := by
+  cases h with
+  | refl      => exact .refl
+  | step h    => exact h.le_of_succ_le  -- need one more helper
+
+theorem MyNat.not_succ_le_self (n : MyNat) : ¬(n.succ.le2 n) := by
+  induction n with
+  | zero      => intro h; cases h       -- MyNat.le 1 0, no constructors apply
+  | succ n ih =>
+    intro h
+    exact ih (MyNat.le_of_succ_le_succ h)     -- h : n.succ ≤ n, apply inductive hypothesis
+
+-- theorem MyNat.zero_le : (n : MyNat) → MyNat.le .zero n
+--   | zero    => MyNat.le.refl
+--   | succ n  => MyNat.le.step (zero_le n)
+
 theorem MyNat.le_refl (n : MyNat) : n ≤ n := ⟨.zero, by rfl⟩
 theorem MyNat.le_antisymm (n m : MyNat) : n ≤ m → m ≤ n → n = m := by
   intro ⟨k, hn⟩ ⟨j, hm⟩
