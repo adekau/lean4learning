@@ -1,7 +1,11 @@
 inductive MyNat where
   | zero : MyNat
   | succ : MyNat → MyNat
-  deriving Repr
+  deriving Repr, DecidableEq
+
+def MyNat.pred : MyNat → MyNat
+  | zero    => zero
+  | succ n  => n
 
 theorem MyNat.ind (P : MyNat → Prop) (h0 : P .zero) (hs : ∀ n : MyNat, P n → P (.succ n))
     : ∀ n : MyNat, P n := by
@@ -83,8 +87,18 @@ theorem MyNat.add_eq_zero_left {a b : MyNat} (h : a + b = .zero) : a = .zero := 
 @[simp] def MyNat.le (m n : MyNat) : Prop := ∃ k : MyNat, m + k = n
 def MyNat.lt (m n : MyNat) : Prop := m.le n ∧ m ≠ n
 
+instance : LT MyNat := ⟨MyNat.lt⟩
 instance : LE MyNat := ⟨MyNat.le⟩
 @[simp] theorem MyNat.le_def (m n : MyNat) : (m ≤ n) = MyNat.le m n := by rfl
+
+theorem MyNat.zero_le (n : MyNat) : .zero ≤ n := by
+  cases n
+  · simp
+    exact ⟨.zero, by rfl⟩
+  · simp
+    rename_i n
+    refine ⟨n.succ, ?_⟩
+    apply MyNat.zero_add
 
 theorem MyNat.le_refl (n : MyNat) : n ≤ n := ⟨.zero, by rfl⟩
 theorem MyNat.le_antisymm (n m : MyNat) : n ≤ m → m ≤ n → n = m := by
@@ -134,13 +148,6 @@ theorem MyNat.add_comm_succ_left (n m : MyNat) : n.succ.add m = (n.add m).succ :
     simp [MyNat.add]
     exact ih
 
-theorem MyNat.succ_le_succ {n m : MyNat} (h : n ≤ m) : n.succ ≤ m.succ := by
-  simp_all
-  obtain ⟨k, hk⟩ := h
-  refine ⟨k, ?_⟩
-  subst hk
-  apply MyNat.add_comm_succ_left
-
 theorem MyNat.lt_or_eq_of_le {n m : MyNat} (h : n ≤ m) : n.lt m ∨ n = m := by
   obtain ⟨k, hk⟩ := h
   induction k with
@@ -157,6 +164,55 @@ theorem MyNat.lt_or_eq_of_le {n m : MyNat} (h : n ≤ m) : n.lt m ∨ n = m := b
     have := MyNat.add_eq_self n k.succ hk
     contradiction
 
+theorem MyNat.le_succ {n m : MyNat} (h : n ≤ m) : n ≤ m.succ := by
+  simp_all
+  obtain ⟨k, hk⟩ := h
+  refine ⟨k.succ, ?_⟩
+  subst hk
+  simp only [MyNat.add]
+
+theorem MyNat.lt_not_succ {n m : MyNat} (h : n.lt m) : ¬(n = m.succ) := by
+  obtain ⟨⟨k, hk⟩, hne⟩ := h
+  cases k with
+  | zero => simp at hk; contradiction
+  | succ k =>
+    intro heq
+    subst heq
+    simp [MyNat.add, MyNat.add_comm_succ_left] at hk
+    exact absurd hk (MyNat.no_overflow m (k.succ))
+
+theorem MyNat.lt_succ {n m : MyNat} (h : n.lt m) : n.lt m.succ := by
+  obtain ⟨⟨k, hk⟩, hne⟩ := h
+  -- hk : n + k = m,  hne : n ≠ m
+  -- Since n ≠ m and n + k = m, k must be a successor
+  cases k with
+  | zero =>
+    -- k = 0 means n = m, contradicts hne
+    simp [MyNat.add] at hk
+    exact absurd hk hne
+  | succ k =>
+    -- k = k'.succ, so n + k'.succ = m
+    -- witness for n.lt m.succ is k.succ.succ
+    constructor
+    · -- n ≤ m.succ: witness is k.succ.succ
+      refine ⟨k.succ.succ, ?_⟩
+      simp [MyNat.add] at hk ⊢
+      exact hk
+    · -- n ≠ m.succ
+      intro heq
+      -- heq : n = m.succ, hk : n + k.succ = m
+      -- substituting: m.succ + k.succ = m, impossible
+      subst heq
+      simp [MyNat.add, MyNat.add_comm_succ_left] at hk
+      -- hk now says m.succ + k.succ = m, i.e. (m + k).succ.succ = m
+      exact absurd hk (MyNat.no_overflow m (k.succ))
+
+theorem MyNat.succ_le_succ {n m : MyNat} (h : n ≤ m) : n.succ ≤ m.succ := by
+  simp_all
+  obtain ⟨k, hk⟩ := h
+  refine ⟨k, ?_⟩
+  subst hk
+  apply MyNat.add_comm_succ_left
 
 theorem MyNat.lt_succ_mp {n m : MyNat} : n.lt m.succ → n.le m := by
   intro h
@@ -193,3 +249,49 @@ induction n with
   · refine step n.succ (fun j hj => ?_)
     have := MyNat.lt_succ_mp hj
     exact ih j this
+
+theorem MyNat.succ_ne_self (n : MyNat) : n.succ ≠ n := by
+  induction n with
+  | zero      => simp
+  | succ n ih => intro h; have := MyNat.succ.inj h; exact ih this
+
+theorem MyNat.succ_le_of_lt {n m : MyNat} (h : n < m) : n.succ ≤ m := by
+  obtain ⟨⟨k, hk⟩, hne⟩ := h
+  cases k with
+  | zero      => simp [MyNat.add] at hk; exact absurd hk hne
+  | succ k    =>
+    exact ⟨k, by simp [MyNat.add] at hk ⊢; subst hk; apply MyNat.add_comm_succ_left⟩
+
+theorem MyNat.lt_or_ge (n m : MyNat) : n < m ∨ n ≥ m := by
+  induction m with
+  | zero      => exact Or.inr (MyNat.zero_le n)
+  | succ m ih =>
+    rcases ih with hlt | hge
+    · exact Or.inl (MyNat.lt_succ hlt)
+    · rcases MyNat.lt_or_eq_of_le hge with hlt | rfl
+      · -- m < n, so m.succ ≤ n, so n ≥ m.succ
+        exact Or.inr (MyNat.succ_le_of_lt hlt)
+      · -- n = m, so n < n.succ = m.succ
+        exact Or.inl ⟨MyNat.le_succ hge, (MyNat.succ_ne_self m).symm⟩
+
+theorem MyNat.lt_of_not_le : ∀ {a b : MyNat}, ¬(a.le b) → b.lt a := by
+  intro a b hn
+  exact (MyNat.lt_or_ge b a).resolve_right hn
+
+theorem MyNat.well_ordering (S : MyNat → Prop) (hne : ∃ n, S n) :
+    ∃ m, S m ∧ ∀ k, S k → m ≤ k := by
+  obtain ⟨n, hn⟩ := hne
+  -- For each n in S, either it's minimal or there's a smaller element.
+  -- Strong induction finds the minimum by descending.
+  apply MyNat.strong_ind (fun n => S n → ∃ m, S m ∧ ∀ k, S k → m ≤ k)
+  · intro n ih hSn
+    -- Is n already minimal?
+    rcases Classical.em (∀ k, S k → n ≤ k) with hmin | hnotmin
+    · exact ⟨n, hSn, hmin⟩
+    · -- Some k < n is in S; ih gives a minimum below k, hence below n
+      rw [Classical.not_forall] at hnotmin
+      obtain ⟨k, hk⟩ := hnotmin
+      rw [Classical.not_imp] at hk
+      obtain ⟨hSk, hkn⟩ := hk
+      exact ih k (MyNat.lt_of_not_le (by change ¬n.le k; exact hkn)) hSk
+  · exact hn
