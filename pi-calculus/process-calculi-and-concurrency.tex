@@ -1,0 +1,2192 @@
+\documentclass[11pt, a4paper, oneside]{book}
+
+% ── Engine: XeLaTeX ──────────────────────────────────────────────────────────
+\usepackage{fontspec}
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+\setmonofont{DejaVu Sans Mono}[Scale=0.85]
+
+% ── Core packages ────────────────────────────────────────────────────────────
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, calc, decorations.pathmorphing,
+  automata, shapes.geometric}
+\usepackage{minted}
+\setminted{
+  fontsize=\small,
+  breaklines=true,
+  bgcolor=codebg,
+  frame=none,
+  framesep=2mm,
+  baselinestretch=1.15,
+}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=deepblue, urlcolor=midblue,
+  citecolor=accentgreen}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tcolorbox}
+\tcbuselibrary{theorems, skins, breakable}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{epigraph}
+
+\usepackage{etoolbox}
+
+% ── Colour palette ───────────────────────────────────────────────────────────
+\definecolor{deepblue}{HTML}{1a3a5c}
+\definecolor{midblue}{HTML}{2e6da4}
+\definecolor{lightblue}{HTML}{d6e8f7}
+\definecolor{accentgreen}{HTML}{1e7a4e}
+\definecolor{lightgreen}{HTML}{d4edda}
+\definecolor{accentpurple}{HTML}{6a3fa0}
+\definecolor{lightpurple}{HTML}{ede0f7}
+\definecolor{accentorange}{HTML}{b85c00}
+\definecolor{lightorange}{HTML}{fde8cc}
+\definecolor{accentred}{HTML}{a83232}
+\definecolor{lightred}{HTML}{f7d6d6}
+\definecolor{codebg}{HTML}{f6f8fa}
+
+% ── Theorem-like environments ────────────────────────────────────────────────
+\newtcbtheorem[number within=chapter]{defn}{Definition}{
+  enhanced, breakable,
+  colback=lightblue, colframe=midblue,
+  colupper=black, collower=black,
+  fonttitle=\bfseries, coltitle=white,
+  separator sign={~---},
+}{def}
+
+\newtcbtheorem[number within=chapter]{thm}{Theorem}{
+  enhanced, breakable,
+  colback=lightgreen, colframe=accentgreen,
+  colupper=black, collower=black,
+  fonttitle=\bfseries, coltitle=white,
+  separator sign={~---},
+}{thm}
+
+\newtcbtheorem[number within=chapter]{lem}{Lemma}{
+  enhanced, breakable,
+  colback=lightgreen!60, colframe=accentgreen!70,
+  colupper=black, collower=black,
+  fonttitle=\bfseries, coltitle=white,
+  separator sign={~---},
+}{lem}
+
+\newtcbtheorem[number within=chapter]{prop}{Proposition}{
+  enhanced, breakable,
+  colback=lightgreen!60, colframe=accentgreen!70,
+  colupper=black, collower=black,
+  fonttitle=\bfseries, coltitle=white,
+  separator sign={~---},
+}{prop}
+
+\newtcbtheorem[number within=chapter]{cor}{Corollary}{
+  enhanced, breakable,
+  colback=lightgreen!40, colframe=accentgreen!50,
+  colupper=black, collower=black,
+  fonttitle=\bfseries, coltitle=white,
+  separator sign={~---},
+}{cor}
+
+\newtcolorbox{intuition}[1][]{
+  enhanced, breakable,
+  colback=lightpurple, colframe=accentpurple,
+  colupper=black, fonttitle=\bfseries, coltitle=white,
+  title={Intuition}, #1
+}
+
+\newtcolorbox{historical}[1][]{
+  enhanced, breakable,
+  colback=lightorange, colframe=accentorange,
+  colupper=black, fonttitle=\bfseries, coltitle=white,
+  title={Historical Note}, #1
+}
+
+\newtcolorbox{warning}[1][]{
+  enhanced, breakable,
+  colback=lightred, colframe=accentred,
+  colupper=black, fonttitle=\bfseries, coltitle=white,
+  title={Warning}, #1
+}
+
+\newtcolorbox{exercisebox}[1][]{
+  enhanced, breakable,
+  colback=lightorange!50, colframe=accentorange!70,
+  colupper=black, fonttitle=\bfseries, coltitle=white,
+  title={Exercise}, #1
+}
+
+\newtcolorbox{leanbox}[1][]{
+  enhanced, breakable,
+  colback=codebg, colframe=midblue!60,
+  colupper=black, fonttitle=\bfseries\ttfamily, coltitle=white,
+  title={Lean 4}, #1
+}
+
+\newtcolorbox{tsbox}[1][]{
+  enhanced, breakable,
+  colback=codebg, colframe=accentorange!60,
+  colupper=black, fonttitle=\bfseries\ttfamily, coltitle=white,
+  title={TypeScript}, #1
+}
+
+% ── Custom macros ────────────────────────────────────────────────────────────
+\newcommand{\nil}{\mathbf{0}}
+\newcommand{\Par}{\mathbin{\|}}
+\newcommand{\pref}{\mathbin{.}}
+\newcommand{\res}[1]{(\nu #1)}
+\newcommand{\repl}{\mathbin{!}}
+\newcommand{\inp}[2]{#1(#2)}
+\newcommand{\outp}[2]{\overline{#1}\langle #2 \rangle}
+\newcommand{\tildep}{\widetilde}
+\newcommand{\bisim}{\sim}
+\newcommand{\reduces}{\longrightarrow}
+\newcommand{\Reduces}{\Longrightarrow}
+\newcommand{\fn}{\operatorname{fn}}
+\newcommand{\bn}{\operatorname{bn}}
+\newcommand{\lc}[1]{\texttt{#1}}
+\newcommand{\sem}[1]{\text{⟦}#1\text{⟧}}
+\newcommand{\bindnasrepma}{\rotatebox[origin=c]{180}{\&}}
+
+% ── Chapter/section styling ──────────────────────────────────────────────────
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{deepblue}}
+  {\chaptertitlename\ \thechapter}{20pt}{\Huge\color{deepblue}}[\color{black}]
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{deepblue}}
+  {\thesection}{1em}{}[\color{black}]
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{midblue}}
+  {\thesubsection}{1em}{}[\color{black}]
+
+% Global: ensure text is black after any tcolorbox
+\AfterEndEnvironment{defn}{\color{black}}
+\AfterEndEnvironment{thm}{\color{black}}
+\AfterEndEnvironment{lem}{\color{black}}
+\AfterEndEnvironment{prop}{\color{black}}
+\AfterEndEnvironment{cor}{\color{black}}
+\AfterEndEnvironment{intuition}{\color{black}}
+\AfterEndEnvironment{historical}{\color{black}}
+\AfterEndEnvironment{warning}{\color{black}}
+\AfterEndEnvironment{exercisebox}{\color{black}}
+\AfterEndEnvironment{leanbox}{\color{black}}
+\AfterEndEnvironment{tsbox}{\color{black}}
+\AfterEndEnvironment{minted}{\color{black}}
+
+% ── Headers/footers ──────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\itshape\leftmark}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Counter for exercises ────────────────────────────────────────────────────
+\newcounter{exercise}[chapter]
+\renewcommand{\theexercise}{\thechapter.\arabic{exercise}}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ── Title page ───────────────────────────────────────────────────────────────
+\begin{titlepage}
+\centering
+\vspace*{3cm}
+{\Huge\bfseries\color{deepblue} Process Calculi\\[0.3cm]
+\& Verified Concurrency\par}
+\vspace{1cm}
+{\Large\color{midblue} From Dijkstra's Semaphores to Session Types\\[0.2cm]
+in Lean\,4\par}
+\vspace{2cm}
+{\large A self-contained journey through the theory of\\
+concurrent computation, from labeled transition systems\\
+to verified deadlock-free protocols.\par}
+\vspace{1cm}
+{\normalsize With connections to TypeScript/Node.js\\
+throughout.\par}
+\vspace{3cm}
+{\large\itshape Draft --- \today\par}
+\vfill
+\end{titlepage}
+
+% ── Front matter ─────────────────────────────────────────────────────────────
+\frontmatter
+\tableofcontents
+
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
+
+Concurrent programming is everywhere and almost nobody understands it.
+
+Every web server, every mobile app, every database, every operating system
+relies on concurrent execution. Node.js processes thousands of simultaneous
+connections through its event loop. Worker threads enable true parallelism in
+JavaScript. Go's goroutines and Erlang's actors build entire distributed
+systems around message passing. And yet: race conditions, deadlocks, and
+data corruption remain among the most common and hardest-to-debug classes of
+software defects. The Therac-25 radiation therapy machine killed patients
+because of a race condition. The Ariane~5 rocket exploded because of a
+concurrent sensor processing fault. These are not hypothetical risks.
+
+The root cause is that concurrent programs are \emph{fundamentally different}
+from sequential ones. When two processes run in parallel, their actions can
+interleave in exponentially many ways. Testing can explore only a tiny
+fraction of these interleavings. We need \emph{mathematical proof}.
+
+This book develops the theory of concurrent computation from first principles,
+formalizes it in Lean\,4, and connects it to the TypeScript/Node.js ecosystem
+you use at work. By the end, you will understand:
+\begin{itemize}[nosep]
+\item What a \emph{process calculus} is and why it's the ``lambda calculus
+      of concurrency.''
+\item What \emph{bisimulation} means and why it's the right notion of
+      equivalence for concurrent systems.
+\item How to \emph{prove} that a concurrent protocol is deadlock-free.
+\item What \emph{session types} are and how they can guarantee communication
+      safety at compile time.
+\end{itemize}
+
+\paragraph{Historical arc.}
+The intellectual lineage runs: Dijkstra (1965) identified the problem.
+Hoare (1978, 1985) and Milner (1980, 1989, 1992) built the theory.
+Honda (1993) connected concurrency to type theory. Wadler (2012) connected
+it to linear logic. We follow this arc chronologically.
+
+\paragraph{Prerequisites.}
+Comfort with Lean\,4 (inductive types, pattern matching, tactics) and
+familiarity with TypeScript/Node.js. No prior concurrency theory.
+
+\paragraph{Lean\,4 setup.}
+All code is vanilla Lean\,4, no Mathlib. We build every structure from
+scratch.
+
+\mainmatter
+\color{black}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\part{Foundations of Communicating Processes}
+% ══════════════════════════════════════════════════════════════════════════════
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Why Concurrency Is Hard}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``Testing can be used to show the presence of bugs, but never to show
+their absence.''}{\textit{Edsger W.\ Dijkstra}}
+
+\section{The Problem}
+
+\begin{historical}[title={Dijkstra and the Birth of Concurrency Theory}]
+In 1965, Edsger Dijkstra published ``Cooperating Sequential Processes,'' a
+technical report that identified the fundamental problem of concurrent
+programming: when multiple processes share resources, things go wrong in ways
+that are almost impossible to detect by testing. A sequential program always
+does the same thing given the same input. A concurrent program can do
+\emph{different} things on different runs, depending on the precise timing of
+events---the \emph{interleaving} of actions.
+
+Dijkstra introduced the \textbf{mutual exclusion problem}: given $n$ processes
+that need occasional access to a shared resource, design a protocol ensuring
+that at most one process uses the resource at any time. His solution used
+\textbf{semaphores}---integer variables with atomic increment and decrement
+operations---the first general-purpose synchronization primitive. His 1968
+paper ``Go To Statement Considered Harmful'' made him famous for structured
+programming, but his concurrency work is arguably his deepest contribution.
+
+Dijkstra received the Turing Award in 1972. His acceptance lecture contained
+the memorable line: ``The question of whether machines can think is about as
+relevant as the question of whether submarines can swim.''
+\end{historical}
+
+\section{Concurrency in Node.js}
+
+As a TypeScript/Node.js programmer, you deal with concurrency every day---even
+if you don't always call it that.
+
+\subsection{The Event Loop}
+
+Node.js is single-threaded but \emph{asynchronous}. The event loop processes
+callbacks one at a time, but I/O operations run in the background:
+
+\begin{tsbox}
+\begin{minted}{typescript}
+// These run "concurrently" --- the event loop interleaves them
+const fetchUser = async (id: string) => {
+  const resp = await fetch(`/api/users/${id}`);  // yields to event loop
+  return resp.json();
+};
+
+// Two concurrent fetches
+const [alice, bob] = await Promise.all([
+  fetchUser("alice"),
+  fetchUser("bob"),
+]);
+\end{minted}
+\end{tsbox}
+
+This is \emph{cooperative concurrency}: each task voluntarily yields at
+\lc{await} points. No two callbacks run simultaneously, so you avoid many
+classical race conditions. But not all of them---the interleaving of
+callbacks can still surprise you.
+
+\subsection{Worker Threads}
+
+For CPU-intensive work, Node.js provides \lc{Worker} threads---true
+parallelism:
+
+\begin{tsbox}
+\begin{minted}{typescript}
+import { Worker, parentPort, MessageChannel } from 'worker_threads';
+
+// Main thread
+const worker = new Worker('./worker.js');
+worker.postMessage({ task: 'compute', data: payload });
+worker.on('message', (result) => {
+  console.log('Got result:', result);
+});
+
+// Worker thread (worker.js)
+parentPort?.on('message', (msg) => {
+  const result = heavyComputation(msg.data);
+  parentPort?.postMessage(result);
+});
+\end{minted}
+\end{tsbox}
+
+The moment you use workers, you enter Dijkstra's world: two threads running
+\emph{truly simultaneously}, communicating via message passing. The
+\lc{postMessage}/\lc{on('message')} pattern is exactly what process calculi
+formalize.
+
+\section{What Can Go Wrong}
+
+\subsection{Race Conditions}
+
+\begin{tsbox}
+\begin{minted}{typescript}
+// Shared state between event loop callbacks
+let balance = 100;
+
+async function withdraw(amount: number) {
+  if (balance >= amount) {        // Check
+    await delay(10);              // Simulate async work
+    balance -= amount;            // Act --- but balance may have changed!
+  }
+}
+
+// Two concurrent withdrawals: both see balance = 100
+await Promise.all([withdraw(80), withdraw(80)]);
+// balance is now -60, not 20!
+\end{minted}
+\end{tsbox}
+
+\subsection{Deadlock}
+
+\begin{tsbox}
+\begin{minted}{typescript}
+// Worker A waits for B's response before sending its own
+// Worker B waits for A's response before sending its own
+// Neither can proceed: DEADLOCK
+
+workerA.postMessage('waiting for B');  // A blocks until B responds
+workerB.postMessage('waiting for A');  // B blocks until A responds
+\end{minted}
+\end{tsbox}
+
+\begin{historical}[title={The Therac-25}]
+The Therac-25 (1985--1987) was a radiation therapy machine whose software
+had a race condition between the operator interface and the beam control
+system. Under specific timing---an operator typing faster than the system
+expected---the machine delivered radiation doses hundreds of times higher
+than intended. Six patients were seriously injured; three died. The bug was
+virtually impossible to reproduce in testing because it depended on exact
+keystroke timing. This is the canonical example of why concurrent systems
+need mathematical reasoning, not just testing.
+\end{historical}
+
+\section{The Way Forward}
+
+The rest of this book develops mathematical tools for reasoning about
+concurrent systems with \emph{certainty}:
+\begin{itemize}[nosep]
+\item \textbf{Labeled transition systems} (Chapter~2): model concurrent
+  systems as state machines.
+\item \textbf{CCS} (Chapter~3): a ``programming language'' for concurrent
+  processes.
+\item \textbf{Bisimulation} (Chapter~4): when are two concurrent systems
+  equivalent?
+\item \textbf{Session types} (Chapter~9): type systems that guarantee
+  deadlock freedom.
+\end{itemize}
+
+Every concept will be formalized in Lean\,4 and connected back to
+TypeScript.
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Labeled Transition Systems}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``The nice thing about standards is that you have so many to choose
+from.''}{\textit{Andrew S.\ Tanenbaum}}
+
+\section{Processes as State Machines}
+
+\begin{historical}[title={Keller and the LTS}]
+Robert Keller (1976) introduced labeled transition systems as a mathematical
+semantics for concurrent programs. The idea: a process is a state machine
+whose transitions are labeled with \emph{actions}---things the process does
+that the outside world can observe---or with a special silent action $\tau$
+(something internal the observer cannot see). This framework became the
+standard foundation for all subsequent process calculi.
+\end{historical}
+
+\begin{defn}{Labeled Transition System}{lts}
+A \textbf{labeled transition system (LTS)} is a triple $(S, A, \to)$ where:
+\begin{itemize}[nosep]
+\item $S$ is a set of \textbf{states}.
+\item $A$ is a set of \textbf{actions} (labels), including the
+  \textbf{silent action} $\tau$.
+\item ${\to} \subseteq S \times A \times S$ is the \textbf{transition
+  relation}. We write $s \xrightarrow{a} s'$ for $(s, a, s') \in {\to}$.
+\end{itemize}
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- Actions: either observable or silent (tau)
+inductive Action (Label : Type) where
+  | obs : Label → Action Label    -- observable action
+  | tau : Action Label             -- internal/silent action
+  deriving DecidableEq, Repr
+
+-- A labeled transition system
+structure LTS (State Label : Type) where
+  step : State → Action Label → State → Prop
+\end{minted}
+\end{leanbox}
+
+\section{Traces}
+
+A \textbf{trace} of a process is a sequence of \emph{observable} actions it
+can perform (ignoring $\tau$ steps). Formally, the trace set of state $s$ is:
+\[
+  \mathrm{traces}(s) = \{a_1 a_2 \cdots a_n :
+    \exists s_0, \ldots, s_n,\;
+    s = s_0 \Reduces^{*} \xrightarrow{a_1} \Reduces^{*}
+    \xrightarrow{a_2} \cdots \xrightarrow{a_n} s_n \}
+\]
+where $\Reduces^{*}$ denotes zero or more $\tau$ steps.
+
+\section{Example: A Vending Machine}
+
+\begin{center}
+\begin{tikzpicture}[
+    ->, >=stealth, node distance=2.5cm,
+    state/.style={circle, draw, fill=lightblue!50, minimum size=1cm,
+      font=\small},
+  ]
+  \node[state] (idle) {idle};
+  \node[state, right of=idle] (paid) {paid};
+  \node[state, above right=1cm and 2cm of paid] (coffee) {$\checkmark$};
+  \node[state, below right=1cm and 2cm of paid] (tea) {$\checkmark$};
+
+  \path (idle)  edge node[above] {\small coin} (paid)
+        (paid)  edge node[above left] {\small coffee} (coffee)
+        (paid)  edge node[below left] {\small tea} (tea);
+\end{tikzpicture}
+\end{center}
+
+This machine accepts a coin, then dispenses either coffee or tea. Its trace
+set is $\{\texttt{coin}\cdot\texttt{coffee},\; \texttt{coin}\cdot\texttt{tea}\}$.
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- Vending machine states
+inductive VMState where
+  | idle | paid | done
+  deriving DecidableEq, Repr
+
+-- Vending machine actions
+inductive VMLabel where
+  | coin | coffee | tea
+  deriving DecidableEq, Repr
+
+-- Transition relation
+inductive VMStep : VMState → Action VMLabel → VMState → Prop where
+  | insert : VMStep .idle (.obs .coin) .paid
+  | getCoffee : VMStep .paid (.obs .coffee) .done
+  | getTea : VMStep .paid (.obs .tea) .done
+\end{minted}
+\end{leanbox}
+
+\section{Determinism and Nondeterminism}
+
+The vending machine is \textbf{nondeterministic}: from state \lc{paid},
+there are two possible transitions (coffee or tea). The ``choice'' is made
+by the environment (the customer), not the machine.
+
+\begin{defn}{Deterministic LTS}{det-lts}
+An LTS is \textbf{deterministic} if for every state $s$ and action $a$,
+there is at most one state $s'$ with $s \xrightarrow{a} s'$.
+\end{defn}
+
+Most interesting concurrent systems are nondeterministic: the interleaving
+of parallel processes creates multiple possible execution paths.
+
+\begin{exercisebox}[title={Exercise 2.1}]
+\stepcounter{exercise}
+Model a traffic light (green $\to$ yellow $\to$ red $\to$ green) as an LTS
+in Lean. Prove it is deterministic.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 2.2}]
+\stepcounter{exercise}
+Model a retry-with-backoff mechanism: a process that sends a request, either
+receives a response (success) or times out (failure), and on failure retries
+up to 3 times. Define the LTS and compute its trace set.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{CCS --- The Calculus of Communicating Systems}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``There is no concurrency theory without Robin Milner.''}%
+{\textit{Luca Cardelli}}
+
+\section{Robin Milner and the Quest for a Theory}
+
+\begin{historical}[title={Robin Milner (1934--2010)}]
+Robin Milner is one of the most important computer scientists in history. He
+invented three things, each of which alone would be a career-defining
+achievement:
+
+\textbf{ML} (1973): the programming language family that includes OCaml and
+F\#, and whose type inference algorithm (Algorithm W) inspired Haskell and
+Lean's type systems. Milner proved that ``well-typed programs do not go
+wrong''---the first type soundness theorem.
+
+\textbf{CCS} (1980): the Calculus of Communicating Systems, a minimal formal
+language for concurrent processes. Just as Church's lambda calculus captures
+sequential computation with three constructs (variable, abstraction,
+application), CCS captures concurrent computation with a small set of
+operators (inaction, prefix, choice, parallel, restriction).
+
+\textbf{The $\pi$-calculus} (1992, with Parrow and Walker): an extension of
+CCS where channel names can be communicated, modeling systems whose
+communication topology changes at runtime.
+
+Milner received the Turing Award in 1991 ``for three distinct and complete
+achievements''---an unprecedented citation. His 1989 book
+\textit{Communication and Concurrency} remains the definitive introduction
+to the theory.
+\end{historical}
+
+\section{CCS Syntax}
+
+CCS processes are built from six constructors:
+
+\begin{defn}{CCS Syntax}{ccs-syntax}
+Given a set of \textbf{names} (channels) $\mathcal{N}$, the set of CCS
+processes is defined by:
+\[
+  P, Q \;::=\;
+    \nil
+    \;\mid\; \alpha \pref P
+    \;\mid\; P + Q
+    \;\mid\; P \Par Q
+    \;\mid\; \res{a} P
+    \;\mid\; \repl P
+\]
+where $\alpha$ is an \textbf{action}: either a name $a$ (input), a co-name
+$\bar{a}$ (output), or $\tau$ (silent).
+\end{defn}
+
+\paragraph{What each constructor means:}
+\begin{itemize}[nosep]
+\item $\nil$ --- \textbf{inaction}. The stopped process; does nothing.
+\item $\alpha \pref P$ --- \textbf{prefix}. Perform action $\alpha$, then
+  continue as $P$.
+\item $P + Q$ --- \textbf{choice}. Behave as $P$ or $Q$; the environment
+  decides which.
+\item $P \Par Q$ --- \textbf{parallel composition}. $P$ and $Q$ run
+  concurrently.
+\item $\res{a} P$ --- \textbf{restriction}. Channel $a$ is private to $P$;
+  the outside world cannot use it.
+\item $\repl P$ --- \textbf{replication}. Unbounded copies of $P$;
+  models a server that can handle any number of requests.
+\end{itemize}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- Channel names
+abbrev Name := String
+
+-- CCS actions
+inductive CCSAct where
+  | inp : Name → CCSAct          -- input on channel a
+  | out : Name → CCSAct          -- output on channel ā
+  | tau : CCSAct                  -- silent action
+  deriving DecidableEq, Repr
+
+-- CCS is the complement of an action
+def CCSAct.complement : CCSAct → Option CCSAct
+  | .inp a => some (.out a)
+  | .out a => some (.inp a)
+  | .tau   => none
+
+-- CCS processes
+inductive CCS where
+  | nil  : CCS                           -- 0
+  | pre  : CCSAct → CCS → CCS           -- α.P
+  | plus : CCS → CCS → CCS              -- P + Q
+  | par  : CCS → CCS → CCS              -- P | Q
+  | res  : Name → CCS → CCS             -- (νa)P
+  | repl : CCS → CCS                    -- !P
+  deriving Repr
+
+-- Notation helpers
+scoped notation "𝟎" => CCS.nil
+scoped infixr:60 " ⬝ " => CCS.pre        -- α.P
+scoped infixl:50 " ⊕ " => CCS.plus       -- P + Q
+scoped infixl:40 " ∥ " => CCS.par        -- P | Q
+\end{minted}
+\end{leanbox}
+
+\section{Operational Semantics}
+
+The \emph{meaning} of a CCS process is given by its operational semantics:
+an inductive relation defining which transitions are possible.
+
+\begin{defn}{CCS Operational Semantics}{ccs-sos}
+The transition relation $P \xrightarrow{\alpha} P'$ is the smallest relation
+satisfying these rules:
+\begin{enumerate}[nosep, label=(\textsc{\alph*})]
+\item \textsc{Prefix:} $\alpha \pref P \xrightarrow{\alpha} P$
+\item \textsc{Choice-L:} If $P \xrightarrow{\alpha} P'$ then
+  $P + Q \xrightarrow{\alpha} P'$
+\item \textsc{Choice-R:} If $Q \xrightarrow{\alpha} Q'$ then
+  $P + Q \xrightarrow{\alpha} Q'$
+\item \textsc{Par-L:} If $P \xrightarrow{\alpha} P'$ then
+  $P \Par Q \xrightarrow{\alpha} P' \Par Q$
+\item \textsc{Par-R:} If $Q \xrightarrow{\alpha} Q'$ then
+  $P \Par Q \xrightarrow{\alpha} P \Par Q'$
+\item \textsc{Comm:} If $P \xrightarrow{a} P'$ and $Q \xrightarrow{\bar{a}} Q'$
+  then $P \Par Q \xrightarrow{\tau} P' \Par Q'$
+\item \textsc{Res:} If $P \xrightarrow{\alpha} P'$ and $\alpha \neq a, \bar{a}$
+  then $\res{a} P \xrightarrow{\alpha} \res{a} P'$
+\item \textsc{Repl:} If $P \Par \repl P \xrightarrow{\alpha} P'$
+  then $\repl P \xrightarrow{\alpha} P'$
+\end{enumerate}
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- CCS transition relation
+inductive CCSStep : CCS → CCSAct → CCS → Prop where
+  | prefix : CCSStep (.pre α P) α P
+  | choiceL : CCSStep P α P' → CCSStep (.plus P Q) α P'
+  | choiceR : CCSStep Q α Q' → CCSStep (.plus P Q) α Q'
+  | parL : CCSStep P α P' → CCSStep (.par P Q) α (.par P' Q)
+  | parR : CCSStep Q α Q' → CCSStep (.par P Q) α (.par P Q')
+  | comm : CCSStep P (.inp a) P' → CCSStep Q (.out a) Q' →
+           CCSStep (.par P Q) .tau (.par P' Q')
+  | commR : CCSStep P (.out a) P' → CCSStep Q (.inp a) Q' →
+            CCSStep (.par P Q) .tau (.par P' Q')
+  | res : CCSStep P α P' → α ≠ .inp a → α ≠ .out a →
+          CCSStep (.res a P) α (.res a P')
+\end{minted}
+\end{leanbox}
+
+\section{The Communication Rule}
+
+The most important rule is \textsc{Comm}: when two parallel processes perform
+complementary actions ($a$ and $\bar{a}$) on the same channel, they
+\textbf{synchronize} via a silent $\tau$ step. This models message passing:
+one process sends, the other receives, and the communication is invisible to
+the outside.
+
+\subsection{Worked Example: Request-Response}
+
+\begin{align*}
+  \text{Client} &= \overline{\text{req}} \pref \text{resp} \pref \nil \\
+  \text{Server} &= \text{req} \pref \overline{\text{resp}} \pref \nil \\[6pt]
+  \text{Client} \Par \text{Server}
+  &\xrightarrow{\tau} \text{resp} \pref \nil \;\Par\;
+    \overline{\text{resp}} \pref \nil
+  &&\text{(\textsc{Comm}: req/}\overline{\text{req}}\text{)} \\
+  &\xrightarrow{\tau} \nil \Par \nil
+  &&\text{(\textsc{Comm}: resp/}\overline{\text{resp}}\text{)} \\
+  &= \nil \Par \nil
+  &&\text{(done)}
+\end{align*}
+
+Two $\tau$ steps: two internal communications. The outside world sees nothing
+---the entire exchange is private.
+
+\subsection{The Node.js Mapping}
+
+\begin{center}
+\begin{tabular}{lcl}
+  \textbf{CCS} & & \textbf{Node.js} \\
+  \midrule
+  $P \Par Q$ & $\longleftrightarrow$ & two \lc{Worker} threads \\
+  $a$ / $\bar{a}$ & $\longleftrightarrow$ & \lc{port.on('message')} / \lc{port.postMessage()} \\
+  $\res{a} P$ & $\longleftrightarrow$ & \lc{new MessageChannel()} local to a module \\
+  $P + Q$ & $\longleftrightarrow$ & \lc{Promise.race([p, q])} \\
+  $\repl P$ & $\longleftrightarrow$ & server listening in a loop \\
+\end{tabular}
+\end{center}
+
+\begin{exercisebox}[title={Exercise 3.1}]
+\stepcounter{exercise}
+Model a pub/sub system in CCS: a publisher sends messages on a channel, and
+two subscribers receive them. Define the processes and trace through the
+possible executions.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 3.2}]
+\stepcounter{exercise}
+Prove in Lean that the Client $\|$ Server system above reaches
+$\nil \Par \nil$ after exactly two $\tau$ steps, by constructing the
+derivation using \lc{CCSStep} constructors.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Bisimulation --- When Are Two Systems ``The Same''?}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``Two systems are equivalent if no experiment can distinguish
+them.''}{\textit{Robin Milner} (paraphrased)}
+
+\section{The Coffee Machine Problem}
+
+\begin{historical}[title={Park and Milner}]
+After defining CCS, Milner faced a subtle question: when should two
+processes be considered equivalent? The naive answer---``they can perform
+the same sequences of actions'' (trace equivalence)---turns out to be too
+coarse. David Park (1981) and Milner independently arrived at the right
+notion: \textbf{bisimulation}. Two processes are bisimilar if every step one
+can take, the other can match---step by step, preserving the branching
+structure, not just the complete traces.
+\end{historical}
+
+The canonical counterexample:
+\begin{align*}
+  P &= \text{coin} \pref (\text{coffee} \pref \nil + \text{tea} \pref \nil) \\
+  Q &= \text{coin} \pref \text{coffee} \pref \nil
+       + \text{coin} \pref \text{tea} \pref \nil
+\end{align*}
+
+Both have the same traces: $\{\text{coin}\cdot\text{coffee},\;
+\text{coin}\cdot\text{tea}\}$. But they behave differently! In $P$, after
+inserting a coin you can still choose coffee or tea. In $Q$, the choice was
+already made (by the nondeterministic resolution of $+$) \emph{before} you
+inserted the coin. An observer who inserts a coin and then tries to get
+coffee might fail with $Q$ (if the second branch was chosen) but never with
+$P$.
+
+\begin{center}
+\begin{tikzpicture}[
+    ->, >=stealth, node distance=1.8cm,
+    state/.style={circle, draw, fill=lightblue!50, minimum size=0.7cm,
+      font=\footnotesize},
+  ]
+  % P
+  \node[state] (P0) {$P$};
+  \node[state, below of=P0] (P1) {$P_1$};
+  \node[state, below left=1.2cm of P1] (Pc) {$\checkmark$};
+  \node[state, below right=1.2cm of P1] (Pt) {$\checkmark$};
+  \path (P0) edge node[right, font=\footnotesize] {coin} (P1)
+        (P1) edge node[left, font=\footnotesize] {coffee} (Pc)
+        (P1) edge node[right, font=\footnotesize] {tea} (Pt);
+  \node[below=0.3cm of Pc, font=\small\bfseries] (Plbl) {};
+  \node[above=0.3cm of P0, font=\small\bfseries\color{deepblue}] {$P$: choice after coin};
+
+  % Q
+  \node[state, right=4cm of P0] (Q0) {$Q$};
+  \node[state, below left=1.5cm of Q0] (Q1) {};
+  \node[state, below right=1.5cm of Q0] (Q2) {};
+  \node[state, below of=Q1] (Qc) {$\checkmark$};
+  \node[state, below of=Q2] (Qt) {$\checkmark$};
+  \path (Q0) edge node[left, font=\footnotesize] {coin} (Q1)
+        (Q0) edge node[right, font=\footnotesize] {coin} (Q2)
+        (Q1) edge node[left, font=\footnotesize] {coffee} (Qc)
+        (Q2) edge node[right, font=\footnotesize] {tea} (Qt);
+  \node[above=0.3cm of Q0, font=\small\bfseries\color{deepblue}] {$Q$: choice before coin};
+\end{tikzpicture}
+\end{center}
+
+\section{Bisimulation}
+
+\begin{defn}{Bisimulation}{bisimulation}
+Let $(S, A, \to)$ be an LTS. A binary relation $R \subseteq S \times S$ is a
+\textbf{bisimulation} if whenever $s \mathrel{R} t$:
+\begin{enumerate}[nosep, label=(\roman*)]
+\item If $s \xrightarrow{a} s'$, then there exists $t'$ such that
+  $t \xrightarrow{a} t'$ and $s' \mathrel{R} t'$.
+\item If $t \xrightarrow{a} t'$, then there exists $s'$ such that
+  $s \xrightarrow{a} s'$ and $s' \mathrel{R} t'$.
+\end{enumerate}
+Two states $s, t$ are \textbf{bisimilar} (written $s \bisim t$) if there
+exists a bisimulation $R$ with $s \mathrel{R} t$.
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- A relation R is a bisimulation
+def IsBisimulation {State Label : Type}
+    (step : State → Action Label → State → Prop)
+    (R : State → State → Prop) : Prop :=
+  ∀ s t, R s t →
+    (∀ a s', step s a s' → ∃ t', step t a t' ∧ R s' t') ∧
+    (∀ a t', step t a t' → ∃ s', step s a s' ∧ R s' t')
+
+-- Bisimilarity: exists a bisimulation relating them
+def Bisimilar {State Label : Type}
+    (step : State → Action Label → State → Prop)
+    (s t : State) : Prop :=
+  ∃ R, IsBisimulation step R ∧ R s t
+\end{minted}
+\end{leanbox}
+
+\section{Bisimulation as a Greatest Fixed Point}
+
+\begin{intuition}
+Bisimilarity has a beautiful lattice-theoretic characterization. Define a
+function $F$ on relations: $F(R) = \{(s,t) \mid \text{$R$ satisfies the
+bisimulation conditions at $(s,t)$}\}$. Then bisimilarity is the
+\textbf{greatest fixed point} of $F$---the largest relation that is a
+bisimulation.
+
+This is the Knaster-Tarski theorem from lattice theory! The lattice of
+relations on $S$ (ordered by inclusion) is complete, $F$ is monotone, and
+its greatest fixed point exists and equals the union of all bisimulations.
+
+If you've studied the lattice/propagator book, this connection is direct:
+bisimilarity is computed by the same fixed-point machinery that computes
+propagator convergence.
+\end{intuition}
+
+\section{Properties of Bisimilarity}
+
+\begin{thm}{Bisimilarity is an Equivalence Relation}{bisim-equiv}
+$\bisim$ is reflexive, symmetric, and transitive.
+\end{thm}
+
+\begin{proof}
+Reflexive: the identity relation is a bisimulation. Symmetric: if $R$ is a
+bisimulation, so is $R^{-1}$. Transitive: if $R_1$ and $R_2$ are
+bisimulations, then $R_1 \circ R_2$ is a bisimulation (this requires showing
+that the composed relation satisfies both conditions).
+\end{proof}
+
+\begin{thm}{Bisimilarity is a Congruence}{bisim-congruence}
+If $P \bisim Q$, then:
+$\alpha \pref P \bisim \alpha \pref Q$, \quad
+$P + R \bisim Q + R$, \quad
+$P \Par R \bisim Q \Par R$, \quad
+$\res{a} P \bisim \res{a} Q$.
+\end{thm}
+
+This means bisimilar processes can be substituted for each other in any
+context---the analogue of the ``substitution principle'' in programming.
+
+\begin{exercisebox}[title={Exercise 4.1}]
+\stepcounter{exercise}
+Prove that $P \Par Q \bisim Q \Par P$ (parallel composition is commutative
+up to bisimulation). Construct the bisimulation relation explicitly.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 4.2}]
+\stepcounter{exercise}
+Prove that $P$ and $Q$ (the coffee machines above) are \emph{not} bisimilar.
+\emph{Hint:} after the coin step, $P$ reaches a state that can do both
+coffee and tea, but $Q$ reaches a state that can do only one.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Deadlock, Livelock, and Safety Properties}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``Simplicity is a great virtue but it requires hard work to achieve
+it and education to appreciate it.''}{\textit{Edsger W.\ Dijkstra}}
+
+\section{Dining Philosophers}
+
+\begin{historical}[title={Dijkstra's Dining Philosophers (1971)}]
+Five philosophers sit around a circular table. Between each pair is a single
+fork. To eat, a philosopher needs both adjacent forks. Each philosopher
+alternates between thinking and eating. If every philosopher simultaneously
+picks up their left fork, then all wait forever for the right fork:
+\textbf{deadlock}.
+
+Dijkstra introduced this problem to illustrate that deadlock is not a bug in
+any individual component---each philosopher follows a perfectly reasonable
+protocol. Deadlock is a property of the \emph{interaction}, arising from
+circular dependencies.
+\end{historical}
+
+\section{Deadlock}
+
+\begin{defn}{Deadlock}{deadlock}
+A CCS process $P$ is \textbf{deadlocked} if:
+\begin{enumerate}[nosep, label=(\roman*)]
+\item $P \neq \nil$ (the process hasn't terminated).
+\item There is no $\alpha$ and $P'$ such that $P \xrightarrow{\alpha} P'$
+  (no transitions possible).
+\end{enumerate}
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+def isDeadlocked (P : CCS) : Prop :=
+  P ≠ .nil ∧ ∀ α P', ¬ CCSStep P α P'
+\end{minted}
+\end{leanbox}
+
+\subsection{Deadlock in CCS}
+
+\begin{align*}
+  A &= \overline{b} \pref a \pref \nil &&\text{(sends on $b$, then waits on $a$)} \\
+  B &= \overline{a} \pref b \pref \nil &&\text{(sends on $a$, then waits on $b$)} \\[4pt]
+  &\res{a}\res{b}(A \Par B)
+\end{align*}
+
+Both $A$ and $B$ want to send first. Under restriction, neither output is
+visible externally, and neither can synchronize because $A$ outputs on $b$
+while $B$ outputs on $a$---but $A$ is waiting for input on $a$ (which $B$
+hasn't sent yet) and $B$ is waiting for input on $b$ (which $A$ hasn't sent
+yet). Deadlock.
+
+\section{Livelock}
+
+\begin{defn}{Livelock / Divergence}{livelock}
+A process $P$ \textbf{diverges} (livelocks) if it can perform an infinite
+sequence of $\tau$ steps without ever performing an observable action.
+\end{defn}
+
+In TypeScript terms: a \lc{setImmediate} loop that prevents the event loop
+from processing any other callbacks.
+
+\section{Safety and Liveness}
+
+\begin{defn}{Safety Property}{safety}
+A \textbf{safety property} asserts: ``nothing bad ever happens.'' Formally,
+a predicate $\varphi$ holds in all reachable states.
+\end{defn}
+
+\begin{defn}{Liveness Property}{liveness}
+A \textbf{liveness property} asserts: ``something good eventually happens.''
+Formally, every execution eventually reaches a state satisfying $\varphi$.
+\end{defn}
+
+\begin{historical}[title={Hoare and CSP}]
+Tony Hoare's \textit{Communicating Sequential Processes} (1978 paper, 1985
+book) is the other major process calculus, developed independently from
+Milner's CCS. Hoare focused on \emph{traces and refinement}---specifying what
+a system should do and verifying that an implementation refines the
+specification. CSP directly influenced Go's goroutines and channels; Rob Pike,
+one of Go's creators, cites Hoare as the primary inspiration.
+
+CSP and CCS are closely related but have different philosophies: CSP focuses
+on traces (good for specification), CCS on bisimulation (good for
+equivalence). Both are Turing-complete and can encode each other.
+\end{historical}
+
+\section{The Dining Philosophers in CCS}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- Philosopher i picks up fork i, then fork (i+1) mod 5, eats, puts both down
+def philosopher (i : Fin 5) : CCS :=
+  let li := s!"pick{i}"
+  let ri := s!"pick{(i.val + 1) % 5}"
+  let di := s!"drop{i}"
+  let dri := s!"drop{(i.val + 1) % 5}"
+  .pre (.inp li) <|     -- pick up left fork
+  .pre (.inp ri) <|     -- pick up right fork
+  .pre (.out di) <|     -- put down left fork
+  .pre (.out dri) <|    -- put down right fork
+  .nil
+
+-- The asymmetric fix: philosopher 4 picks up forks in reverse order
+def philosopher4_fixed : CCS :=
+  .pre (.inp "pick0") <|     -- right fork first!
+  .pre (.inp "pick4") <|     -- then left fork
+  .pre (.out "drop0") <|
+  .pre (.out "drop4") <|
+  .nil
+\end{minted}
+\end{leanbox}
+
+The asymmetric solution breaks the circular dependency: philosopher~4 picks up
+fork~0 first (instead of fork~4), which means at least one philosopher can
+always make progress.
+
+\begin{exercisebox}[title={Exercise 5.1}]
+\stepcounter{exercise}
+Model a reader-writer lock in CCS: multiple readers can hold the lock
+simultaneously, but a writer needs exclusive access. Prove (informally, or
+in Lean) that the protocol is deadlock-free.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 5.2}]
+\stepcounter{exercise}
+Formalize the deadlock property in Lean for the symmetric dining philosophers
+(all pick up left fork first). Show that a deadlocked configuration exists.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\part{Advanced Theory}
+% ══════════════════════════════════════════════════════════════════════════════
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{The $\pi$-Calculus --- Mobile Channels}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``Functions are processes, and processes are functions.''}%
+{\textit{Robin Milner}}
+
+\section{Beyond Fixed Topologies}
+
+\begin{historical}[title={Milner, Parrow, and Walker (1992)}]
+CCS has a limitation: the set of channel names is fixed at design time. In
+real distributed systems, communication topologies change at runtime: a
+server hands off a client connection to a worker; a chat participant invites
+a new user; a microservice discovers another via a registry.
+
+In 1992, Milner (with Joachim Parrow and David Walker) introduced the
+\textbf{$\pi$-calculus}, extending CCS with one radical new feature:
+\textbf{channel names can be communicated over channels}. This seems like a
+small change---$\outp{x}{y}.P$ means ``send the name $y$ over channel $x$,
+then continue as $P$''---but its consequences are profound. It models any
+system whose communication graph evolves dynamically.
+
+Milner's tour de force was showing that the $\lambda$-calculus can be
+\emph{encoded} in the $\pi$-calculus: function application becomes
+communication, closures become restricted channels. This means concurrent
+computation is at least as fundamental as sequential computation.
+\end{historical}
+
+\section{$\pi$-Calculus Syntax}
+
+\begin{defn}{$\pi$-Calculus}{pi-syntax}
+\[
+  P, Q \;::=\;
+    \nil
+    \;\mid\; \outp{x}{y} \pref P
+    \;\mid\; \inp{x}{y} \pref P
+    \;\mid\; P \Par Q
+    \;\mid\; \res{a} P
+    \;\mid\; \repl P
+    \;\mid\; P + Q
+\]
+\begin{itemize}[nosep]
+\item $\outp{x}{y} \pref P$ --- send name $y$ over channel $x$.
+\item $\inp{x}{y} \pref P$ --- receive a name on channel $x$, bind it to $y$,
+  continue as $P$ with $y$ replaced by whatever was received.
+\end{itemize}
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- π-calculus processes
+inductive Pi where
+  | nil  : Pi
+  | send : Name → Name → Pi → Pi         -- x̄⟨y⟩.P
+  | recv : Name → Name → Pi → Pi         -- x(y).P (y is bound)
+  | par  : Pi → Pi → Pi                  -- P | Q
+  | res  : Name → Pi → Pi                -- (νa)P
+  | repl : Pi → Pi                       -- !P
+  | plus : Pi → Pi → Pi                  -- P + Q
+  deriving Repr
+
+-- Free names
+def Pi.freeNames : Pi → List Name
+  | .nil => []
+  | .send x y P => [x, y] ++ P.freeNames
+  | .recv x y P => [x] ++ (P.freeNames.filter (· ≠ y))  -- y is bound
+  | .par P Q => P.freeNames ++ Q.freeNames
+  | .res a P => P.freeNames.filter (· ≠ a)
+  | .repl P => P.freeNames
+  | .plus P Q => P.freeNames ++ Q.freeNames
+\end{minted}
+\end{leanbox}
+
+\section{Communication and Scope Extrusion}
+
+The communication rule: when $\outp{x}{y}.P$ runs in parallel with
+$\inp{x}{z}.Q$, they synchronize---$y$ is sent, $z$ gets bound to $y$:
+\[
+  \outp{x}{y}.P \;\Par\; \inp{x}{z}.Q \;\xrightarrow{\tau}\;
+  P \;\Par\; Q[y/z]
+\]
+
+The truly novel feature is \textbf{scope extrusion}: if a private name
+escapes via communication, its scope automatically widens.
+\[
+  \res{a}(\outp{x}{a}.P) \;\Par\; \inp{x}{z}.Q
+  \;\xrightarrow{\tau}\;
+  \res{a}(P \;\Par\; Q[a/z])
+\]
+The name $a$ was private to the left process, but after sending it over $x$,
+the right process now knows $a$ too. The $\nu a$ scope expands to cover
+both processes.
+
+\subsection{The Node.js Connection}
+
+This is \emph{exactly} what happens with \lc{MessageChannel} and transferable
+objects:
+
+\begin{tsbox}
+\begin{minted}{typescript}
+// Main thread
+const { port1, port2 } = new MessageChannel();  // (νport1)(νport2)
+
+// Send port2 to the worker --- scope extrusion!
+worker.postMessage({ port: port2 }, [port2]);
+
+// Now the worker has port2 and can communicate on it directly
+// The "private" channel has escaped its original scope
+\end{minted}
+\end{tsbox}
+
+\section{Encoding the $\lambda$-Calculus}
+
+Milner showed that function application can be encoded as communication:
+
+\begin{align*}
+  ⟦x⟧_u &= \outp{x}{u}.\nil \\
+  ⟦\lambda x. M⟧_u &=
+    \inp{u}{(x, v)}.⟦M⟧_v \\
+  ⟦M\;N⟧_u &=
+    \res{v}(⟦M⟧_v \;\Par\;
+    \inp{v}{(x,w)}.(
+      ⟦N⟧_x \;\Par\;
+      \outp{w}{u}.\nil))
+\end{align*}
+
+The variable $u$ is a ``return channel''---where the result will be sent.
+Function application creates a fresh channel $v$, evaluates the function,
+receives its body, evaluates the argument, and forwards the result.
+
+\begin{intuition}
+This encoding reveals something deep: sequential computation (the
+$\lambda$-calculus) is a special case of concurrent computation (the
+$\pi$-calculus) where everything is forced to happen in a specific order
+by the channel dependencies. Concurrency is the more fundamental notion;
+sequentiality is concurrency with extra constraints.
+\end{intuition}
+
+\begin{exercisebox}[title={Exercise 6.1}]
+\stepcounter{exercise}
+Model a chat room in the $\pi$-calculus: a room process that accepts join
+requests, and when two users have joined, creates a private channel between
+them. Use scope extrusion to pass the private channel to both users.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 6.2}]
+\stepcounter{exercise}
+Encode the $\lambda$-term $(\lambda x. x)\; y$ (identity applied to $y$)
+using Milner's encoding. Trace the reduction steps and verify that the
+result is $y$.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Structural Congruence and Algebraic Laws}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``Algebra is the offer made by the devil to the mathematician.''}%
+{\textit{Michael Atiyah}}
+
+\section{The Algebra of Processes}
+
+\begin{historical}[title={Process Algebra}]
+Just as high-school algebra studies equations between numerical expressions
+($a + b = b + a$, $a \cdot 1 = a$), \textbf{process algebra} studies
+equations between concurrent processes. The discovery that processes obey
+clean algebraic laws---and that these laws characterize bisimilarity---was
+one of the early surprises of concurrency theory. The term ``process algebra''
+was coined by Jan Bergstra and Jan Willem Klop in the early 1980s; their
+Algebra of Communicating Processes (ACP) developed this algebraic perspective
+alongside CCS and CSP.
+\end{historical}
+
+\section{Laws of CCS (Up to Bisimilarity)}
+
+\begin{thm}{Algebraic Laws}{ccs-laws}
+The following hold for all CCS processes $P$, $Q$, $R$:
+\begin{align}
+  P \Par \nil &\bisim P
+    &&\text{(parallel identity)} \label{eq:par-unit} \\
+  P \Par Q &\bisim Q \Par P
+    &&\text{(parallel commutativity)} \label{eq:par-comm} \\
+  (P \Par Q) \Par R &\bisim P \Par (Q \Par R)
+    &&\text{(parallel associativity)} \label{eq:par-assoc} \\
+  P + \nil &\bisim P
+    &&\text{(choice identity)} \label{eq:plus-unit} \\
+  P + Q &\bisim Q + P
+    &&\text{(choice commutativity)} \label{eq:plus-comm} \\
+  P + P &\bisim P
+    &&\text{(choice idempotence)} \label{eq:plus-idem}
+\end{align}
+\end{thm}
+
+\begin{intuition}
+Parallel composition $(\Par, \nil)$ forms a \textbf{commutative monoid}---the
+same algebraic structure that addition on integers forms! If you've studied
+the Galois theory book, you recognize this: groups, rings, and fields all have
+monoid substructure. The algebra of processes and the algebra of numbers share
+the same abstract patterns.
+\end{intuition}
+
+\section{Structural Congruence}
+
+\begin{defn}{Structural Congruence}{struct-cong}
+\textbf{Structural congruence} ($\equiv$) is the smallest equivalence
+relation on CCS/\,$\pi$-calculus processes that includes the algebraic laws
+above plus:
+\begin{align}
+  \res{a}\nil &\equiv \nil
+    &&\text{(vacuous restriction)} \\
+  \res{a}\res{b} P &\equiv \res{b}\res{a} P
+    &&\text{(restriction commutes)} \\
+  \res{a}(P \Par Q) &\equiv P \Par \res{a}Q
+    \quad\text{if } a \notin \fn(P)
+    &&\text{(scope extrusion)} \\
+  \repl P &\equiv P \Par \repl P
+    &&\text{(replication unfolds)}
+\end{align}
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- Structural congruence as an inductive relation
+inductive StructCong : CCS → CCS → Prop where
+  | parComm  : StructCong (.par P Q) (.par Q P)
+  | parAssoc : StructCong (.par (.par P Q) R) (.par P (.par Q R))
+  | parNil   : StructCong (.par P .nil) P
+  | plusComm  : StructCong (.plus P Q) (.plus Q P)
+  | plusNil   : StructCong (.plus P .nil) P
+  | plusIdem  : StructCong (.plus P P) P
+  | refl     : StructCong P P
+  | symm     : StructCong P Q → StructCong Q P
+  | trans    : StructCong P Q → StructCong Q R → StructCong P R
+  -- congruence: structural congruence is preserved by all operators
+  | parCong  : StructCong P P' → StructCong (.par P Q) (.par P' Q)
+  | plusCong : StructCong P P' → StructCong (.plus P Q) (.plus P' Q)
+\end{minted}
+\end{leanbox}
+
+Structural congruence is used to ``prepare'' terms before reduction. The
+idea: first rearrange using $\equiv$ (which is purely syntactic), then
+apply the communication rule.
+
+\begin{exercisebox}[title={Exercise 7.1}]
+\stepcounter{exercise}
+Prove in Lean that \lc{StructCong} is an equivalence relation (reflexive,
+symmetric, transitive---these are built into the definition above, but
+verify that the constructors suffice).
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Hennessy-Milner Logic}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``Logic is the hygiene of the mathematician.''}%
+{\textit{André Weil}}
+
+\section{A Logic for Processes}
+
+\begin{historical}[title={Hennessy and Milner (1985)}]
+Matthew Hennessy and Robin Milner introduced a modal logic specifically for
+reasoning about processes. The logic has two modalities: $\langle a \rangle\varphi$
+(``the process \emph{can} do action $a$ and then satisfy $\varphi$'') and
+$[a]\varphi$ (``\emph{whenever} the process does $a$, the result satisfies
+$\varphi$''). The landmark result: two processes are bisimilar if and only if
+they satisfy exactly the same HM formulas. This means bisimulation is not just
+one definition of equivalence---it is \emph{the} equivalence that respects all
+observable properties.
+\end{historical}
+
+\begin{defn}{Hennessy-Milner Logic}{hm-logic}
+Given an action set $A$, the formulas of HM logic are:
+\[
+  \varphi, \psi \;::=\;
+    \mathsf{tt}
+    \;\mid\; \mathsf{ff}
+    \;\mid\; \varphi \wedge \psi
+    \;\mid\; \varphi \vee \psi
+    \;\mid\; \langle a \rangle \varphi
+    \;\mid\; [a] \varphi
+\]
+\begin{itemize}[nosep]
+\item $\langle a \rangle \varphi$ (diamond): ``can do $a$ and then satisfy $\varphi$.''
+\item $[a] \varphi$ (box): ``every $a$-step leads to $\varphi$.''
+\end{itemize}
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- HM Logic formulas
+inductive HML (Label : Type) where
+  | tt   : HML Label
+  | ff   : HML Label
+  | conj : HML Label → HML Label → HML Label
+  | disj : HML Label → HML Label → HML Label
+  | dia  : Action Label → HML Label → HML Label   -- ⟨a⟩φ
+  | box  : Action Label → HML Label → HML Label   -- [a]φ
+  deriving Repr
+
+-- Satisfaction: when does a state satisfy a formula?
+def Satisfies {State Label : Type}
+    (step : State → Action Label → State → Prop)
+    : State → HML Label → Prop
+  | _, .tt => True
+  | _, .ff => False
+  | s, .conj φ ψ => Satisfies step s φ ∧ Satisfies step s ψ
+  | s, .disj φ ψ => Satisfies step s φ ∨ Satisfies step s ψ
+  | s, .dia a φ  => ∃ s', step s a s' ∧ Satisfies step s' φ
+  | s, .box a φ  => ∀ s', step s a s' → Satisfies step s' φ
+\end{minted}
+\end{leanbox}
+
+\section{The Adequacy Theorem}
+
+\begin{thm}{HM Logic Characterizes Bisimilarity}{hm-adequacy}
+For image-finite LTSs (each state has finitely many transitions):
+\[
+  s \bisim t \quad\iff\quad
+  \forall \varphi \in \text{HML},\;
+  s \models \varphi \iff t \models \varphi
+\]
+\end{thm}
+
+The $\Leftarrow$ direction is proved by showing that ``satisfies the same
+formulas'' is itself a bisimulation. The $\Rightarrow$ direction is proved by
+induction on the formula structure.
+
+\subsection{Distinguishing the Coffee Machines}
+
+Remember $P$ (choice after coin) and $Q$ (choice before coin) from Chapter~4?
+The formula $\langle\text{coin}\rangle(\langle\text{coffee}\rangle\mathsf{tt}
+\wedge \langle\text{tea}\rangle\mathsf{tt})$ distinguishes them:
+\begin{itemize}[nosep]
+\item $P \models$ the formula: after coin, both coffee and tea are possible.
+\item $Q \not\models$ the formula: after coin (choosing the coffee branch),
+  tea is not possible.
+\end{itemize}
+
+\section{Specification via Logic}
+
+HM logic gives us a specification language for concurrent systems:
+
+\begin{itemize}[nosep]
+\item ``The server can always accept a request'':
+  $[\tau]^*\langle\text{req}\rangle\mathsf{tt}$
+  (after any internal steps, a request action is possible).
+\item ``After login, logout is always possible'':
+  $[\text{login}]\langle\text{logout}\rangle\mathsf{tt}$.
+\item ``The system never reaches a deadlocked state'':
+  $[a_1]\mathsf{live} \wedge [a_2]\mathsf{live} \wedge \cdots$
+  where $\mathsf{live} = \bigvee_a \langle a \rangle \mathsf{tt}$.
+\end{itemize}
+
+\begin{historical}[title={From HM Logic to Model Checking}]
+HM logic is the ancestor of the temporal logics (CTL, CTL*, LTL) used by
+industrial model-checking tools like SPIN, NuSMV, and TLA+. Edmund Clarke,
+Allen Emerson, and Joseph Sifakis received the 2007 Turing Award for
+model checking---the automatic verification of temporal logic properties
+against finite-state models. Amazon uses TLA+ to verify protocols in DynamoDB,
+S3, and other AWS services.
+\end{historical}
+
+\begin{exercisebox}[title={Exercise 8.1}]
+\stepcounter{exercise}
+Write HM formulas expressing: (a)~``the process can terminate'' and (b)~``the
+process is deadlock-free (from every reachable state, some action is
+possible).''
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 8.2}]
+\stepcounter{exercise}
+Prove the $\Rightarrow$ direction of the adequacy theorem in Lean: if
+$s \bisim t$, then $s \models \varphi \iff t \models \varphi$ for all $\varphi$.
+Use induction on $\varphi$.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\part{Types for Concurrency}
+% ══════════════════════════════════════════════════════════════════════════════
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Session Types --- Protocols as Types}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``Propositions as sessions.''}{\textit{Philip Wadler} (2012)}
+
+\section{Typing Communication}
+
+\begin{historical}[title={Kohei Honda (1956--2012)}]
+Kohei Honda had a beautiful idea: if types can describe the structure of
+\emph{data} (lists, trees, records), why not the structure of
+\emph{communication}? A type like $!\text{Int}.?\text{Bool}.\text{end}$
+describes a protocol: ``send an integer, then receive a boolean, then
+done.'' The dual type $?\text{Int}.!\text{Bool}.\text{end}$ describes the
+other side: ``receive an integer, then send a boolean, then done.''
+
+Honda's 1993 paper introduced \textbf{session types} for the $\pi$-calculus.
+The key theorem: if both endpoints of a channel are typed with dual session
+types, then communication is \emph{guaranteed} to be deadlock-free,
+type-safe, and eventually complete.
+
+Honda (with Vasconcelos and Kubo, 1998) extended the theory to cover choice,
+recursion, and delegation (passing a session-typed channel to another
+process). Tragically, Honda died in 2012 at the age of 56, before seeing
+session types reach mainstream adoption. His work is now recognized as one
+of the most important contributions to programming language theory.
+\end{historical}
+
+\section{Session Type Syntax}
+
+\begin{defn}{Session Types}{session-types}
+\begin{align*}
+  S \;::=\;&\; !T.S &&\text{send a value of type $T$, continue as $S$} \\
+  \mid\;&\; ?T.S &&\text{receive a value of type $T$, continue as $S$} \\
+  \mid\;&\; S_1 \oplus S_2 &&\text{internal choice: sender picks a branch} \\
+  \mid\;&\; S_1 \mathbin{\&} S_2 &&\text{external choice: receiver picks a branch} \\
+  \mid\;&\; \text{end} &&\text{session complete} \\
+  \mid\;&\; \mu X. S &&\text{recursive session (for protocols that loop)}
+\end{align*}
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- Base data types for messages
+inductive BaseType where
+  | nat | bool | str
+  deriving DecidableEq, Repr
+
+-- Session types
+inductive SessionType where
+  | send    : BaseType → SessionType → SessionType     -- !T.S
+  | recv    : BaseType → SessionType → SessionType     -- ?T.S
+  | choose  : SessionType → SessionType → SessionType  -- S₁ ⊕ S₂
+  | offer   : SessionType → SessionType → SessionType  -- S₁ & S₂
+  | done    : SessionType                              -- end
+  | var     : Nat → SessionType                        -- recursion variable
+  | mu      : SessionType → SessionType                -- μX.S
+  deriving DecidableEq, Repr
+\end{minted}
+\end{leanbox}
+
+\section{Duality}
+
+The fundamental operation: every session type has a \textbf{dual} that
+describes the other endpoint of the channel.
+
+\begin{defn}{Session Type Duality}{duality}
+\begin{alignat*}{3}
+  \overline{!T.S} &= ?T.\overline{S} &\qquad
+  \overline{?T.S} &= !T.\overline{S} \\
+  \overline{S_1 \oplus S_2} &= \overline{S_1} \mathbin{\&} \overline{S_2} &\qquad
+  \overline{S_1 \mathbin{\&} S_2} &= \overline{S_1} \oplus \overline{S_2} \\
+  \overline{\text{end}} &= \text{end} &\qquad
+  \overline{\mu X. S} &= \mu X. \overline{S}
+\end{alignat*}
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+def SessionType.dual : SessionType → SessionType
+  | .send t s    => .recv t s.dual
+  | .recv t s    => .send t s.dual
+  | .choose a b  => .offer a.dual b.dual
+  | .offer a b   => .choose a.dual b.dual
+  | .done        => .done
+  | .var n       => .var n
+  | .mu s        => .mu s.dual
+
+-- Duality is an involution: dual (dual S) = S
+theorem SessionType.dual_dual (S : SessionType) :
+    S.dual.dual = S := by
+  induction S with
+  | send t s ih => simp [dual, ih]
+  | recv t s ih => simp [dual, ih]
+  | choose a b iha ihb => simp [dual, iha, ihb]
+  | offer a b iha ihb => simp [dual, iha, ihb]
+  | done => rfl
+  | var n => rfl
+  | mu s ih => simp [dual, ih]
+\end{minted}
+\end{leanbox}
+
+\section{Type Safety}
+
+The central guarantee: well-typed processes don't deadlock.
+
+\begin{thm}{Session Type Safety}{session-safety}
+If process $P$ has session type $S$ on channel $c$, and process $Q$ has
+session type $\overline{S}$ on $c$, then $\res{c}(P \Par Q)$ is:
+\begin{enumerate}[nosep, label=(\roman*)]
+\item \textbf{Type-safe:} messages always have the expected type.
+\item \textbf{Deadlock-free:} if both sides follow their types, communication
+  always progresses.
+\item \textbf{Session-complete:} the protocol eventually reaches $\text{end}$
+  on both sides.
+\end{enumerate}
+\end{thm}
+
+\begin{proof}[Proof sketch]
+By \textbf{progress} and \textbf{preservation}:
+\begin{itemize}[nosep]
+\item \emph{Progress:} if the session hasn't ended, at least one side can
+  take a step (because send is matched with receive in the dual).
+\item \emph{Preservation:} after a communication step, the remaining session
+  types are still dual (because duality ``peels off'' matching prefixes).
+\end{itemize}
+\end{proof}
+
+\section{The Linear Logic Connection}
+
+\begin{historical}[title={Wadler's ``Propositions as Sessions'' (2012)}]
+Philip Wadler discovered a remarkable correspondence: session types are
+propositions in \textbf{classical linear logic}, and well-typed processes
+are proofs. This is a Curry-Howard correspondence for concurrent
+computation:
+
+\begin{center}
+\begin{tabular}{lcl}
+  \textbf{Linear Logic} & & \textbf{Session Types} \\
+  \midrule
+  $A \otimes B$ (tensor) & $\longleftrightarrow$ & $!A.S$ (send $A$, continue $S$) \\
+  $A \bindnasrepma B$ (par) & $\longleftrightarrow$ & $?A.S$ (receive $A$, continue $S$) \\
+  $A \oplus B$ (plus) & $\longleftrightarrow$ & $S_1 \oplus S_2$ (internal choice) \\
+  $A \mathbin{\&} B$ (with) & $\longleftrightarrow$ & $S_1 \mathbin{\&} S_2$ (external choice) \\
+  $\mathbf{1}$ (unit) & $\longleftrightarrow$ & $\text{end}$ (session complete) \\
+  $A^\perp$ (negation) & $\longleftrightarrow$ & $\overline{S}$ (duality) \\
+\end{tabular}
+\end{center}
+
+The key is \emph{linearity}: each channel is used exactly once (you send on it
+or receive on it, then move to the continuation). This is why each message is a
+resource consumed exactly once---the linear logic discipline prevents aliasing,
+duplication, and forgetting of channels.
+
+If you've read the lambda calculus book: the Curry-Howard correspondence says
+``proofs = programs'' for sequential computation. Wadler's correspondence says
+``proofs in linear logic = well-typed concurrent programs.''
+\end{historical}
+
+\begin{exercisebox}[title={Exercise 9.1}]
+\stepcounter{exercise}
+Define session types for a two-phase commit protocol: the coordinator sends a
+\lc{prepare} message, each participant responds with \lc{vote\_commit} or
+\lc{vote\_abort}, then the coordinator sends the final \lc{commit} or
+\lc{abort} decision. Verify duality holds.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 9.2}]
+\stepcounter{exercise}
+Prove \lc{SessionType.dual\_dual} in Lean (the skeleton is above---fill in the
+details for each case).
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Practical Session Types for TypeScript}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``In theory, there is no difference between theory and practice. In
+practice, there is.''}{\textit{Attributed to Yogi Berra}}
+
+\section{What Session Types Would Look Like}
+
+Imagine if TypeScript could enforce protocol ordering:
+
+\begin{tsbox}
+\begin{minted}{typescript}
+// A session-typed channel
+type WorkerProtocol =
+  | { phase: 'send'; payload: Task; next: WorkerRecv }
+  | { phase: 'done' };
+type WorkerRecv =
+  | { phase: 'recv'; payload: Result; next: WorkerDone };
+type WorkerDone = { phase: 'done' };
+
+// The type system would enforce:
+// 1. You MUST send a Task before receiving a Result
+// 2. You MUST receive a Result after sending a Task
+// 3. After the exchange, the session is done
+\end{minted}
+\end{tsbox}
+
+\section{Current TypeScript Approximations}
+
+\subsection{State Machine Pattern}
+
+\begin{tsbox}
+\begin{minted}{typescript}
+// Encode protocol states as types
+type Idle = { state: 'idle' };
+type Sent = { state: 'sent'; taskId: string };
+type Done = { state: 'done'; result: Result };
+
+// Type-safe transitions
+function sendTask(ch: Idle, task: Task): Sent { ... }
+function recvResult(ch: Sent): Promise<Done> { ... }
+// This won't compile: function recvResult(ch: Idle): ... -- type error!
+\end{minted}
+\end{tsbox}
+
+This enforces ordering but has limitations: nothing prevents you from using
+a channel in state \lc{Sent} twice (non-linearity), or from forgetting to
+call \lc{recvResult} (no completion guarantee).
+
+\subsection{Discriminated Unions with XState}
+
+State machine libraries like XState provide runtime enforcement:
+
+\begin{tsbox}
+\begin{minted}{typescript}
+import { createMachine, interpret } from 'xstate';
+
+const protocolMachine = createMachine({
+  initial: 'idle',
+  states: {
+    idle: { on: { SEND_TASK: 'awaitingResult' } },
+    awaitingResult: { on: { RECV_RESULT: 'done' } },
+    done: { type: 'final' },
+  },
+});
+\end{minted}
+\end{tsbox}
+
+\section{What's Missing in TypeScript}
+
+For full session type safety, TypeScript would need:
+
+\begin{enumerate}[nosep]
+\item \textbf{Linear types}: prevent a channel from being used twice or
+  forgotten. Rust's ownership system provides this; TypeScript doesn't.
+\item \textbf{Higher-kinded types}: abstract over protocol structure
+  (e.g., ``for any protocol $S$, ...'').
+  This connects back to the lambda calculus book's discussion of System
+  F$\omega$.
+\item \textbf{Dependent types}: compute the next protocol state from message
+  values (e.g., branching on the content of a received message).
+\end{enumerate}
+
+\section{Languages with Real Session Type Support}
+
+\begin{itemize}[nosep]
+\item \textbf{Rust}: ownership = affine types, so session type libraries
+  (\lc{session-types} crate) work well. A consumed channel can't be reused.
+\item \textbf{Haskell}: the \lc{simple-sessions} library encodes session
+  types using indexed monads.
+\item \textbf{Scribble/Links}: research languages designed around multiparty
+  session types.
+\end{itemize}
+
+\begin{exercisebox}[title={Exercise 10.1}]
+\stepcounter{exercise}
+Implement a TypeScript wrapper around \lc{Worker} threads that uses the
+state machine pattern to enforce a request-response protocol. The API should
+make it a type error to receive before sending or to send twice.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Multiparty Session Types}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``The whole is more than the sum of its parts.''}%
+{\textit{Aristotle}}
+
+\section{Beyond Two Parties}
+
+\begin{historical}[title={Honda, Yoshida, and Carbone (2008)}]
+Honda, Nobuko Yoshida, and Marco Carbone extended session types from two-party
+to \textbf{multiparty} communication. A \emph{global type} describes the
+entire protocol from a bird's-eye view; each participant's \emph{local type}
+is obtained by \emph{projecting} the global type onto that participant.
+
+The key theorem: if each participant follows their local type, the global
+protocol is satisfied. This means you can specify a complex multi-service
+interaction once (the global type) and automatically derive each service's
+obligations.
+
+The Scribble protocol language (Imperial College London), based on multiparty
+session types, has been used by Red Hat, VMware, and the Ocean Observatories
+Initiative.
+\end{historical}
+
+\section{Global Types}
+
+\begin{defn}{Global Type}{global-type}
+A \textbf{global type} specifies the complete interaction:
+\[
+  G \;::=\;
+    p \to q : T \pref G
+    \;\mid\; p \to q : \{l_i : G_i\}_{i \in I}
+    \;\mid\; \text{end}
+    \;\mid\; \mu X. G
+\]
+\begin{itemize}[nosep]
+\item $p \to q : T. G$ --- participant $p$ sends a value of type $T$ to
+  participant $q$, then continue as $G$.
+\item $p \to q : \{l_i : G_i\}$ --- $p$ sends one of several labels
+  $l_i$ to $q$, selecting the corresponding continuation $G_i$.
+\end{itemize}
+\end{defn}
+
+\subsection{Example: Client-Server-Database}
+
+\begin{align*}
+  G = \;&\text{Client} \to \text{Server} : \text{Query}. \\
+      &\text{Server} \to \text{Database} : \text{SQL}. \\
+      &\text{Database} \to \text{Server} : \text{Rows}. \\
+      &\text{Server} \to \text{Client} : \text{Response}. \\
+      &\text{end}
+\end{align*}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- Participants
+inductive Role where
+  | client | server | database
+  deriving DecidableEq, Repr
+
+-- Global types
+inductive GlobalType where
+  | msg    : Role → Role → BaseType → GlobalType → GlobalType
+  | choice : Role → Role → List (String × GlobalType) → GlobalType
+  | done   : GlobalType
+  | mu     : GlobalType → GlobalType
+  | var    : Nat → GlobalType
+  deriving Repr
+\end{minted}
+\end{leanbox}
+
+\section{Projection}
+
+Each participant extracts their local view of the protocol:
+
+\begin{defn}{Projection}{projection}
+The \textbf{projection} of global type $G$ onto participant $r$ is:
+\begin{align*}
+  (p \to q : T. G) \upharpoonright r &=
+    \begin{cases}
+      !T.(G \upharpoonright r) & \text{if } r = p \\
+      ?T.(G \upharpoonright r) & \text{if } r = q \\
+      G \upharpoonright r & \text{if } r \neq p, q
+    \end{cases}
+\end{align*}
+\end{defn}
+
+\begin{thm}{Multiparty Session Safety}{multiparty-safety}
+If global type $G$ is well-formed (no ambiguity in projections), and each
+participant $r$ follows their local type $G \upharpoonright r$, then:
+\begin{enumerate}[nosep, label=(\roman*)]
+\item Communication is deadlock-free.
+\item Messages are type-safe.
+\item The protocol completes.
+\end{enumerate}
+\end{thm}
+
+\section{Connection to Choreographic Programming}
+
+\begin{intuition}
+Multiparty session types enable \textbf{choreographic programming}: write the
+global protocol once, then \emph{automatically generate} each participant's
+code. This is the concurrent analogue of ``write the specification, derive the
+implementation''---a theme that connects to formal verification throughout
+computer science.
+
+For TypeScript: imagine writing the global protocol for your microservice
+architecture and having the TypeScript types for each service's API
+automatically derived. gRPC protocol definitions, GraphQL subscriptions, and
+WebSocket protocols are all steps toward this vision.
+\end{intuition}
+
+\begin{exercisebox}[title={Exercise 11.1}]
+\stepcounter{exercise}
+Define a global type for an authentication handshake: Client sends credentials
+to AuthServer, AuthServer sends a token (or rejection) to Client, on success
+Client sends the token to ResourceServer, ResourceServer sends data to Client.
+Project onto each of the three roles.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\part{Capstone}
+% ══════════════════════════════════════════════════════════════════════════════
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Capstone --- Verified Worker Pool Protocol}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``Move fast and break things''\\
+\normalfont becomes\\
+``Move fast and \emph{prove} things.''}%
+{The promise of verified concurrency}
+
+\section{The Protocol}
+
+We design, formalize, and verify a worker pool protocol for Node.js:
+
+\begin{enumerate}[nosep]
+\item A \textbf{Dispatcher} maintains a queue of tasks and a pool of workers.
+\item \textbf{Workers} report availability, receive tasks, and return results.
+\item Workers can \textbf{join and leave} dynamically ($\pi$-calculus, not
+  just CCS).
+\end{enumerate}
+
+\subsection{Global Type}
+
+\begin{align*}
+  G_{\text{pool}} = \mu X.\; &\text{Worker} \to \text{Dispatcher} :
+    \{\text{ready} : G_{\text{task}},\; \text{leave} : \text{end}\} \\
+  G_{\text{task}} = \;&\text{Dispatcher} \to \text{Worker} : \text{Task}. \\
+    &\text{Worker} \to \text{Dispatcher} : \text{Result}. \\
+    &X
+\end{align*}
+
+A worker announces it's ready (or leaves). If ready, the dispatcher sends a
+task, the worker returns a result, and the protocol loops.
+
+\subsection{$\pi$-Calculus Formalization}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- The dispatcher process
+def dispatcher (tasks : List Name) (pool : Name) : Pi :=
+  -- Listen for worker registrations on pool channel
+  .recv pool "worker" <|
+  -- Send a task to the worker
+  match tasks with
+  | [] => .nil  -- no more tasks
+  | t :: ts =>
+    .send "worker" t <|
+    -- Wait for result
+    .recv "worker" "result" <|
+    dispatcher ts pool
+
+-- A worker process
+def worker (pool : Name) : Pi :=
+  -- Register with dispatcher
+  .send pool "self" <|       -- scope extrusion: pass our channel
+  -- Receive task
+  .recv "self" "task" <|
+  -- Process and return result (modeled as tau + send)
+  Pi.res "result" <|
+  .send "self" "result" <|
+  worker pool                 -- loop: re-register
+\end{minted}
+\end{leanbox}
+
+\section{Properties to Prove}
+
+\begin{thm}{Worker Pool Deadlock Freedom}{pool-deadlock-free}
+If there is at least one worker and the dispatcher has tasks, the system
+always makes progress: there is always a possible transition.
+\end{thm}
+
+\begin{proof}[Proof sketch]
+\begin{enumerate}[nosep]
+\item If a worker is in the ``ready'' state and the dispatcher has a task,
+  they can communicate (the ready/task exchange).
+\item After receiving a task, the worker eventually produces a result
+  (by the structure of the worker process).
+\item After receiving the result, the dispatcher loops and the worker
+  re-registers.
+\item At every state, at least one communication can occur. \qedhere
+\end{enumerate}
+\end{proof}
+
+\begin{thm}{No Message Loss}{pool-no-loss}
+Every task sent by the dispatcher is eventually paired with a result
+received from a worker.
+\end{thm}
+
+\begin{thm}{Session Type Safety}{pool-type-safe}
+Workers always receive well-formed tasks (matching the session type),
+and the dispatcher always receives well-formed results.
+\end{thm}
+
+\section{The TypeScript Implementation}
+
+\begin{tsbox}
+\begin{minted}{typescript}
+import { Worker, MessageChannel, MessagePort } from 'worker_threads';
+
+interface Task { id: string; data: unknown; }
+interface Result { id: string; output: unknown; }
+
+class VerifiedWorkerPool {
+  private workers: Map<string, MessagePort> = new Map();
+  private taskQueue: Task[] = [];
+  private idle: string[] = [];
+
+  constructor(private workerScript: string, private size: number) {
+    for (let i = 0; i < size; i++) this.spawnWorker(`w${i}`);
+  }
+
+  private spawnWorker(id: string) {
+    const { port1, port2 } = new MessageChannel();  // (ν port1, port2)
+    const w = new Worker(this.workerScript);
+    w.postMessage({ port: port2 }, [port2]);          // scope extrusion!
+
+    this.workers.set(id, port1);
+
+    port1.on('message', (msg: { type: string } & Record<string, unknown>) => {
+      if (msg.type === 'ready') {                     // Worker → Dispatcher: ready
+        this.idle.push(id);
+        this.dispatch();
+      } else if (msg.type === 'result') {             // Worker → Dispatcher: result
+        this.handleResult(msg as unknown as Result);
+      }
+    });
+  }
+
+  private dispatch() {
+    while (this.idle.length > 0 && this.taskQueue.length > 0) {
+      const wid = this.idle.shift()!;
+      const task = this.taskQueue.shift()!;
+      const port = this.workers.get(wid)!;
+      port.postMessage({ type: 'task', ...task });    // Dispatcher → Worker: task
+    }
+  }
+
+  submit(task: Task) {
+    this.taskQueue.push(task);
+    this.dispatch();
+  }
+
+  private handleResult(result: Result) {
+    // Process result...
+  }
+}
+\end{minted}
+\end{tsbox}
+
+The comments show exactly where the formal model maps to the implementation:
+\lc{MessageChannel()} is restriction ($\nu$), \lc{postMessage} with transfer
+is scope extrusion, and the ready/task/result message sequence follows the
+session type.
+
+\begin{exercisebox}[title={Exercise 12.1}]
+\stepcounter{exercise}
+Extend the protocol to handle worker crashes: if a worker fails to return a
+result within a timeout, the dispatcher reassigns the task to another worker.
+Formalize the extended protocol and prove that every task eventually completes
+(assuming at least one worker is always available).
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 12.2}]
+\stepcounter{exercise}
+Prove in Lean that the worker pool protocol satisfies the deadlock-freedom
+property. \emph{Hint:} show that in every reachable state, at least one
+communication rule (from the $\pi$-calculus operational semantics) is applicable.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Looking Back --- The Science of Concurrency}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``Computer science is no more about computers than astronomy is
+about telescopes.''}{\textit{Edsger W.\ Dijkstra}}
+
+\section{The Intellectual Arc}
+
+We traced the science of concurrency from Dijkstra's identification of the
+problem (1965) through Milner's formal languages (CCS 1980, $\pi$-calculus
+1992) to Honda's session types (1993) and Wadler's linear logic connection
+(2012). Along the way, we formalized every major concept in Lean\,4 and
+connected each one to TypeScript/Node.js patterns.
+
+\section{Where the Models Live in Industry}
+
+\begin{center}
+\begin{tabular}{lp{8cm}}
+  \toprule
+  \textbf{Theory} & \textbf{Practice} \\
+  \midrule
+  CCS / CSP & Go channels, Erlang/Elixir actors, Node.js workers \\
+  $\pi$-calculus & Dynamic microservice topologies, Kubernetes service discovery, \lc{MessageChannel()} \\
+  Bisimulation & Safe refactoring of concurrent code (replacing one implementation with a bisimilar one) \\
+  Session types & gRPC protocol definitions, GraphQL subscriptions, WebSocket protocols \\
+  HM logic / temporal logic & TLA+ (Amazon/AWS), SPIN model checker, runtime verification \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\section{What We Didn't Cover}
+
+\begin{itemize}[nosep]
+\item \textbf{Shared-memory concurrency and separation logic.} Peter O'Hearn
+  and John Reynolds developed separation logic for reasoning about programs
+  that manipulate shared mutable state (pointers, heaps). O'Hearn received
+  the 2016 Gödel Prize for this work. Facebook/Meta uses the Infer tool
+  (based on separation logic) to automatically find concurrency bugs in their
+  mobile apps.
+\item \textbf{Software transactional memory (STM).} Instead of locks, you
+  write transactions that are automatically retried on conflict. Haskell's
+  STM library is the gold standard; Clojure uses a similar approach.
+\item \textbf{The actor model.} Carl Hewitt (1973) proposed actors---objects
+  that communicate exclusively via messages. Erlang/OTP is the most
+  successful actor-based system. The actor model is closely related to the
+  $\pi$-calculus but emphasizes different aspects (named entities vs.\
+  anonymous channels).
+\item \textbf{Petri nets.} Carl Adam Petri (1962) introduced a graphical
+  model of concurrency that predates both CCS and CSP. Petri nets remain
+  widely used in manufacturing, logistics, and workflow modeling.
+\item \textbf{Async/await.} The \lc{async}/\lc{await} pattern that you use
+  daily in TypeScript is syntactic sugar over continuation-passing style
+  (CPS), which connects back to the lambda calculus. The delimited
+  continuations that underlie \lc{async}/\lc{await} can be given a
+  process-calculus interpretation.
+\end{itemize}
+
+\section{Cross-Book Connections}
+
+\begin{itemize}[nosep]
+\item \textbf{Lambda calculus book:} Sequential computation is a degenerate
+  case of concurrent computation. Milner's encoding of the $\lambda$-calculus
+  in the $\pi$-calculus makes this precise. Curry-Howard for sequential
+  computation (proofs = programs) extends to Wadler's Curry-Howard for
+  concurrent computation (proofs in linear logic = session-typed processes).
+\item \textbf{Lattice/propagator book:} Propagator networks \emph{are}
+  concurrent systems on a lattice. The fixed-point semantics of propagators
+  (cells monotonically increase until convergence) is a special case of
+  process convergence. Bisimilarity is a greatest fixed point---the same
+  Knaster-Tarski theorem.
+\item \textbf{Galois theory book:} The algebraic laws of parallel composition
+  (commutative monoid) are the same kind of structure as the algebraic laws
+  of field arithmetic. The subgroup lattice ↔ intermediate field lattice
+  correspondence is structurally parallel to the specification ↔
+  implementation correspondence in refinement theory.
+\end{itemize}
+
+\vfill
+\begin{center}
+\Large\itshape\color{deepblue}
+``The purpose of computing is insight, not numbers.''\\[0.5cm]
+\normalsize --- Richard Hamming\\[0.3cm]
+\normalsize The purpose of concurrency theory is\\
+correctness, not performance.\\
+(Performance is a bonus.)
+\end{center}
+\vfill
+
+% ══════════════════════════════════════════════════════════════════════════════
+\backmatter
+% ══════════════════════════════════════════════════════════════════════════════
+
+\chapter*{Appendix A: CCS and $\pi$-Calculus Quick Reference}
+\addcontentsline{toc}{chapter}{Appendix A: Quick Reference}
+
+\section*{CCS Syntax}
+
+\begin{center}
+\begin{tabular}{lcl}
+  \toprule
+  \textbf{Syntax} & \textbf{Name} & \textbf{Meaning} \\
+  \midrule
+  $\nil$ & Inaction & Stopped process \\
+  $\alpha.P$ & Prefix & Do $\alpha$, continue as $P$ \\
+  $P + Q$ & Choice & Behave as $P$ or $Q$ \\
+  $P \Par Q$ & Parallel & $P$ and $Q$ run concurrently \\
+  $\res{a}P$ & Restriction & Channel $a$ is private \\
+  $!P$ & Replication & Unlimited copies of $P$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\section*{$\pi$-Calculus Extensions}
+
+\begin{center}
+\begin{tabular}{lcl}
+  \toprule
+  \textbf{Syntax} & \textbf{Name} & \textbf{Meaning} \\
+  \midrule
+  $\outp{x}{y}.P$ & Output & Send $y$ on channel $x$ \\
+  $\inp{x}{y}.P$ & Input & Receive on $x$, bind to $y$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\section*{Session Type Syntax}
+
+\begin{center}
+\begin{tabular}{lcl}
+  \toprule
+  \textbf{Syntax} & \textbf{Name} & \textbf{Dual} \\
+  \midrule
+  $!T.S$ & Send & $?T.\overline{S}$ \\
+  $?T.S$ & Receive & $!T.\overline{S}$ \\
+  $S_1 \oplus S_2$ & Internal choice & $\overline{S_1} \mathbin{\&} \overline{S_2}$ \\
+  $S_1 \mathbin{\&} S_2$ & External choice & $\overline{S_1} \oplus \overline{S_2}$ \\
+  $\text{end}$ & Session complete & $\text{end}$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\chapter*{Appendix B: Lean\,4 Definitions Index}
+\addcontentsline{toc}{chapter}{Appendix B: Lean 4 Definitions Index}
+
+\begin{center}
+\begin{tabular}{llr}
+  \toprule
+  \textbf{Definition} & \textbf{Description} & \textbf{Chapter} \\
+  \midrule
+  \lc{Action} & Observable or silent action & 2 \\
+  \lc{LTS} & Labeled transition system & 2 \\
+  \lc{CCS} & CCS process terms & 3 \\
+  \lc{CCSAct} & CCS actions (input/output/tau) & 3 \\
+  \lc{CCSStep} & CCS operational semantics & 3 \\
+  \lc{IsBisimulation} & Bisimulation condition & 4 \\
+  \lc{Bisimilar} & Bisimilarity relation & 4 \\
+  \lc{isDeadlocked} & Deadlock predicate & 5 \\
+  \lc{Pi} & $\pi$-calculus terms & 6 \\
+  \lc{StructCong} & Structural congruence & 7 \\
+  \lc{HML} & Hennessy-Milner logic formulas & 8 \\
+  \lc{Satisfies} & HM logic satisfaction & 8 \\
+  \lc{SessionType} & Session types & 9 \\
+  \lc{SessionType.dual} & Session type duality & 9 \\
+  \lc{GlobalType} & Multiparty global types & 11 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\chapter*{Appendix C: Historical Timeline}
+\addcontentsline{toc}{chapter}{Appendix C: Historical Timeline}
+
+\begin{center}
+\begin{tabular}{rl}
+  \toprule
+  \textbf{Year} & \textbf{Event} \\
+  \midrule
+  1965 & Dijkstra: ``Cooperating Sequential Processes'' \\
+  1971 & Dijkstra: Dining Philosophers \\
+  1973 & Hewitt: Actor Model \\
+  1976 & Keller: Labeled Transition Systems \\
+  1978 & Hoare: Communicating Sequential Processes (paper) \\
+  1980 & Milner: CCS \\
+  1981 & Park: Bisimulation \\
+  1985 & Hennessy \& Milner: HM Logic \\
+  1985 & Hoare: CSP (book) \\
+  1985--87 & Therac-25 radiation overdoses \\
+  1989 & Milner: \textit{Communication and Concurrency} \\
+  1992 & Milner, Parrow, Walker: $\pi$-Calculus \\
+  1993 & Honda: Session Types \\
+  1998 & Honda, Vasconcelos, Kubo: Extended Session Types \\
+  2007 & Clarke, Emerson, Sifakis: Turing Award (model checking) \\
+  2008 & Honda, Yoshida, Carbone: Multiparty Session Types \\
+  2012 & Wadler: ``Propositions as Sessions'' \\
+  2026 & You: formalizing it all in Lean\,4 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

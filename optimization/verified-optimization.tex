@@ -1,0 +1,3199 @@
+\documentclass[11pt, a4paper, oneside]{book}
+
+% ── Engine: XeLaTeX ──────────────────────────────────────────────────────────
+\usepackage{fontspec}
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+\setmonofont{DejaVu Sans Mono}[Scale=0.85]
+
+% ── Core packages ────────────────────────────────────────────────────────────
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, calc, matrix, fit, backgrounds,
+  decorations.pathreplacing, shapes.geometric}
+\usepackage[outputdir=build]{minted}
+\setminted{
+  fontsize=\small,
+  breaklines=true,
+  bgcolor=codebg,
+  frame=none,
+  framesep=2mm,
+  baselinestretch=1.15,
+}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=deepblue, urlcolor=midblue, citecolor=accentgreen}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tcolorbox}
+\tcbuselibrary{theorems, skins, breakable}
+\usepackage{fancyhdr}
+\usepackage{sectsty}   % heading font control WITHOUT reimplementing \part
+\usepackage{epigraph}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{multirow}
+
+% ── Colour palette ───────────────────────────────────────────────────────────
+\definecolor{deepblue}{HTML}{1a3a5c}
+\definecolor{midblue}{HTML}{2e6da4}
+\definecolor{accentgreen}{HTML}{2a7a4b}
+\definecolor{accentorange}{HTML}{c0622a}
+\definecolor{accentpurple}{HTML}{5e3c8f}
+\definecolor{accentred}{HTML}{b5332e}
+\definecolor{codebg}{HTML}{f5f5f0}
+\definecolor{defbg}{HTML}{eaf2fb}
+\definecolor{thmbg}{HTML}{eafaf1}
+\definecolor{exbg}{HTML}{fef9e7}
+\definecolor{histbg}{HTML}{f3eef8}
+\definecolor{warnbg}{HTML}{fdecea}
+\definecolor{lightblue}{HTML}{dce9f5}
+\definecolor{lightgreen}{HTML}{d4efdf}
+\definecolor{lightorange}{HTML}{fdebd0}
+\definecolor{lightred}{HTML}{f9e0df}
+
+% ── tcolorbox environments ───────────────────────────────────────────────────
+\newtcolorbox{defbox}[1][]{
+  enhanced, breakable,
+  colback=defbg, colframe=midblue!70,
+  coltitle=black, fonttitle=\bfseries,
+  title={Definition},
+  #1
+}
+
+\newtcolorbox{thmbox}[1][]{
+  enhanced, breakable,
+  colback=thmbg, colframe=accentgreen!70,
+  coltitle=black, fonttitle=\bfseries,
+  title={Theorem},
+  #1
+}
+
+\newtcolorbox{lembox}[1][]{
+  enhanced, breakable,
+  colback=thmbg, colframe=accentgreen!50,
+  coltitle=black, fonttitle=\bfseries,
+  title={Lemma},
+  #1
+}
+
+\newtcolorbox{propbox}[1][]{
+  enhanced, breakable,
+  colback=thmbg, colframe=accentgreen!50,
+  coltitle=black, fonttitle=\bfseries,
+  title={Proposition},
+  #1
+}
+
+\newtcolorbox{histbox}[1][]{
+  enhanced, breakable,
+  colback=histbg, colframe=accentpurple!50,
+  coltitle=black, fonttitle=\bfseries,
+  title={Historical Note},
+  #1
+}
+
+\newtcolorbox{exercisebox}[1][]{
+  enhanced, breakable,
+  colback=lightorange!50, colframe=accentorange!70,
+  coltitle=black, fonttitle=\bfseries,
+  title={Exercise},
+  #1
+}
+
+\newtcolorbox{leanbox}[1][]{
+  enhanced, breakable,
+  colback=codebg, colframe=midblue!60,
+  coltitle=black, fonttitle=\bfseries\ttfamily,
+  title={Lean 4},
+  #1
+}
+
+\newtcolorbox{intuitionbox}[1][]{
+  enhanced, breakable,
+  colback=lightblue!40, colframe=midblue!40,
+  coltitle=black, fonttitle=\bfseries,
+  title={Intuition},
+  #1
+}
+
+\newtcolorbox{warningbox}[1][]{
+  enhanced, breakable,
+  colback=warnbg, colframe=accentred!60,
+  coltitle=black, fonttitle=\bfseries,
+  title={Warning},
+  #1
+}
+
+\newtcolorbox{crossrefbox}[1][]{
+  enhanced, breakable,
+  colback=histbg!50, colframe=accentpurple!30,
+  coltitle=black, fonttitle=\bfseries,
+  title={Cross-Reference: Lattice Book},
+  #1
+}
+
+% ── Custom macros ────────────────────────────────────────────────────────────
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Finset}{\operatorname{Finset}}
+\newcommand{\dom}{\operatorname{dom}}
+\newcommand{\obj}{\operatorname{obj}}
+\newcommand{\pen}{\operatorname{pen}}
+\newcommand{\val}{\operatorname{val}}
+\newcommand{\statTotal}{\operatorname{statTotal}}
+\newcommand{\maxContrib}{\operatorname{maxContrib}}
+\newcommand{\minContrib}{\operatorname{minContrib}}
+\newcommand{\opt}{\operatorname{opt}}
+\newcommand{\LP}{\operatorname{LP}}
+\newcommand{\IP}{\operatorname{IP}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+% ── Chapter/section styling ──────────────────────────────────────────────────
+% ── Heading colors via sectsty ────────────────────────────────────────────────
+\allsectionsfont{\bfseries}
+
+% ── Headers and footers ─────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\itshape\leftmark}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ════════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ── Title page ───────────────────────────────────────────────────────────────
+\begin{titlepage}
+\centering
+\vspace*{3cm}
+{\Huge\bfseries\color{deepblue} Verified Optimization\\[0.4em]}
+{\LARGE\color{midblue} From Lattices to Solvers in Lean\,4\\[2em]}
+{\large\color{accentgreen} A Zero-to-Hero Guide to Combinatorial Optimization\\
+with a GW2 Build Editor Capstone\\[4em]}
+\vfill
+{\large\itshape You built a propagator network for gear optimization.\\
+It prunes beautifully. Now let's make it \textbf{solve}.\\[3em]}
+\vfill
+{\small Companion to \emph{Verified Order Theory} (the lattice/propagator book)}
+\end{titlepage}
+
+% ── Table of contents ────────────────────────────────────────────────────────
+\tableofcontents
+\newpage
+
+% ── Preface ──────────────────────────────────────────────────────────────────
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
+
+This book has an unusual origin.
+
+It began with a practical problem: building a gear optimizer for Guild Wars~2's
+World vs.\ World game mode.  You choose stat combinations for 16+ equipment
+slots, each drawn from a finite menu of options.  You have stat targets to meet,
+a rune constraint that couples all six armor pieces, and an infusion budget for
+fine-tuning.  The goal: find the loadout that gets as close to your targets as
+possible, penalising shortfalls much more than overshoots.
+
+The first attempt was a \emph{propagator network}---the architecture from our
+companion book \emph{Verified Order Theory: From Partial Orders to Propagator
+Networks in Lean\,4}.  Each gear slot became a cell holding a set of remaining
+stat combos, ordered by reverse inclusion.  Propagators enforced constraints:
+the rune propagator ensured all six armor rune slots matched; the stat-floor
+propagator detected when no remaining combination of gear could reach a target.
+Running the network to its Knaster--Tarski fixed point pruned the search space
+dramatically.
+
+But propagation alone couldn't \emph{solve} the problem.  It could tell you
+that Dire gear on the headgear slot was impossible given your power target, but
+it couldn't tell you whether Marauder or Berserker on that slot led to a better
+overall build.  Propagation eliminates the impossible; it doesn't choose the
+optimal among the possible.
+
+This book picks up where propagation left off.  It gives the propagator engine
+a driver: systematic search to explore the pruned space, bounding techniques to
+skip parts of the search that provably can't beat what you've already found, and
+heuristic methods to find good starting solutions fast.  The result is a
+\emph{verified solver}---a Lean\,4 program that either returns an optimal build
+with a machine-checkable proof of optimality, or certifies that no feasible
+build exists.
+
+The mathematics is real: linear programming, integer programming, branch and
+bound, constraint propagation, Pareto optimality, dynamic programming.  But
+every concept is motivated by the gear problem, implemented in Lean\,4, and
+connected back to the lattice-theoretic foundations you already know.
+
+\subsection*{Prerequisites}
+
+Comfort with Lean\,4 typeclasses, basic tactic proofs, and the material from
+\emph{Verified Order Theory}---especially partial orders, lattices,
+join-semilattices, propagator cells, and the Knaster--Tarski fixed-point
+theorem.
+
+\subsection*{How to Read This Book}
+
+Part~I opens with the build editor and your propagator attempt, then
+strengthens the propagator engine before introducing any new techniques.
+Part~II develops the mathematical tools: linear programming, integer
+programming, search strategies.  Part~III adds heuristic methods and
+multi-objective optimization.  Part~IV assembles everything into the capstone
+solver with a formal correctness theorem.
+
+Cross-reference boxes connect each new concept to its lattice-theoretic
+counterpart.  You'll find that optimisation and order theory are deeply
+intertwined---more so than most textbooks suggest.
+
+\bigskip\noindent
+Let's build.
+
+\newpage
+
+% ════════════════════════════════════════════════════════════════════════════
+%  PART I — THE PROBLEM AND THE ENGINE YOU ALREADY HAVE
+% ════════════════════════════════════════════════════════════════════════════
+\part{The Problem and the Engine You Already Have}
+
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{The Build Editor and the Propagator Attempt}
+\label{ch:problem}
+% ────────────────────────────────────────────────────────────────────────────
+
+\epigraph{The question is not whether we can prune the search space,\\
+but whether we can navigate what remains.}{}
+
+\section{The Gear Optimisation Problem}
+
+In Guild Wars~2's World vs.\ World mode, a character's combat effectiveness is
+determined by nine \emph{attributes} (stats).  Each stat has a different effect:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Stat} & \textbf{Effect} \\
+\midrule
+Power & Increases direct damage \\
+Precision & Increases critical strike chance \\
+Ferocity & Increases critical strike damage \\
+Toughness & Increases armour \\
+Vitality & Increases maximum health \\
+Condition Damage & Increases damage-over-time \\
+Expertise & Increases condition duration \\
+Concentration & Increases boon duration \\
+Healing Power & Increases outgoing healing \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A character's stats come from three sources: base stats (determined by class),
+gear, and temporary buffs (food, utility, traits).  This book concerns the
+gear component, which the player has full control over.
+
+\subsection{Equipment Slots}
+
+A full equipment loadout consists of:
+
+\paragraph{Armour (6 pieces).} Headgear, shoulders, coat, gloves, leggings,
+boots.  Each piece has one rune slot and one infusion slot.
+
+\paragraph{Weapons.}  The active weapon configuration is either:
+\begin{itemize}[nosep]
+  \item one two-handed weapon (2 sigil slots, 2 infusion slots), or
+  \item one main-hand weapon + one off-hand weapon (1 sigil and 1 infusion each).
+\end{itemize}
+A character may have two weapon sets, but only the active set's stats count.
+We optimise only the active set.
+
+\paragraph{Trinkets.}  Amulet ($\times 1$, 0 infusions), ring ($\times 2$,
+3 infusions each), accessory ($\times 2$, 1 infusion each), back piece
+($\times 1$, 2 infusions).
+
+The total infusion budget is $6 + 2 + 6 + 2 + 2 = 18$ slots, each contributing
+$+5$ to a single stat of the player's choice.  That's 90 freely distributable
+stat points.
+
+\subsection{Stat Combinations}
+
+Each gear piece is assigned a \emph{stat combination} (also called a
+\emph{prefix}).  There are 40 WvW-legal stat combinations at Ascended rarity,
+falling into three categories:
+
+\paragraph{Triple-attribute (23 combos).}  One \emph{major} stat and two
+\emph{minor} stats.  Major stats receive a larger coefficient; minor stats
+receive a smaller one.
+
+\paragraph{Quadruple-attribute (16 combos).}  Two major stats and two minor
+stats.  Each major stat gets the 4-stat major coefficient; each minor stat gets
+the 4-stat minor coefficient.
+
+\paragraph{Celestial (1 combo).}  All seven of Power, Precision, Ferocity,
+Vitality, Toughness, Healing Power, and Condition Damage receive the Celestial
+coefficient (equal for all).  The WvW version of Celestial excludes Expertise
+and Concentration (nerfed relative to PvE).
+
+\medskip
+
+The coefficients depend on the gear slot.  At Ascended rarity and level~80:
+
+\begin{center}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Slot} & \textbf{3-stat Maj} & \textbf{3-stat Min} &
+  \textbf{4-stat Maj} & \textbf{4-stat Min} & \textbf{Celestial} \\
+\midrule
+\multicolumn{6}{l}{\textit{Armour}} \\
+\quad Headgear     & 63  & 45  & 54  & 30 & 30 \\
+\quad Shoulders    & 47  & 34  & 40  & 22 & 22 \\
+\quad Coat         & 141 & 101 & 121 & 67 & 67 \\
+\quad Gloves       & 47  & 34  & 40  & 22 & 22 \\
+\quad Leggings     & 94  & 67  & 81  & 44 & 44 \\
+\quad Boots        & 47  & 34  & 40  & 22 & 22 \\
+\midrule
+\multicolumn{6}{l}{\textit{Weapons}} \\
+\quad One-handed   & 125 & 90  & 108 & 59 & 59 \\
+\quad Two-handed   & 251 & 179 & 215 & 118 & 118 \\
+\midrule
+\multicolumn{6}{l}{\textit{Trinkets}} \\
+\quad Amulet       & 157 & 108 & 133 & 71 & 72 \\
+\quad Ring ($\times 2$)  & 126 & 85  & 106 & 56 & 57 \\
+\quad Accessory ($\times 2$) & 110 & 74 & 92 & 49 & 50 \\
+\quad Back piece   & 63  & 40  & 52  & 27 & 28 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+For example, a Berserker's coat (3-stat: Power major, Precision and Ferocity
+minor) contributes 141~Power, 101~Precision, and 101~Ferocity.  A Marauder coat
+(4-stat: Power and Precision major, Vitality and Ferocity minor) contributes
+121~Power, 121~Precision, 67~Vitality, and 67~Ferocity.
+
+\subsection{Formalising in Lean 4}
+
+\begin{leanbox}[title={Lean 4 --- Core Data Model}]
+\begin{minted}{lean}
+inductive StatType where
+  | power | precision | ferocity | toughness | vitality
+  | conditionDamage | expertise | concentration | healingPower
+  deriving DecidableEq, Repr, Hashable
+
+inductive GearSlot where
+  | headgear | shoulders | coat | gloves | leggings | boots
+  | mainhand | offhand    -- or combined as twoHand
+  | amulet | ring1 | ring2 | accessory1 | accessory2 | backPiece
+  deriving DecidableEq, Repr
+
+inductive ComboCategory where
+  | triple   -- 1 major, 2 minor
+  | quad     -- 2 major, 2 minor
+  | celestial -- 7 equal
+  deriving DecidableEq, Repr
+
+structure StatCombo where
+  name     : String
+  category : ComboCategory
+  majors   : List StatType
+  minors   : List StatType
+  deriving DecidableEq, Repr
+\end{minted}
+\end{leanbox}
+
+The stat contribution of a combo on a given slot is determined by which
+category the combo belongs to and whether a given stat is major, minor, or
+(for Celestial) one of the seven included stats:
+
+\begin{leanbox}[title={Lean 4 --- Stat Coefficients}]
+\begin{minted}{lean}
+structure SlotCoefficients where
+  tripleMajor  : Nat
+  tripleMinor  : Nat
+  quadMajor    : Nat
+  quadMinor    : Nat
+  celestial    : Nat
+  deriving Repr
+
+def coefficients : GearSlot → SlotCoefficients
+  | .headgear   => ⟨63,  45,  54,  30, 30⟩
+  | .shoulders  => ⟨47,  34,  40,  22, 22⟩
+  | .coat       => ⟨141, 101, 121, 67, 67⟩
+  | .gloves     => ⟨47,  34,  40,  22, 22⟩
+  | .leggings   => ⟨94,  67,  81,  44, 44⟩
+  | .boots      => ⟨47,  34,  40,  22, 22⟩
+  | .mainhand   => ⟨125, 90,  108, 59, 59⟩  -- 1H
+  | .offhand    => ⟨125, 90,  108, 59, 59⟩  -- 1H
+  | .amulet     => ⟨157, 108, 133, 71, 72⟩
+  | .ring1      => ⟨126, 85,  106, 56, 57⟩
+  | .ring2      => ⟨126, 85,  106, 56, 57⟩
+  | .accessory1 => ⟨110, 74,  92,  49, 50⟩
+  | .accessory2 => ⟨110, 74,  92,  49, 50⟩
+  | .backPiece  => ⟨63,  40,  52,  27, 28⟩
+
+/-- Contribution of `combo` on `slot` to `stat`. -/
+def contribution (slot : GearSlot) (combo : StatCombo)
+    (stat : StatType) : Nat :=
+  let c := coefficients slot
+  match combo.category with
+  | .triple =>
+    if combo.majors.contains stat then c.tripleMajor
+    else if combo.minors.contains stat then c.tripleMinor
+    else 0
+  | .quad =>
+    if combo.majors.contains stat then c.quadMajor
+    else if combo.minors.contains stat then c.quadMinor
+    else 0
+  | .celestial =>
+    let wvwStats : List StatType :=
+      [.power, .precision, .ferocity, .toughness,
+       .vitality, .conditionDamage, .healingPower]
+    if wvwStats.contains stat then c.celestial else 0
+\end{minted}
+\end{leanbox}
+
+A \emph{build} assigns a stat combo to each slot, a rune, and a distribution
+of infusions:
+
+\begin{leanbox}[title={Lean 4 --- Build and Stat Total}]
+\begin{minted}{lean}
+structure Build where
+  gear      : GearSlot → StatCombo
+  rune      : Rune   -- to be defined later
+  infusions : StatType → Nat
+  -- Invariant: ∑ infusions = 18
+
+/-- Total stat from gear + infusions (excluding base stats and buffs). -/
+def statTotal (b : Build) (s : StatType) : Nat :=
+  let gearTotal := (GearSlot.all.map fun slot =>
+    contribution slot (b.gear slot) s).sum
+  gearTotal + 5 * b.infusions s
+\end{minted}
+\end{leanbox}
+
+\subsection{The Objective}
+
+Given stat targets $T : \texttt{StatType} \to \N$, we define the penalty:
+
+\begin{defbox}[title={Asymmetric Penalty}]
+\[
+  \pen(b) \;=\; \sum_{s \in \texttt{StatType}}
+    w_{\text{miss}} \cdot \max\!\big(0,\; T(s) - \statTotal(b, s)\big)
+    \;+\;
+    w_{\text{over}} \cdot \max\!\big(0,\; \statTotal(b, s) - T(s)\big)
+\]
+where $w_{\text{miss}} \gg w_{\text{over}}$ (e.g.\ $10 : 1$).  Missing a
+target by 100 costs ten times as much as exceeding it by 100.
+\end{defbox}
+
+\begin{leanbox}[title={Lean 4 --- Penalty}]
+\begin{minted}{lean}
+def penalty (target actual : Nat) (wMiss wOver : Nat) : Nat :=
+  if actual < target then
+    wMiss * (target - actual)
+  else
+    wOver * (actual - target)
+
+def totalPenalty (b : Build) (targets : StatType → Nat)
+    (wMiss wOver : Nat) : Nat :=
+  (StatType.all.map fun s =>
+    penalty (targets s) (statTotal b s) wMiss wOver).sum
+\end{minted}
+\end{leanbox}
+
+The optimisation problem: find the build $b^*$ that minimises
+$\pen(b^*)$ subject to the rune constraint (all six armour runes identical),
+the weapon constraint (2H or 1H+1H, not a mix), and the infusion budget
+($\sum_s \texttt{infusions}(s) = 18$).
+
+\subsection{The Search Space}
+
+With 40 stat combos and approximately 16 gear slots, the raw search space
+is $40^{16} \approx 1.2 \times 10^{25}$ gear assignments---before
+considering rune choices, sigils, and infusion distributions.  Brute force is
+out of the question.
+
+\section{The Propagator Attempt}
+
+Having read \emph{Verified Order Theory}, you recognised the structure: each
+gear slot is a finite-domain variable, the rune constraint couples six of them,
+and the stat targets impose global arithmetic constraints.  This is a
+\emph{constraint satisfaction problem}, and you built a propagator network
+to attack it.
+
+\subsection{The Domain-Reduction Lattice}
+
+\begin{crossrefbox}
+In the lattice book, we defined a \emph{cell} as a value in a
+join-semilattice, updated by joining new information.  The set-of-possible-values
+lattice ordered by reverse inclusion appeared as Example~(d) in the
+chapter on propagator network design.  We use that exact lattice here.
+\end{crossrefbox}
+
+For each gear slot $i$, define the \emph{domain cell} $D_i$ as a subset of
+the 40 WvW-legal stat combos, ordered by reverse inclusion:
+\[
+  D_i \subseteq D_j \iff D_j \subseteq D_i
+  \qquad\text{(fewer remaining options = more information)}.
+\]
+The initial value is the full set of 40 combos ($\bot$ = ``nothing ruled out'').
+The join (merge) is intersection: $D_i \sqcup D_j = D_i \cap D_j$
+(keep only combos consistent with both sources of information).  The top element
+$\top$ is the empty set: contradiction (all combos ruled out).
+
+The product lattice $\prod_i \Finset(\texttt{StatCombo})^{\mathrm{op}}$
+represents the full network state.
+
+\subsection{Propagators You Built}
+
+\paragraph{The rune propagator.}
+If any rune is eliminated from any armour slot's rune options, eliminate it
+from all six.  If any rune is fixed (the domain becomes a singleton), fix all
+six.  This is a global \texttt{AllEqual} constraint.
+
+\paragraph{The stat-floor propagator.}
+For each stat type $s$ and each unfilled slot $i$, compute
+\[
+  \maxContrib(i, s) = \max\{\texttt{contribution}(i, c, s) \mid c \in D_i\}.
+\]
+If $\sum_i \maxContrib(i, s) + 90 < T(s)$ (even with all infusions devoted
+to $s$), the problem is infeasible: signal $\top$.
+
+\paragraph{Running to fixpoint.}
+Fire all propagators repeatedly until no domain changes.  By the
+Knaster--Tarski theorem (proven in the lattice book), this converges to the
+least fixed point of the propagator system---the maximal amount of pruning
+achievable by this set of propagators.
+
+\begin{leanbox}[title={Lean 4 --- Propagator Network (from the Lattice Book)}]
+\begin{minted}{lean}
+-- Reusing infrastructure from Verified Order Theory
+structure Cell (L : Type) [SemilatticeSup L] where
+  value : L
+
+def Cell.update [SemilatticeSup L] (c : Cell L) (new : L) : Cell L :=
+  ⟨c.value ⊔ new⟩
+
+-- Domain cell: Finset StatCombo with reverse-inclusion order
+-- ⊔ is ∩ (intersection), ⊥ is allCombos, ⊤ is ∅
+
+-- The propagator loop from the lattice book:
+partial def runToFixpoint (network : PropNetwork) : PropNetwork :=
+  let network' := network.fireAll
+  if network' == network then network'
+  else runToFixpoint network'
+\end{minted}
+\end{leanbox}
+
+\subsection{Where It Gets Stuck}
+
+The propagator network does its job: domains shrink, impossible combos are
+eliminated, and infeasible problems are detected early.  But after convergence,
+you're left with \emph{pruned domains}---perhaps 8--15 combos remaining per
+slot instead of 40.  That's still $15^{16} \approx 6.5 \times 10^{18}$
+possible builds.
+
+Three gaps remain:
+
+\begin{enumerate}[nosep]
+  \item \textbf{Propagation doesn't search.}  It tells you what's
+    \emph{impossible}, not what's \emph{best}.  After fixpoint, multiple combos
+    remain per slot, and propagation has no mechanism for choosing among them.
+
+  \item \textbf{Propagation doesn't optimise.}  It can detect infeasibility
+    (a domain goes empty, signalling $\top$) but has no notion of ``this build
+    scores lower penalty than that one.''  There is no \emph{objective function}
+    in the propagator framework.
+
+  \item \textbf{Propagation doesn't handle tradeoffs.}  Should you sacrifice
+    20~Power to gain 50~Vitality?  That depends on the penalty weights and
+    how close you are to each target.  Propagation doesn't model comparative
+    reasoning.
+\end{enumerate}
+
+\begin{intuitionbox}
+Think of propagation as a \emph{filter}: it removes options that provably
+can't be part of any good solution.  A \emph{solver} is a filter plus a
+\emph{navigator}: it explores the remaining options systematically, tracking
+the best solution found so far, and proving (by exhaustion or bounding) that
+no unexplored option can beat it.
+\end{intuitionbox}
+
+The rest of this book fills these three gaps.  Chapter~\ref{ch:landscape} maps
+the optimisation landscape.  Chapter~\ref{ch:stronger} makes propagation
+itself stronger (so the filter removes more).  Parts~II and~III add the
+navigator.  Part~IV assembles everything into a verified solver.
+
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{The Landscape of Optimisation}
+\label{ch:landscape}
+% ────────────────────────────────────────────────────────────────────────────
+
+\epigraph{All happy optimisation problems are alike;
+each unhappy one is unhappy in its own way.}{}
+
+Now that we have a concrete problem and understand what propagation gives us
+(and doesn't), let's place the build editor in the broader landscape of
+optimisation.
+
+\section{What Is an Optimisation Problem?}
+
+\begin{defbox}[title={Optimisation Problem}]
+An \emph{optimisation problem} consists of:
+\begin{itemize}[nosep]
+  \item A set of \emph{decision variables} $x_1, \ldots, x_n$.
+  \item For each variable $x_i$, a \emph{domain} $D_i$ of possible values.
+  \item A set of \emph{constraints} $C$ that restrict which combinations
+    of values are allowed.
+  \item An \emph{objective function} $f : D_1 \times \cdots \times D_n \to \R$
+    to minimise (or maximise).
+\end{itemize}
+A \emph{feasible solution} is an assignment $x_i \in D_i$ satisfying all
+constraints.  An \emph{optimal solution} is a feasible solution minimising $f$.
+\end{defbox}
+
+\begin{leanbox}[title={Lean 4 --- OptProblem}]
+\begin{minted}{lean}
+structure OptProblem (V : Type) (D : V → Type) where
+  constraints : (∀ v, D v) → Prop
+  objective   : (∀ v, D v) → Int
+
+structure Solution (P : OptProblem V D) where
+  assignment : ∀ v, D v
+  feasible   : P.constraints assignment
+
+def isOptimal (P : OptProblem V D) (sol : Solution P) : Prop :=
+  ∀ other : Solution P, P.objective sol.assignment ≤ P.objective other.assignment
+\end{minted}
+\end{leanbox}
+
+The build editor is an instance: variables are gear slots, domains are
+stat combos, constraints are the rune and weapon and infusion rules, and
+the objective is the asymmetric penalty.
+
+\section{Continuous vs.\ Discrete}
+
+In \emph{continuous} optimisation, domains are subsets of $\R^n$.  Gradient
+descent, Newton's method, and convex optimisation live here.
+
+In \emph{discrete} (or \emph{combinatorial}) optimisation, domains are finite
+sets.  The build editor is discrete: you can't choose ``60\% Berserker +
+40\% Marauder''---you pick one combo per slot.  This means:
+
+\begin{itemize}[nosep]
+  \item \textbf{No gradients.}  The objective is not differentiable (it's
+    defined on a finite set).  Gradient descent doesn't apply.
+  \item \textbf{Local optima everywhere.}  Unlike convex problems, where every
+    local minimum is global, discrete problems can have many local optima
+    separated by barriers.
+  \item \textbf{NP-hardness lurks.}  Many discrete optimisation problems are
+    NP-hard.  We don't expect polynomial-time exact algorithms.
+\end{itemize}
+
+\section{Convexity: Why It's Not Enough}
+
+\begin{defbox}[title={Convex Set}]
+A set $S \subseteq \R^n$ is \emph{convex} if for all $x, y \in S$ and
+$\lambda \in [0, 1]$: $\lambda x + (1-\lambda)y \in S$.
+\end{defbox}
+
+\begin{defbox}[title={Convex Function}]
+A function $f : S \to \R$ on a convex set $S$ is \emph{convex} if for all
+$x, y \in S$ and $\lambda \in [0, 1]$:
+\[
+  f\!\big(\lambda x + (1-\lambda)y\big) \;\leq\; \lambda f(x) + (1-\lambda) f(y).
+\]
+\end{defbox}
+
+\begin{thmbox}[title={Convex $\Rightarrow$ Local = Global}]
+If $f$ is convex and $x^*$ is a local minimum of $f$, then $x^*$ is a
+\emph{global} minimum.
+\end{thmbox}
+
+\begin{proof}
+Suppose $x^*$ is a local minimum but not global: there exists $y$ with
+$f(y) < f(x^*)$.  By convexity, for small $\lambda > 0$:
+\[
+  f\!\big((1-\lambda)x^* + \lambda y\big)
+  \leq (1-\lambda) f(x^*) + \lambda f(y)
+  < f(x^*).
+\]
+But $(1-\lambda)x^* + \lambda y$ is arbitrarily close to $x^*$, contradicting
+the local minimality of $x^*$.
+\end{proof}
+
+This is why gradient descent works for convex problems: you can't get trapped
+in a local minimum.  But the build editor's domain is a finite set of points,
+not a convex region of $\R^n$.  The concept of ``moving a small distance
+toward a better solution'' doesn't apply.
+
+\begin{intuitionbox}
+We'll exploit convexity indirectly: by \emph{relaxing} the discrete problem
+to a continuous one (pretending we can choose fractional amounts of each
+stat combo), solving the relaxation, and using the solution as a \emph{bound}
+on how good any discrete solution can be.  This is the LP relaxation idea
+of Chapter~\ref{ch:lp}.
+\end{intuitionbox}
+
+\section{The Solver Architecture}
+
+Here is the plan.  The gear optimiser is a stack of four layers:
+
+\begin{center}
+\begin{tikzpicture}[
+  layer/.style={draw=midblue, fill=defbg, rounded corners=4pt,
+    minimum width=10cm, minimum height=1.1cm, font=\small},
+  arr/.style={-{Stealth[length=6pt]}, thick, midblue}
+]
+\node[layer] (L1) at (0, 0)
+  {\textbf{Layer 1: Propagation} --- prune impossible combos (lattice book)};
+\node[layer] (L2) at (0, 1.6)
+  {\textbf{Layer 2: Search} --- explore remaining options systematically};
+\node[layer] (L3) at (0, 3.2)
+  {\textbf{Layer 3: Bounding} --- skip branches that can't beat the incumbent};
+\node[layer] (L4) at (0, 4.8)
+  {\textbf{Layer 4: Heuristics} --- find good starting solutions fast};
+\draw[arr] (L1) -- (L2);
+\draw[arr] (L2) -- (L3);
+\draw[arr] (L3) -- (L4);
+\end{tikzpicture}
+\end{center}
+
+Each layer wraps around the ones below it.  Propagation (Layer~1) is the
+\emph{foundation}---it runs at every node of the search tree.  Search (Layer~2)
+explores the pruned space.  Bounding (Layer~3) uses LP relaxation to prune
+entire subtrees.  Heuristics (Layer~4) provide a warm start so bounding can
+prune more aggressively.
+
+\begin{crossrefbox}
+Layer~1 is precisely the propagator network from \emph{Verified Order
+Theory}.  The contribution of this book is Layers~2--4.  But notice:
+propagation isn't just the foundation---it runs \emph{inside} every
+search node, making the entire solver dramatically faster.
+\end{crossrefbox}
+
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Making Propagation Stronger}
+\label{ch:stronger}
+% ────────────────────────────────────────────────────────────────────────────
+
+\epigraph{Before adding new machinery, squeeze more out of what you have.}{}
+
+Before we introduce search and bounding, let's strengthen the propagator
+engine itself.  The propagators from the lattice book (rune equality,
+basic stat-floor) are correct but leave information on the table.  This
+chapter adds three new propagators that prune significantly more.
+
+\section{The LinearGeq Propagator}
+
+The basic stat-floor propagator detects infeasibility when the total
+maximum possible contribution falls below a target.  The \texttt{LinearGeq}
+propagator goes further: it prunes individual combos from individual slots.
+
+\begin{defbox}[title={LinearGeq Propagator}]
+For each stat type $s$ and each slot $i$, and for each combo $c \in D_i$:
+compute the maximum possible total stat from all \emph{other} slots plus
+$c$'s contribution from slot $i$ plus the full infusion budget:
+\[
+  U(i, c, s) = \texttt{contribution}(i, c, s) + \sum_{j \neq i} \maxContrib(j, s) + 90.
+\]
+If $U(i, c, s) < T(s)$, then no build using combo $c$ on slot $i$ can
+meet target $T(s)$---even if every other slot takes the best possible
+combo for $s$ and all infusions go to $s$.  Remove $c$ from $D_i$.
+\end{defbox}
+
+\begin{leanbox}[title={Lean 4 --- LinearGeq Propagator}]
+\begin{minted}{lean}
+/-- Remove combos from slot i that can't contribute enough to stat s. -/
+def linearGeqPropagate
+    (domains : GearSlot → Finset StatCombo)
+    (targets : StatType → Nat)
+    (slot : GearSlot) : Finset StatCombo :=
+  domains slot |>.filter fun combo =>
+    StatType.all.all fun stat =>
+      let myContrib := contribution slot combo stat
+      let othersMax := (GearSlot.all.filter (· ≠ slot) |>.map fun j =>
+        maxContribForStat (domains j) j stat).sum
+      let infusionBudget := 90  -- 18 slots × 5 each
+      myContrib + othersMax + infusionBudget ≥ targets stat
+\end{minted}
+\end{leanbox}
+
+\begin{propbox}[title={Monotonicity of LinearGeq}]
+The \texttt{LinearGeq} propagator is monotone: if domains shrink
+(more information), the propagator can only remove \emph{more} combos
+(produce more information), never fewer.
+\end{propbox}
+
+\begin{proof}
+Suppose $D'_j \subseteq D_j$ for all $j$ (domains have shrunk in the
+reverse-inclusion order, meaning we have more information).  For any slot $i$
+and combo $c$:
+\[
+  \sum_{j \neq i} \maxContrib'(j, s)
+  \;\leq\;
+  \sum_{j \neq i} \maxContrib(j, s)
+\]
+because $\maxContrib$ can only decrease when the domain shrinks.  So $U'(i,c,s)
+\leq U(i,c,s)$.  Any combo removed by the old propagator is still removed by the
+new one (with smaller $U$), and possibly additional combos are removed.  Hence
+the output domain $D'_i$ under the new inputs is a subset of the output
+under the old inputs---i.e., the propagator is monotone in the reverse-inclusion
+order.
+\end{proof}
+
+\section{The LinearLeq Propagator}
+
+The dual of \texttt{LinearGeq}: if we want to minimise overshoot, we can
+prune combos that would cause unavoidable excess.
+
+\begin{defbox}[title={LinearLeq Propagator}]
+For each stat $s$, slot $i$, and combo $c \in D_i$: compute
+\[
+  L(i, c, s) = \texttt{contribution}(i, c, s) + \sum_{j \neq i} \minContrib(j, s).
+\]
+If $L(i, c, s) > T(s) + \text{maxAllowedOvershoot}$, remove $c$ from $D_i$.
+This is weaker (since the overshoot penalty weight is low), but still helps
+when a stat is close to its target.
+\end{defbox}
+
+\begin{leanbox}[title={Lean 4 --- LinearLeq Propagator}]
+\begin{minted}{lean}
+/-- Remove combos from slot i that would force unavoidable overshoot
+    on some stat beyond the allowed threshold. -/
+def linearLeqPropagate
+    (domains : GearSlot → Finset StatCombo)
+    (targets : StatType → Nat)
+    (maxOvershoot : Nat)  -- e.g., 200 stat points
+    (slot : GearSlot) : Finset StatCombo :=
+  domains slot |>.filter fun combo =>
+    StatType.all.all fun stat =>
+      let myContrib := contribution slot combo stat
+      let othersMin := (GearSlot.all.filter (· ≠ slot) |>.map fun j =>
+        minContribForStat (domains j) j stat).sum
+      myContrib + othersMin ≤ targets stat + maxOvershoot
+\end{minted}
+\end{leanbox}
+
+\begin{propbox}[title={Monotonicity of LinearLeq}]
+\texttt{LinearLeq} is monotone: if domains shrink, the propagator removes
+at least as many combos.
+\end{propbox}
+
+\begin{proof}
+When domains shrink ($D'_j \subseteq D_j$), the minimum contribution from
+other slots can only \emph{increase} (the minimum over a smaller set is
+$\geq$ the minimum over a larger set):
+$\minContrib'(j, s) \geq \minContrib(j, s)$.
+So $L'(i, c, s) \geq L(i, c, s)$.  Any combo removed by the old propagator
+(because $L(i, c, s) > T(s) + \text{threshold}$) is still removed.
+\end{proof}
+
+Note that \texttt{LinearLeq} is most useful for stats where the player
+explicitly \emph{doesn't want} too much.  In WvW, this might occur when
+a player wants to maximise damage stats while keeping Toughness below a
+threshold (to avoid drawing aggro from certain AI enemies that target the
+highest-Toughness player).
+
+\section{The Infusion Budget Propagator}
+
+\begin{defbox}[title={Infusion Budget Propagator}]
+After all gear propagation has reached fixpoint, compute, for each stat $s$:
+\[
+  \text{bestGear}(s) = \sum_i \maxContrib(i, s).
+\]
+The \emph{deficit} for $s$ is $\max(0, T(s) - \text{bestGear}(s))$.
+If $\sum_s \text{deficit}(s) > 90$ (the total deficit across all stats
+exceeds the infusion budget), the problem is infeasible.
+\end{defbox}
+
+This is a global constraint that reasons about the interaction between gear
+choices and the infusion budget.  It can detect infeasibility that no
+single-stat propagator would catch: each stat's deficit might be small
+enough to fill, but the total across all stats exceeds the budget.
+
+\begin{leanbox}[title={Lean 4 --- Infusion Budget Propagator}]
+\begin{minted}{lean}
+/-- Check whether the total stat deficit across all stats exceeds
+    the infusion budget (18 slots × 5 = 90 points). -/
+def infusionBudgetFeasible
+    (domains : GearSlot → Finset StatCombo)
+    (targets : StatType → Nat) : Bool :=
+  let totalDeficit := StatType.all.map (fun stat =>
+    let bestGear := (GearSlot.all.map fun slot =>
+      maxContribForStat (domains slot) slot stat).sum
+    if targets stat > bestGear then targets stat - bestGear
+    else 0) |>.sum
+  totalDeficit ≤ 90
+\end{minted}
+\end{leanbox}
+
+\section{The Strengthened Network}
+
+Combining all propagators into a single network:
+
+\begin{enumerate}[nosep]
+  \item Fire the rune propagator (from the lattice book).
+  \item Fire \texttt{LinearGeq} for every slot and stat.
+  \item Fire \texttt{LinearLeq} for every slot and stat (if overshoot control
+    is enabled).
+  \item Check the infusion budget propagator.
+  \item Repeat until fixpoint.
+\end{enumerate}
+
+\begin{thmbox}[title={Termination of the Strengthened Network}]
+The strengthened propagator network terminates in at most
+$\sum_i |D_i^{(0)}|$ steps, where $D_i^{(0)}$ is the initial domain
+of slot $i$.  With 40 combos and 16 slots, this is at most 640 steps.
+\end{thmbox}
+
+\begin{proof}
+Each propagation step either removes at least one combo from at least one
+domain (strictly decreasing the lattice height) or is a no-op (fixpoint
+reached).  The lattice height is $\sum_i |D_i|$, initially at most
+$40 \times 16 = 640$.  Since the height is a natural number that strictly
+decreases at each non-trivial step, the process terminates in at most
+640 steps.
+\end{proof}
+
+\begin{exercisebox}
+Implement the full strengthened propagator network in Lean~4, reusing the
+\texttt{Cell} and \texttt{Propagator} types from the lattice book.
+Run it on the following problem: Heavy armour class, stat targets
+Power $\geq 2500$, Precision $\geq 2000$, Ferocity $\geq 1200$.
+How many combos remain per slot after propagation?
+\end{exercisebox}
+
+\begin{exercisebox}
+Prove in Lean~4 that the \texttt{LinearGeq} propagator satisfies the
+monotonicity property from the lattice book: if input domains shrink,
+output domains shrink.
+\end{exercisebox}
+
+% ════════════════════════════════════════════════════════════════════════════
+%  PART II — THE MATHEMATICS OF OPTIMISATION
+% ════════════════════════════════════════════════════════════════════════════
+\part{The Mathematics of Optimisation}
+
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Linear Programming}
+\label{ch:lp}
+% ────────────────────────────────────────────────────────────────────────────
+
+\epigraph{The shortest distance between two points is a straight line,\\
+and the best solution to a linear problem is at a corner.}{}
+
+\section{The LP Standard Form}
+
+\begin{defbox}[title={Linear Program (Standard Form)}]
+\[
+  \min_{x \in \R^n} \; c^\top x
+  \quad\text{subject to}\quad
+  Ax \leq b, \quad x \geq 0.
+\]
+Here $c \in \R^n$ is the cost vector, $A \in \R^{m \times n}$ is the
+constraint matrix, and $b \in \R^m$ is the right-hand side.
+\end{defbox}
+
+The feasible region $\{x \mid Ax \leq b, x \geq 0\}$ is a convex
+\emph{polytope}---the intersection of finitely many half-spaces.
+
+\begin{thmbox}[title={Fundamental Theorem of Linear Programming}]
+If an LP has an optimal solution, then it has an optimal solution at a
+\emph{vertex} (extreme point) of the feasible polytope.
+\end{thmbox}
+
+\begin{intuitionbox}
+Why?  The objective $c^\top x$ is a linear function.  On any edge of the
+polytope, it is monotonically increasing or decreasing.  So moving along
+an edge toward a vertex can only improve (or maintain) the objective.
+The optimum must occur where you can't improve further---at a vertex.
+\end{intuitionbox}
+
+\section{The Simplex Method}
+
+The simplex method exploits this: start at a vertex, move to an adjacent
+vertex with a better objective value, repeat until no improving neighbour
+exists.
+
+\begin{crossrefbox}
+The vertices of the feasible polytope, ordered by objective value,
+form a partial order.  The simplex method is a \emph{monotone walk}
+on this structure---the same pattern as propagator convergence.  In the
+lattice book, cell values only moved upward; here, the objective only
+moves downward (since we're minimising).  The fixed point is the optimum.
+\end{crossrefbox}
+
+\subsection{Pivoting}
+
+A vertex of the polytope corresponds to a \emph{basic feasible solution}
+(BFS): a choice of $m$ constraints to hold with equality (the \emph{basis}).
+The simplex method maintains a basis and performs \emph{pivot} operations
+to swap one constraint in and one out, moving to an adjacent vertex.
+
+The pivot rule selects which non-basic variable to bring into the basis
+(improving the objective) and which basic variable to remove (maintaining
+feasibility).  Bland's rule (choose the smallest-index improving variable)
+guarantees termination by preventing cycling.
+
+\begin{leanbox}[title={Lean 4 --- Simplex Sketch}]
+\begin{minted}{lean}
+structure Tableau where
+  m : Nat  -- number of constraints
+  n : Nat  -- number of variables
+  tab : Array (Array Float)  -- (m+1) × (n+m+1) augmented matrix
+  basis : Array Nat          -- indices of basic variables
+
+/-- One pivot step: bring variable enterIdx into the basis. -/
+def pivot (T : Tableau) (enterIdx : Nat) : Option Tableau :=
+  -- Minimum ratio test to find the leaving variable
+  let leaveIdx? := minRatioTest T enterIdx
+  match leaveIdx? with
+  | none => none  -- unbounded
+  | some leaveIdx =>
+    -- Gaussian elimination to pivot
+    some (gaussianPivot T enterIdx leaveIdx)
+
+/-- Run simplex to completion. -/
+partial def simplex (T : Tableau) : SimplexResult :=
+  match blandEnteringVariable T with
+  | none => .optimal (extractSolution T)  -- no improving variable
+  | some enterIdx =>
+    match pivot T enterIdx with
+    | none => .unbounded
+    | some T' => simplex T'
+\end{minted}
+\end{leanbox}
+
+\section{Duality}
+
+Every LP has a \emph{dual} problem.  If the primal is
+$\min\; c^\top x$ s.t.\ $Ax \leq b, x \geq 0$,
+the dual is $\max\; b^\top y$ s.t.\ $A^\top y \geq c, y \geq 0$.
+
+\begin{thmbox}[title={Weak Duality}]
+For any primal feasible $x$ and dual feasible $y$:
+$c^\top x \geq b^\top y$.
+\end{thmbox}
+
+\begin{proof}
+$c^\top x \leq (A^\top y)^\top x = y^\top A x \leq y^\top b = b^\top y$.
+The first inequality uses dual feasibility ($A^\top y \geq c$ and $x \geq 0$);
+the second uses primal feasibility ($Ax \leq b$ and $y \geq 0$).
+\end{proof}
+
+\begin{thmbox}[title={Strong Duality}]
+If the primal has an optimal solution $x^*$, then the dual has an optimal
+solution $y^*$ with $c^\top x^* = b^\top y^*$.
+\end{thmbox}
+
+The dual provides \emph{certificates of optimality}: if you exhibit primal and
+dual solutions with matching objective values, you've \emph{proved} the primal
+solution is optimal, without trusting the simplex algorithm's internal state.
+
+\begin{intuitionbox}
+In the gear solver, the LP relaxation gives a \emph{lower bound} on the
+achievable penalty.  If we also produce the dual solution, we have a
+\emph{machine-checkable certificate} that no gear loadout can do better
+than this bound.  When the integer solution matches the LP bound,
+optimality is proven.
+\end{intuitionbox}
+
+\section{LP Relaxation of the Gear Problem}
+
+Here is how to relax the build editor to an LP.  For each slot $i$ and
+combo $c$, introduce a variable $x_{i,c} \in [0, 1]$ representing the
+``fraction'' of combo $c$ used on slot $i$.  The constraints:
+
+\begin{enumerate}[nosep]
+  \item $\sum_c x_{i,c} = 1$ for each slot $i$ (exactly one combo per slot).
+  \item $x_{i,c} \geq 0$ for all $i, c$.
+  \item The stat contributions are linear in $x$:
+    $\statTotal(x, s) = \sum_{i,c} x_{i,c} \cdot \texttt{contribution}(i, c, s)$.
+  \item Linearise the penalty: introduce auxiliary variables for the
+    max-with-zero terms.
+\end{enumerate}
+
+The LP relaxation drops the constraint $x_{i,c} \in \{0, 1\}$ and allows
+fractional values.  The optimal LP value is a lower bound on the optimal
+integer value.
+
+\begin{exercisebox}
+Formulate the LP relaxation for a small instance (3 armour slots, 5 stat
+combos, 2 stat targets).  Solve it by hand or with the simplex implementation.
+Verify that the LP optimum is $\leq$ the best integer solution.
+\end{exercisebox}
+
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Integer Programming and Branch-and-Bound}
+\label{ch:bb}
+% ────────────────────────────────────────────────────────────────────────────
+
+\epigraph{Divide and conquer, but know when to surrender.}{}
+
+\section{The Integrality Gap}
+
+The LP relaxation allows fractional solutions like ``use 60\% Berserker and
+40\% Marauder on the coat.''  The \emph{integrality gap} is the difference
+between the LP optimum and the best integer (actual gear) solution.
+
+\begin{defbox}[title={Integrality Gap}]
+\[
+  \text{gap} = \opt(\IP) - \opt(\LP)
+\]
+where $\opt(\IP)$ is the optimal integer (actual gear) penalty and $\opt(\LP)$
+is the optimal LP relaxation penalty.  Since $\opt(\LP) \leq \opt(\IP)$
+(relaxation can only improve the objective), the gap is always $\geq 0$.
+\end{defbox}
+
+\begin{intuitionbox}
+Consider a simplified two-slot, two-stat problem.  Slot~A can be Berserker's
+(+141 Power, +0 Toughness) or Knight's (+0 Power, +141 Toughness).  Slot~B
+is the same.  Targets: Power $\geq 100$, Toughness $\geq 100$.
+
+\emph{LP relaxation:} use 50\% Berserker + 50\% Knight on each slot.  Each
+slot contributes $70.5$ Power and $70.5$ Toughness.  Total: $141$ Power,
+$141$ Toughness.  Both targets met.  Penalty = 0.
+
+\emph{Best integer solution:} one slot Berserker's, one slot Knight's.
+Total: $141$ Power, $141$ Toughness.  Penalty = 0.
+
+Here the gap is zero---the LP and IP optima coincide.  But now add a third
+stat target (Ferocity $\geq 50$) where Berserker's gives 101 Ferocity and
+Knight's gives 0.  The LP can get Ferocity from a fractional Berserker
+assignment on both slots; the IP must concentrate it on one, potentially
+overshooting other targets.  The gap opens up.
+\end{intuitionbox}
+
+The gap can be large: the LP might achieve penalty~50 by artfully spreading
+stat contributions across fractional combos, while the best integer build has
+penalty~200 because it must commit each slot to a single combo.
+
+\begin{histbox}
+The study of integrality gaps is central to the theory of approximation
+algorithms.  Nemhauser and Wolsey's \emph{Integer and Combinatorial
+Optimization} (1988) established much of the foundational theory.  A small
+gap means the LP relaxation gives a tight bound and B\&B converges quickly;
+a large gap means the LP bound is loose and more search is needed.  For the
+gear problem, the gap is typically small when targets are tight (close to
+the maximum achievable) and larger when targets are loose.
+\end{histbox}
+
+\section{Branch and Bound}
+
+Branch and bound (B\&B) is a systematic search that exploits the LP bound
+to prune.
+
+\begin{defbox}[title={Branch and Bound}]
+\begin{enumerate}[nosep]
+  \item \textbf{Initialise.}  Set \texttt{incumbent} (best solution found)
+    to $\infty$.  Create a root node representing the full problem.
+  \item \textbf{Select.}  Pick an unexplored node from the queue.
+  \item \textbf{Bound.}  Solve the LP relaxation of this node's subproblem.
+    If the LP optimum $\geq$ \texttt{incumbent}, \emph{prune} (no solution
+    in this subtree can beat the incumbent).
+  \item \textbf{Branch.}  If not pruned and the LP solution is fractional,
+    choose a slot $i$ with a fractional assignment.  Create child nodes,
+    one for each remaining combo in $D_i$ (fixing slot $i$ to that combo).
+  \item \textbf{Propagate.}  At each child node, run the propagator network.
+    If any domain becomes empty, prune.
+  \item \textbf{Repeat.}  Go to step 2 until the queue is empty.
+    The incumbent is optimal.
+\end{enumerate}
+\end{defbox}
+
+\begin{crossrefbox}
+The B\&B search tree is a \emph{lattice of subproblems}, ordered by
+refinement (fixing more variables).  At each node, the LP bound is an
+upper bound on the subtree's optimal value.  Pruning = detecting that
+a subtree is ``dead''---analogous to detecting $\top$ (contradiction)
+in a propagator cell.  The whole B\&B is a monotone process: as we
+descend the tree, domains only shrink, bounds only tighten.
+\end{crossrefbox}
+
+\subsection{The B\&B Invariant}
+
+The key correctness invariant, which we'll formalise and prove in the capstone:
+
+\begin{thmbox}[title={B\&B Invariant}]
+At every point during the B\&B search:
+\begin{enumerate}[nosep]
+  \item The incumbent is a \emph{feasible} solution (satisfies all constraints).
+  \item Every pruned node $n$ satisfies $\LP(n) \geq \texttt{incumbent.penalty}$
+    (its LP bound is no better than the incumbent).
+  \item Every integer solution in a pruned subtree has penalty $\geq \LP(n)
+    \geq \texttt{incumbent.penalty}$ (by weak duality and the relaxation
+    relationship).
+\end{enumerate}
+When the queue is empty, these invariants imply the incumbent is optimal:
+every feasible solution is either the incumbent itself, or lives in a
+pruned subtree with penalty $\geq$ incumbent.
+\end{thmbox}
+
+\subsection{Variable and Value Ordering}
+
+The order in which we branch on slots and try combos dramatically affects
+the number of nodes explored.
+
+\paragraph{Fail-first variable ordering.}
+At each branch node, choose the slot with the \emph{smallest remaining
+domain} (after propagation).  Intuition: if a slot has only 2 remaining
+combos, branching on it creates 2 children.  If another has 15, branching
+creates 15 children.  Fail-first focuses effort where the problem is most
+constrained.
+
+\begin{leanbox}[title={Lean 4 --- Fail-First Variable Selection}]
+\begin{minted}{lean}
+/-- Select the unfixed slot with the smallest remaining domain. -/
+def selectSlotFailFirst
+    (domains : GearSlot → Finset StatCombo) : GearSlot :=
+  let unfixed := GearSlot.all.filter fun s => (domains s).card > 1
+  unfixed.foldl (init := unfixed.head!) fun best slot =>
+    if (domains slot).card < (domains best).card then slot else best
+\end{minted}
+\end{leanbox}
+
+\paragraph{Best-first value ordering.}
+Within a slot, try combos in order of their contribution to the
+\emph{tightest} stat target first.  Define ``tightest'' as the stat with
+the largest remaining deficit (target minus current best achievable):
+
+\begin{leanbox}[title={Lean 4 --- Value Ordering by Tightest Deficit}]
+\begin{minted}{lean}
+/-- Find the stat with the largest remaining deficit. -/
+def tightestStat (domains : GearSlot → Finset StatCombo)
+    (targets : StatType → Nat) : StatType :=
+  StatType.all.foldl (init := .power) fun best stat =>
+    let bestGear := (GearSlot.all.map fun s =>
+      maxContribForStat (domains s) s stat).sum
+    let deficit := if targets stat > bestGear then targets stat - bestGear else 0
+    let bestDeficit := if targets best > (GearSlot.all.map fun s =>
+      maxContribForStat (domains s) s best).sum then targets best - (GearSlot.all.map fun s =>
+      maxContribForStat (domains s) s best).sum else 0
+    if deficit > bestDeficit then stat else best
+
+/-- Order combos by contribution to the tightest stat (descending). -/
+def orderCombos (slot : GearSlot) (combos : Finset StatCombo)
+    (tightest : StatType) : List StatCombo :=
+  combos.toList.mergeSort fun a b =>
+    contribution slot a tightest > contribution slot b tightest
+\end{minted}
+\end{leanbox}
+
+This increases the chance of finding a good solution early in the search,
+improving the incumbent and enabling more LP-based pruning.
+
+\subsection{Symmetry Breaking}
+
+\begin{propbox}[title={Ring and Accessory Symmetry}]
+Ring~1 and Ring~2 are interchangeable: swapping their stat combos produces
+an identical build.  The same holds for Accessory~1 and Accessory~2.
+\end{propbox}
+
+Impose a total order on stat combos (e.g.\ alphabetical by name) and
+require $\texttt{combo}(\texttt{ring}_1) \leq \texttt{combo}(\texttt{ring}_2)$.
+This halves the search space for each symmetric pair without eliminating any
+essentially different builds.
+
+\begin{leanbox}[title={Lean 4 --- Symmetry Breaking}]
+\begin{minted}{lean}
+/-- A build is canonical if symmetric slot pairs are ordered. -/
+def Build.isCanonical (b : Build) : Prop :=
+  comboOrd (b.gear .ring1) ≤ comboOrd (b.gear .ring2) ∧
+  comboOrd (b.gear .accessory1) ≤ comboOrd (b.gear .accessory2)
+
+/-- Every build has a canonical equivalent with the same penalty. -/
+theorem canonical_exists (b : Build) :
+    ∃ b', b'.isCanonical ∧ totalPenalty b' = totalPenalty b := by
+  -- Swap rings/accessories if needed; stat totals are unchanged
+  -- since contribution depends only on the slot type, not the index
+  sorry -- exercise for the reader
+\end{minted}
+\end{leanbox}
+
+\begin{exercisebox}
+Prove the \texttt{canonical\_exists} theorem.  Hint: you need the fact that
+\texttt{contribution .ring1 = contribution .ring2} (the coefficient table
+gives the same values for both ring slots).
+\end{exercisebox}
+
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Search Strategies}
+\label{ch:search}
+% ────────────────────────────────────────────────────────────────────────────
+
+\epigraph{Search is the art of not looking where you don't need to.}{}
+
+\section{Backtracking Search with Propagation}
+
+The simplest complete search strategy: choose a variable (slot), try each
+value (combo), propagate, recurse.
+
+\begin{leanbox}[title={Lean 4 --- Backtracking Search}]
+\begin{minted}{lean}
+/-- Backtracking search with propagation at each node. -/
+partial def backtrack
+    (domains : GearSlot → Finset StatCombo)
+    (assigned : List (GearSlot × StatCombo))
+    (best : Option (Build × Nat))  -- incumbent
+    (targets : StatType → Nat) : Option (Build × Nat) :=
+  -- 1. Propagate
+  let domains' := propagateToFixpoint domains
+  -- 2. Check for empty domain (contradiction)
+  if GearSlot.all.any (fun s => (domains' s).isEmpty) then best
+  -- 3. Check if all assigned
+  else if GearSlot.all.all (fun s => (domains' s).card = 1) then
+    let build := extractBuild domains'
+    let pen := totalPenalty build targets wMiss wOver
+    match best with
+    | none => some (build, pen)
+    | some (_, bestPen) =>
+      if pen < bestPen then some (build, pen) else best
+  -- 4. Branch on smallest domain (fail-first)
+  else
+    let slot := selectSlot domains'  -- smallest non-singleton domain
+    (domains' slot).fold best fun acc combo =>
+      let domains'' := fixSlot domains' slot combo
+      backtrack domains'' ((slot, combo) :: assigned) acc targets
+\end{minted}
+\end{leanbox}
+
+\subsection{Worked Example: A Tiny Gear Problem}
+
+To build intuition, consider a stripped-down problem with three armour slots
+(coat, leggings, boots), three stat combos (Berserker's, Marauder, Celestial),
+and a single stat target: Power $\geq 300$.
+
+The Power contributions at Ascended:
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+& \textbf{Berserker's} & \textbf{Marauder} & \textbf{Celestial} \\
+& (3-stat Maj) & (4-stat Maj) & (Celestial) \\
+\midrule
+Coat     & 141 & 121 & 67 \\
+Leggings & 94  & 81  & 44 \\
+Boots    & 47  & 40  & 22 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Step 1: Propagation.}
+The \texttt{LinearGeq} propagator checks each slot.  For boots with Celestial:
+the maximum Power from the other two slots is $141 + 94 = 235$, plus
+Celestial boots gives $22$, total $257 < 300$.  Even with infusions (say,
+no infusions in this simplified version), Celestial on boots is infeasible
+if we need Power $\geq 300$.  Remove it.
+
+Similarly, Celestial on leggings gives at most $141 + 44 + 47 = 232 < 300$.
+Remove.  Celestial on coat: $67 + 94 + 47 = 208 < 300$.  Remove.
+
+After propagation: every slot has domain $\{\text{Berserker's}, \text{Marauder}\}$.
+The search space dropped from $3^3 = 27$ to $2^3 = 8$.
+
+\paragraph{Step 2: Search.}
+All domains have size~2 (tie for fail-first).  Pick coat.  Try Berserker's:
+$141 + \max(94, 81) + \max(47, 40) = 141 + 94 + 47 = 282 < 300$?  No---we
+haven't checked the actual assignment, just the maximum.  Fix coat to
+Berserker's, propagate again.  Now leggings with Marauder gives
+$141 + 81 + 47 = 269 < 300$ (still checking maximums of remaining).
+We need to actually evaluate: Berserker's on all three gives
+$141 + 94 + 47 = 282$; Berserker/Berserker/Marauder gives
+$141 + 94 + 40 = 275$; and so on.  The best is all-Berserker's at $282$,
+which still falls short of $300$.
+
+In the full problem, infusions would close this gap ($18 \times 5 = 90$
+free points).  But the example illustrates the propagate-then-search pattern.
+
+\paragraph{Step 3: Result.}
+If $282 + 90 = 372 \geq 300$ (with infusion budget), the build is feasible.
+The solver would continue searching to find the build with minimum total
+penalty across all stats.
+
+\section{A* and Best-First Search}
+
+Instead of depth-first search (which explores deeply before backtracking),
+best-first search maintains a priority queue of nodes ordered by their LP
+bound.  It always expands the most promising node first.
+
+\begin{defbox}[title={A* for Optimisation}]
+Maintain a priority queue of search nodes, ordered by
+$f(n) = g(n) + h(n)$ where:
+\begin{itemize}[nosep]
+  \item $g(n)$ = cost of the partial assignment so far (penalty from already-fixed slots).
+  \item $h(n)$ = heuristic lower bound on the remaining cost (LP relaxation of unfixed slots).
+\end{itemize}
+Always expand the node with smallest $f(n)$.
+\end{defbox}
+
+\begin{thmbox}[title={Admissibility of LP Heuristic}]
+If $h(n) \leq h^*(n)$ (the LP bound is a lower bound on the true remaining
+cost), then A* finds an optimal solution.
+\end{thmbox}
+
+\begin{proof}
+Suppose A* terminates by expanding a goal node $n^*$ (a complete assignment).
+At that moment, every unexplored node $m$ in the queue satisfies
+$f(m) \geq f(n^*)$ (A* always expands the smallest-$f$ node).
+For any unexplored node $m$: $f(m) = g(m) + h(m) \leq g(m) + h^*(m)$
+by admissibility.  But $g(m) + h^*(m)$ is the best objective achievable
+through $m$.  So the best objective through any unexplored path is $\geq
+f(n^*) = g(n^*)$ (since $h(n^*) = 0$ for a complete assignment).
+Therefore $n^*$ is optimal.
+\end{proof}
+
+\begin{leanbox}[title={Lean 4 --- A* Search Skeleton}]
+\begin{minted}{lean}
+structure SearchNode where
+  domains  : GearSlot → Finset StatCombo
+  assigned : List (GearSlot × StatCombo)
+  gCost    : Nat   -- penalty from fixed slots
+  hCost    : Nat   -- LP bound on remaining
+  deriving Repr
+
+def SearchNode.fCost (n : SearchNode) : Nat := n.gCost + n.hCost
+
+/-- A* search for the optimal gear build. -/
+partial def aStarSearch
+    (queue : BinaryHeap SearchNode (·.fCost < ·.fCost))
+    (incumbent : Option (Build × Nat))
+    (targets : StatType → Nat) : Option (Build × Nat) :=
+  match queue.extractMin with
+  | none => incumbent  -- queue empty: incumbent is optimal
+  | some (node, queue') =>
+    -- Pruning: if f(node) ≥ incumbent, skip
+    match incumbent with
+    | some (_, bestPen) =>
+      if node.fCost ≥ bestPen then aStarSearch queue' incumbent targets
+      else expandNode node queue' incumbent targets
+    | none => expandNode node queue' incumbent targets
+\end{minted}
+\end{leanbox}
+
+This is a standard result from AI search theory.  The LP relaxation satisfies
+admissibility because relaxing integrality constraints can only improve
+(lower) the objective.
+
+\begin{histbox}
+A* was invented by Peter Hart, Nils Nilsson, and Bertram Raphael in 1968
+at the Stanford Research Institute.  The ``A'' stands for ``Algorithm''
+(it was called Algorithm~A with admissible heuristics, hence A*).  It
+remains the gold standard for optimal search with heuristics.  In our
+solver, A* with LP-relaxation heuristics is the combination of Layers~2
+and~3 (search + bounding) from the architecture diagram.
+\end{histbox}
+
+\section{Nogood Learning}
+
+When backtracking from a dead end, we can record the combination of
+assignments that caused the failure and prevent future exploration of any
+branch that contains the same combination.
+
+\begin{defbox}[title={Nogood}]
+A \emph{nogood} is a partial assignment that is provably inconsistent.
+If $\{\text{coat} \mapsto \text{Celestial}, \text{leggings} \mapsto
+\text{Celestial}\}$ causes propagation to detect infeasibility (Power
+target unachievable), then this pair is a nogood.  Any future branch
+containing both assignments can be pruned immediately.
+\end{defbox}
+
+\begin{leanbox}[title={Lean 4 --- Nogood Store}]
+\begin{minted}{lean}
+/-- A nogood is a set of (slot, combo) assignments known to be infeasible. -/
+structure Nogood where
+  assignments : List (GearSlot × StatCombo)
+
+/-- Check if the current assignment contains any known nogood. -/
+def isNogoodHit (nogoods : List Nogood) (assigned : List (GearSlot × StatCombo))
+    : Bool :=
+  nogoods.any fun ng =>
+    ng.assignments.all fun (slot, combo) =>
+      assigned.any fun (s, c) => s == slot && c == combo
+
+/-- Extract a nogood from a failed propagation.
+    Analyse which assignments contributed to the empty domain. -/
+def extractNogood (assigned : List (GearSlot × StatCombo))
+    (failedSlot : GearSlot) (failedStat : StatType)
+    : Nogood :=
+  -- Keep only assignments whose contribution to failedStat
+  -- was necessary for the failure
+  let relevant := assigned.filter fun (slot, combo) =>
+    contribution slot combo failedStat > 0
+  ⟨relevant⟩
+\end{minted}
+\end{leanbox}
+
+\begin{crossrefbox}
+This is the same pattern as CDCL (conflict-driven clause learning)
+in SAT solving, which we discussed in the lattice book as ``adding
+a new propagator at runtime.''  A nogood is a constraint learned from
+a conflict; adding it to the network prevents the same conflict from
+recurring.  In the lattice-theoretic view, a nogood is a new propagator
+that removes assignments from the product lattice of domain cells.
+\end{crossrefbox}
+
+\begin{exercisebox}
+Extend the backtracking search from earlier in this chapter to maintain
+a nogood store.  When propagation fails, extract a nogood and add it.
+Before exploring each branch, check the nogood store.  Measure the
+reduction in explored nodes on a test instance.
+\end{exercisebox}
+
+\begin{exercisebox}
+Prove in Lean~4 that nogood learning preserves completeness: if a build
+was optimal before learning, it is still reachable after learning.  Hint:
+nogoods only prune infeasible partial assignments.
+\end{exercisebox}
+
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Relaxation and Bounding}
+\label{ch:relax}
+% ────────────────────────────────────────────────────────────────────────────
+
+\epigraph{To understand the integer world,\\first solve the fractional one.}{}
+
+\section{Lagrangian Relaxation}
+
+Instead of relaxing integrality, we can relax \emph{constraints}.  The rune
+constraint (all six armour rune slots must match) is a coupling constraint
+that prevents us from optimising each slot independently.
+
+\begin{defbox}[title={Lagrangian Relaxation}]
+Move the rune constraint into the objective as a penalty:
+\[
+  L(\lambda) = \min_x \; \pen(x) + \sum_{i < j}
+    \lambda_{ij} \cdot \mathbb{1}[\text{rune}(i) \neq \text{rune}(j)]
+\]
+where $\lambda_{ij} \geq 0$ are \emph{Lagrange multipliers}.  For any
+$\lambda \geq 0$, $L(\lambda)$ is a lower bound on the optimal penalty.
+\end{defbox}
+
+\begin{thmbox}[title={Weak Lagrangian Duality}]
+For any $\lambda \geq 0$: $L(\lambda) \leq \opt(\text{original problem})$.
+\end{thmbox}
+
+\begin{proof}
+Let $x^*$ be an optimal solution to the original problem.  Since $x^*$
+satisfies the rune constraint, $\mathbb{1}[\text{rune}(i) \neq
+\text{rune}(j)] = 0$ for all $i, j$ in $x^*$.  Therefore:
+\[
+  L(\lambda) \leq \pen(x^*) + \sum_{i < j} \lambda_{ij} \cdot 0
+  = \pen(x^*) = \opt.
+\]
+The inequality holds because $L(\lambda)$ is a minimum over \emph{all}
+assignments (including ones violating the rune constraint), while $x^*$
+is just one specific feasible assignment.
+\end{proof}
+
+With the rune constraint relaxed, the problem decomposes into independent
+per-slot subproblems, each trivially solvable by enumeration (pick the
+best combo for each slot independently).
+
+\subsection{Subgradient Optimisation}
+
+The \emph{Lagrangian dual} is $\max_{\lambda \geq 0} L(\lambda)$: find the
+multipliers that give the tightest bound.  This is a non-smooth optimisation
+problem (the function $L$ is piecewise linear), solved by the subgradient
+method:
+
+\begin{leanbox}[title={Lean 4 --- Subgradient Method for Lagrangian Dual}]
+\begin{minted}{lean}
+/-- One iteration of subgradient optimisation. -/
+def subgradientStep (lambda : Array Float) (stepSize : Float)
+    (solution : GearSlot → StatCombo) : Array Float :=
+  -- Subgradient: violation of the rune constraint
+  -- g_ij = 1 if rune(i) ≠ rune(j), else 0
+  let armourSlots := [.headgear, .shoulders, .coat, .gloves, .leggings, .boots]
+  let violations := armourSlots.pairs.map fun (i, j) =>
+    if runeOf (solution i) == runeOf (solution j) then 0.0 else 1.0
+  -- Update: λ' = max(0, λ + stepSize * g)
+  lambda.zipWith violations.toArray fun li gi =>
+    Float.max 0.0 (li + stepSize * gi)
+
+/-- Run the subgradient method for a fixed number of iterations. -/
+def lagrangianDual (problem : GearProblem) (iters : Nat := 100)
+    : Float × (GearSlot → StatCombo) :=
+  let init_lambda := Array.mkArray 15 0.0  -- C(6,2) = 15 pairs
+  (List.range iters).foldl (init := (0.0, init_lambda, none)) fun (bestBound, lambda, bestSol) _ =>
+    -- Solve Lagrangian subproblem (per-slot enumeration)
+    let solution := solveRelaxedPerSlot lambda problem.targets
+    let bound := lagrangianObjective solution lambda problem.targets
+    let stepSize := 1.0 / (1.0 + iters.toFloat)  -- diminishing step
+    let lambda' := subgradientStep lambda stepSize solution
+    let bestBound' := Float.max bestBound bound
+    (bestBound', lambda', some solution)
+  |>.map fun (bound, _, sol) => (bound, sol.getD defaultSolution)
+\end{minted}
+\end{leanbox}
+
+\begin{histbox}
+Lagrangian relaxation was pioneered by Marshall Fisher and Michael Held
+in the 1970s for vehicle routing and scheduling problems.  The key insight
+is that \emph{complicating constraints}---the ones that prevent
+decomposition---can be moved into the objective, trading hard constraints
+for soft penalties.  The resulting decomposition often reveals beautiful
+structure: in our case, the rune constraint is the only thing preventing
+each slot from being optimised independently.
+\end{histbox}
+
+\section{Reduced-Cost Fixing}
+
+\begin{defbox}[title={Reduced-Cost Fixing}]
+After solving the LP relaxation, each non-basic variable $x_{i,c}$ has a
+\emph{reduced cost} $\bar{c}_{i,c}$: the amount the objective would increase
+if we forced $x_{i,c}$ to become positive.  If $\LP + \bar{c}_{i,c} \geq
+\texttt{incumbent}$, then any solution using combo $c$ on slot $i$ has penalty
+$\geq$ incumbent.  We can permanently remove $c$ from $D_i$.
+\end{defbox}
+
+This is \emph{propagation informed by relaxation}: the LP relaxation feeds
+information back into the propagator network, tightening domains beyond what
+pure constraint reasoning can achieve.
+
+\begin{leanbox}[title={Lean 4 --- Reduced-Cost Fixing}]
+\begin{minted}{lean}
+/-- Remove combos whose reduced cost proves they can't be in
+    any solution better than the incumbent. -/
+def reducedCostFix
+    (domains : GearSlot → Finset StatCombo)
+    (lpResult : LPResult)
+    (incumbentPen : Nat) : GearSlot → Finset StatCombo :=
+  fun slot => (domains slot).filter fun combo =>
+    let rc := lpResult.reducedCost slot combo
+    -- Keep combo only if LP bound + reduced cost < incumbent
+    lpResult.objectiveValue + rc < incumbentPen.toFloat
+\end{minted}
+\end{leanbox}
+
+\begin{crossrefbox}
+Reduced-cost fixing bridges the LP world and the propagator world.  The LP
+relaxation is ``above'' the propagator network in the solver stack, but its
+conclusions (``combo $c$ is too expensive for slot $i$'') are fed back
+\emph{downward} as domain reductions---exactly the kind of information
+propagator cells consume.  In the lattice book's terms, reduced-cost fixing
+is an additional propagator whose input is the LP solution and whose output
+is a tightened domain.
+\end{crossrefbox}
+
+\subsection{Comparing Bound Quality}
+
+Different bounding techniques give different quality bounds:
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Method} & \textbf{Bound quality} & \textbf{Computation cost} \\
+\midrule
+Propagation only & Weakest & Cheapest (milliseconds) \\
+Lagrangian relaxation & Medium & Moderate (seconds) \\
+LP relaxation & Tightest & Most expensive (per node) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+In practice, we use propagation at every B\&B node (cheap), LP relaxation at
+the root and at nodes where propagation doesn't prune enough (moderate cost),
+and Lagrangian relaxation as an alternative when the LP is too expensive.
+
+\begin{exercisebox}
+Implement the Lagrangian relaxation for the gear problem.  Run the
+subgradient method for 100 iterations with a diminishing step size.
+Compare the Lagrangian bound to the LP relaxation bound on the same
+problem instance.  How close are they?
+\end{exercisebox}
+
+\begin{exercisebox}
+Prove in Lean~4 that if the Lagrangian dual bound equals the incumbent's
+penalty, then the incumbent is optimal.  Hint: use the weak Lagrangian
+duality theorem.
+\end{exercisebox}
+
+% ════════════════════════════════════════════════════════════════════════════
+%  PART III — HEURISTICS AND MULTI-OBJECTIVE
+% ════════════════════════════════════════════════════════════════════════════
+\part{Heuristics and Multi-Objective Optimisation}
+
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Local Search and Metaheuristics}
+\label{ch:heuristics}
+% ────────────────────────────────────────────────────────────────────────────
+
+\epigraph{Perfect is the enemy of good---but good is the friend of perfect.}{}
+
+Everything up to now has been exact: propagation is sound, LP bounds are
+valid, B\&B is complete.  This chapter introduces \emph{heuristic} methods
+that find good solutions fast, without guaranteeing optimality.  Their role
+in the solver: provide a strong incumbent to warm-start B\&B, so bounding
+can prune more aggressively from the start.
+
+\section{Neighbourhood Structure}
+
+\begin{defbox}[title={Neighbourhood for Gear Builds}]
+Two builds are \emph{neighbours} if they differ in exactly one slot's stat
+combo.  The \emph{neighbourhood} $N(b)$ of build $b$ is the set of all
+builds reachable by changing one slot.  $|N(b)| \leq 16 \times 39 = 624$.
+\end{defbox}
+
+The neighbourhood defines the ``moves'' available to local search.  Its
+size is a tradeoff: a larger neighbourhood (e.g., changing two slots at once,
+giving $|N| \approx 16^2 \times 39^2 \approx 250{,}000$) explores more
+options per step but takes longer per step.  The single-slot neighbourhood
+is the standard choice for gear optimisation because it's large enough to
+escape many local optima but small enough that evaluating all neighbours is
+fast.
+
+\begin{leanbox}[title={Lean 4 --- Neighbourhood Enumeration}]
+\begin{minted}{lean}
+/-- Generate all single-slot neighbours of a build. -/
+def allNeighbours (b : Build) : List Build :=
+  GearSlot.all.bind fun slot =>
+    allCombos.filter (· ≠ b.gear slot) |>.map fun combo =>
+      { b with gear := fun s => if s == slot then combo else b.gear s }
+
+/-- A neighbour move: which slot changed and to what. -/
+structure Move where
+  slot  : GearSlot
+  combo : StatCombo
+
+/-- Generate all moves with their resulting penalties (for sorting). -/
+def allMoves (b : Build) (targets : StatType → Nat)
+    : List (Move × Nat) :=
+  GearSlot.all.bind fun slot =>
+    allCombos.filter (· ≠ b.gear slot) |>.map fun combo =>
+      let b' := { b with gear := fun s =>
+        if s == slot then combo else b.gear s }
+      (⟨slot, combo⟩, totalPenalty b' targets wMiss wOver)
+\end{minted}
+\end{leanbox}
+
+\section{Hill Climbing}
+
+Start with a random feasible build.  Repeatedly move to the best neighbour
+(lowest penalty).  Stop when no neighbour improves the current solution.
+
+This is fast but easily trapped in local optima.  Restart with a new random
+build and keep the best across restarts.
+
+\begin{leanbox}[title={Lean 4 --- Hill Climbing with Restarts}]
+\begin{minted}{lean}
+/-- Hill climbing: greedily move to the best neighbour. -/
+partial def hillClimb (current : Build) (currentPen : Nat)
+    (targets : StatType → Nat) : Build × Nat :=
+  let neighbours := allNeighbours current
+  let (bestNeigh, bestPen) := neighbours.foldl
+    (init := (current, currentPen)) fun (best, bestPen) neigh =>
+      let pen := totalPenalty neigh targets wMiss wOver
+      if pen < bestPen then (neigh, pen) else (best, bestPen)
+  if bestPen < currentPen then hillClimb bestNeigh bestPen targets
+  else (current, currentPen)  -- local optimum
+
+/-- Restart hill climbing multiple times, keep the best. -/
+def hillClimbRestarts (nRestarts : Nat) (rng : StdGen)
+    (targets : StatType → Nat) : Build × Nat :=
+  (List.range nRestarts).foldl (init := (defaultBuild, Nat.max, rng))
+    fun (best, bestPen, rng) _ =>
+      let (init, rng) := randomBuild rng
+      let initPen := totalPenalty init targets wMiss wOver
+      let (local, localPen) := hillClimb init initPen targets
+      if localPen < bestPen then (local, localPen, rng)
+      else (best, bestPen, rng)
+  |>.fst
+\end{minted}
+\end{leanbox}
+
+\section{Simulated Annealing}
+
+\begin{defbox}[title={Simulated Annealing}]
+Like hill climbing, but with a probability of accepting worse moves that
+decreases over time:
+\[
+  P(\text{accept worse move with }\Delta > 0) = e^{-\Delta / T}
+\]
+where $T$ is the ``temperature,'' which decreases according to a cooling
+schedule (e.g.\ $T_{k+1} = \alpha T_k$ with $\alpha \approx 0.995$).
+\end{defbox}
+
+\subsection{Choosing the Cooling Schedule}
+
+The cooling schedule controls the exploration--exploitation tradeoff:
+
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Schedule} & \textbf{Formula} & \textbf{Character} \\
+\midrule
+Geometric & $T_{k+1} = \alpha T_k$ & Most common; $\alpha \in [0.99, 0.999]$ \\
+Linear & $T_k = T_0 - k \cdot \delta$ & Simple but less effective \\
+Logarithmic & $T_k = T_0 / \ln(k + 2)$ & Provably optimal but very slow \\
+Adaptive & Adjust based on acceptance rate & Complex but robust \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+For the gear problem, the geometric schedule with $\alpha = 0.997$ and
+initial temperature $T_0$ set so that the initial acceptance probability
+for a move with $\Delta = 100$ is about $0.8$ works well.  This gives
+$T_0 = -100 / \ln(0.8) \approx 448$.
+
+\begin{leanbox}[title={Lean 4 --- Simulated Annealing}]
+\begin{minted}{lean}
+/-- One step of simulated annealing. -/
+def saStep (current : Build) (currentPen : Nat) (temp : Float)
+    (rng : StdGen) (targets : StatType → Nat)
+    : Build × Nat × StdGen :=
+  -- Pick a random neighbour (random slot, random combo)
+  let (slot, rng) := randomSlot rng
+  let (combo, rng) := randomCombo rng (availableCombos slot)
+  let neighbour := { current with gear := fun s =>
+    if s == slot then combo else current.gear s }
+  let neighPen := totalPenalty neighbour targets wMiss wOver
+  if neighPen ≤ currentPen then
+    (neighbour, neighPen, rng)  -- always accept improvements
+  else
+    let delta := (neighPen - currentPen : Float)
+    let (r, rng) := randomFloat rng  -- r ∈ [0, 1)
+    if r < Float.exp (-delta / temp) then
+      (neighbour, neighPen, rng)  -- accept with probability
+    else
+      (current, currentPen, rng)  -- reject
+
+/-- Full simulated annealing run. -/
+def simulatedAnnealing (domains : GearSlot → Finset StatCombo)
+    (targets : StatType → Nat) (rng : StdGen)
+    (maxIters : Nat := 10000) : Build × Nat :=
+  let (init, rng) := randomFeasibleBuild domains rng
+  let initPen := totalPenalty init targets wMiss wOver
+  let t0 : Float := 448.0    -- initial temperature
+  let alpha : Float := 0.997  -- cooling rate
+  (List.range maxIters).foldl
+    (init := (init, initPen, init, initPen, t0, rng))
+    fun (current, currentPen, best, bestPen, temp, rng) _ =>
+      let (current', pen', rng') := saStep current currentPen temp rng targets
+      let temp' := alpha * temp
+      let (best', bestPen') :=
+        if pen' < bestPen then (current', pen') else (best, bestPen)
+      (current', pen', best', bestPen', temp', rng')
+  |>.map fun (_, _, best, bestPen, _, _) => (best, bestPen)
+\end{minted}
+\end{leanbox}
+
+\begin{histbox}
+Simulated annealing was independently invented by Scott Kirkpatrick (IBM, 1983)
+and Vlado \v{C}ern\'{y} (1985), inspired by the Metropolis--Hastings
+algorithm from statistical physics.  The metallurgical analogy is precise:
+annealing metal involves heating it (high temperature = accept bad moves)
+and slowly cooling (low temperature = only accept improvements), allowing
+atoms to find a low-energy crystalline structure rather than getting trapped
+in an amorphous (locally optimal but globally suboptimal) state.
+\end{histbox}
+
+\section{Tabu Search}
+
+\begin{defbox}[title={Tabu Search}]
+Maintain a \emph{tabu list} of recently visited moves.  At each step, move
+to the best non-tabu neighbour, even if it's worse than the current solution.
+This prevents cycling and forces exploration past local optima.
+\end{defbox}
+
+\begin{leanbox}[title={Lean 4 --- Tabu Search}]
+\begin{minted}{lean}
+structure TabuState where
+  current   : Build
+  currentPen : Nat
+  best      : Build
+  bestPen   : Nat
+  tabuList  : List (GearSlot × StatCombo)  -- recently changed
+  tabuTenure : Nat                          -- how long moves stay tabu
+
+def tabuStep (state : TabuState) (targets : StatType → Nat)
+    : TabuState :=
+  let candidates := allNeighbourMoves state.current
+    |>.filter fun (slot, combo) =>
+      -- Allow if not tabu, OR if it produces a new global best
+      ¬ state.tabuList.contains (slot, combo)
+  let (bestSlot, bestCombo, bestPen) := candidates.foldl
+    (init := (.headgear, defaultCombo, Nat.max)) fun (bs, bc, bp) (slot, combo) =>
+      let build := setBuildSlot state.current slot combo
+      let pen := totalPenalty build targets wMiss wOver
+      if pen < bp then (slot, combo, pen) else (bs, bc, bp)
+  let newBuild := setBuildSlot state.current bestSlot bestCombo
+  let newTabu := ((bestSlot, state.current.gear bestSlot) :: state.tabuList)
+    |>.take state.tabuTenure  -- keep only recent entries
+  { current := newBuild
+    currentPen := bestPen
+    best := if bestPen < state.bestPen then newBuild else state.best
+    bestPen := min bestPen state.bestPen
+    tabuList := newTabu
+    tabuTenure := state.tabuTenure }
+\end{minted}
+\end{leanbox}
+
+The tabu tenure (how long a move stays forbidden) is a key parameter.  Too
+short and the search cycles; too long and it can't revisit promising regions.
+A typical value for the gear problem: tenure $\approx \sqrt{16} \approx 4$
+(the square root of the number of variables).
+
+\section{Genetic Algorithms}
+
+\begin{defbox}[title={Genetic Algorithm for Gear}]
+\begin{itemize}[nosep]
+  \item \textbf{Chromosome:} a build (assignment of combo to each slot).
+  \item \textbf{Gene:} one slot's combo choice.
+  \item \textbf{Crossover:} take armour slots from parent A, trinket slots
+    from parent B.
+  \item \textbf{Mutation:} randomly change one slot's combo.
+  \item \textbf{Fitness:} $-\pen(b)$ (lower penalty = higher fitness).
+  \item \textbf{Selection:} tournament selection (pick 3 random builds, keep
+    the fittest).
+\end{itemize}
+\end{defbox}
+
+\begin{leanbox}[title={Lean 4 --- Crossover and Mutation}]
+\begin{minted}{lean}
+/-- Uniform crossover: for each slot, pick from parent A or B. -/
+def crossover (a b : Build) (rng : StdGen) : Build × StdGen :=
+  GearSlot.all.foldl (init := (a, rng)) fun (child, rng) slot =>
+    let (bit, rng) := randomBool rng
+    let combo := if bit then a.gear slot else b.gear slot
+    ({ child with gear := fun s => if s == slot then combo else child.gear s }, rng)
+
+/-- Mutate: change one random slot to a random combo. -/
+def mutate (b : Build) (rng : StdGen) (mutRate : Float := 0.1)
+    : Build × StdGen :=
+  let (r, rng) := randomFloat rng
+  if r > mutRate then (b, rng)
+  else
+    let (slot, rng) := randomSlot rng
+    let (combo, rng) := randomCombo rng allCombos
+    ({ b with gear := fun s => if s == slot then combo else b.gear s }, rng)
+
+/-- One generation of the GA. -/
+def gaGeneration (pop : Array Build) (targets : StatType → Nat)
+    (rng : StdGen) : Array Build × StdGen :=
+  let fitnesses := pop.map (fun b => totalPenalty b targets wMiss wOver)
+  (Array.range pop.size).foldl (init := (#[], rng)) fun (newPop, rng) _ =>
+    -- Tournament selection (pick 3, keep best)
+    let (parent1, rng) := tournamentSelect pop fitnesses 3 rng
+    let (parent2, rng) := tournamentSelect pop fitnesses 3 rng
+    let (child, rng) := crossover parent1 parent2 rng
+    let (child, rng) := mutate child rng
+    (newPop.push child, rng)
+\end{minted}
+\end{leanbox}
+
+These heuristics are not verified for optimality.  But we \emph{can} verify
+in Lean that their output is a \emph{feasible} build (satisfies all
+constraints)---a weaker but still useful guarantee.
+
+\begin{exercisebox}
+Implement all three heuristics (SA, tabu, GA) for the gear problem.
+Run each 10 times on the same target profile.  Compare: which finds
+the best solution?  Which is most consistent?  Which is fastest?
+\end{exercisebox}
+
+\begin{exercisebox}
+Prove in Lean~4: if \texttt{simulatedAnnealing} starts from a feasible build
+(one where every slot's combo is in the initial domain), then it returns
+a feasible build.  Hint: each step only changes one slot to a combo from
+\texttt{availableCombos}.
+\end{exercisebox}
+
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Multi-Objective Optimisation and Pareto Frontiers}
+\label{ch:pareto}
+% ────────────────────────────────────────────────────────────────────────────
+
+\epigraph{You can't have it all---but you can know exactly what you're trading.}{}
+
+\section{Pareto Optimality}
+
+The gear problem is fundamentally multi-objective: maximise damage stats
+(Power, Precision, Ferocity) \emph{and} survivability (Vitality, Toughness)
+\emph{and} support (Healing Power, Concentration).
+
+\begin{defbox}[title={Pareto Dominance}]
+Build $a$ \emph{dominates} build $b$ (written $a \succ b$) if $a$ is at
+least as good as $b$ in every stat and strictly better in at least one:
+\[
+  a \succ b \iff
+  \big(\forall s.\; \statTotal(a, s) \geq \statTotal(b, s)\big)
+  \;\wedge\;
+  \big(\exists s.\; \statTotal(a, s) > \statTotal(b, s)\big).
+\]
+A build is \emph{Pareto optimal} if no feasible build dominates it.
+\end{defbox}
+
+\begin{crossrefbox}
+The Pareto dominance relation is a \emph{strict partial order} (irreflexive,
+transitive).  The set of all feasible builds, ordered by Pareto dominance,
+forms a partially ordered set.  The Pareto frontier is the set of
+\emph{maximal} elements---an \emph{antichain} (no element dominates another).
+
+This connects directly to Chapter~2 of the lattice book: partial orders,
+antichains, and maximal elements.
+\end{crossrefbox}
+
+\begin{propbox}[title={Pareto Dominance is a Strict Partial Order}]
+The relation $\succ$ is irreflexive and transitive.
+\end{propbox}
+
+\begin{proof}
+\emph{Irreflexive:} For any build $a$, we cannot have $a \succ a$:
+the condition $\exists s.\; \statTotal(a, s) > \statTotal(a, s)$ is
+always false.
+
+\emph{Transitive:} Suppose $a \succ b$ and $b \succ c$.  Then for all $s$:
+$\statTotal(a, s) \geq \statTotal(b, s) \geq \statTotal(c, s)$, so
+$\statTotal(a, s) \geq \statTotal(c, s)$.  For strictness: since $a \succ b$,
+there exists $s_1$ with $\statTotal(a, s_1) > \statTotal(b, s_1)$.  Since
+$b \succ c$, $\statTotal(b, s_1) \geq \statTotal(c, s_1)$.  Therefore
+$\statTotal(a, s_1) > \statTotal(c, s_1)$, giving the required strict
+inequality.
+\end{proof}
+
+\begin{leanbox}[title={Lean 4 --- Pareto Dominance and Frontier}]
+\begin{minted}{lean}
+/-- Build a dominates build b. -/
+def dominates (a b : Build) : Prop :=
+  (∀ s : StatType, statTotal a s ≥ statTotal b s) ∧
+  (∃ s : StatType, statTotal a s > statTotal b s)
+
+/-- Dominance is irreflexive. -/
+theorem dominates_irrefl (a : Build) : ¬ dominates a a := by
+  intro ⟨_, ⟨s, hs⟩⟩
+  exact Nat.lt_irrefl _ hs
+
+/-- Dominance is transitive. -/
+theorem dominates_trans {a b c : Build}
+    (hab : dominates a b) (hbc : dominates b c) : dominates a c := by
+  constructor
+  · intro s
+    exact Nat.le_trans (hbc.1 s) (hab.1 s) |>.symm
+    -- actually: a ≥ b ≥ c
+    sorry -- full proof uses Nat.le_trans
+  · obtain ⟨s, hs⟩ := hab.2
+    exact ⟨s, Nat.lt_of_lt_of_le hs (hbc.1 s) |>.symm⟩
+    sorry -- exercise
+
+/-- The Pareto frontier: all non-dominated builds. -/
+def paretoFrontier (builds : List Build) : List Build :=
+  builds.filter fun b =>
+    ¬ builds.any fun a => dominates a b
+
+/-- Decidable dominance for computation. -/
+instance : Decidable (dominates a b) :=
+  if h1 : StatType.all.all (fun s => statTotal a s ≥ statTotal b s) then
+    if h2 : StatType.all.any (fun s => statTotal a s > statTotal b s) then
+      isTrue ⟨by sorry, by sorry⟩
+    else isFalse (by sorry)
+  else isFalse (by sorry)
+\end{minted}
+\end{leanbox}
+
+\subsection{Worked Example: Damage vs.\ Survivability}
+
+Consider a simplified two-objective problem for a Warrior: maximise
+\emph{effective power} (a function of Power, Precision, Ferocity) and
+\emph{effective health} (a function of Vitality, Toughness).
+
+\begin{center}
+\begin{tikzpicture}[scale=0.8]
+  \draw[-{Stealth}, thick] (0, 0) -- (8, 0) node[right] {Effective Power};
+  \draw[-{Stealth}, thick] (0, 0) -- (0, 6) node[above] {Effective Health};
+  % Pareto frontier (stylised)
+  \fill[defbg, opacity=0.5] (1,5) -- (2,4.5) -- (3.5,3.8) -- (5,2.5) -- (6.5,1.5) -- (7,0.5) -- (8,0) -- (0,0) -- (0,6) -- cycle;
+  \draw[midblue, very thick] (1,5) -- (2,4.5) -- (3.5,3.8) -- (5,2.5) -- (6.5,1.5) -- (7,0.5);
+  % Points
+  \fill[accentgreen] (1,5) circle (3pt) node[above right, font=\scriptsize] {Full Minstrel's};
+  \fill[accentgreen] (2,4.5) circle (3pt) node[above right, font=\scriptsize] {Minstrel/Marauder mix};
+  \fill[accentgreen] (3.5,3.8) circle (3pt) node[right, font=\scriptsize] {Celestial};
+  \fill[accentgreen] (5,2.5) circle (3pt) node[right, font=\scriptsize] {Marauder};
+  \fill[accentgreen] (6.5,1.5) circle (3pt) node[right, font=\scriptsize] {Berserker/Marauder};
+  \fill[accentgreen] (7,0.5) circle (3pt) node[right, font=\scriptsize] {Full Berserker's};
+  % Dominated point
+  \fill[accentred] (4,2) circle (3pt) node[right, font=\scriptsize] {Dominated};
+  \draw[accentred, dashed] (4,2) -- (5,2.5);
+  \node[font=\small, text=gray] at (4, -0.7) {Pareto frontier in \textcolor{midblue}{blue}; dominated point in \textcolor{accentred}{red}};
+\end{tikzpicture}
+\end{center}
+
+The Pareto frontier traces the tradeoff: full Berserker's maximises damage
+but has minimal health; full Minstrel's maximises health but deals little
+damage.  The ``knee'' (where the frontier curves most sharply) often
+corresponds to a well-balanced build---in this case, Marauder or Celestial.
+
+A point like the dominated one (red) is strictly worse than Marauder in
+\emph{both} dimensions: more damage \emph{and} more health are available.
+The solver would never recommend a dominated build.
+
+\section{Scalarisation}
+
+Different penalty weights $w_{\text{miss}}$ and $w_{\text{over}}$, or
+different target profiles, trace different points on the Pareto frontier.
+By sweeping the weights, we can approximate the full frontier.
+
+\begin{defbox}[title={Weighted Scalarisation}]
+Given weight vector $w = (w_1, \ldots, w_k) \geq 0$ with $\sum w_i = 1$:
+\[
+  \min_b \sum_{i=1}^{k} w_i \cdot f_i(b)
+\]
+where each $f_i$ is a single-objective penalty.  Different choices of $w$
+yield different Pareto-optimal solutions.
+\end{defbox}
+
+\begin{warningbox}
+Weighted scalarisation can only find points on the \emph{convex} part of the
+Pareto frontier.  Non-convex portions (concavities in the frontier) are
+invisible to linear scalarisation.  The $\varepsilon$-constraint method
+handles this.
+\end{warningbox}
+
+\section{The $\varepsilon$-Constraint Method}
+
+Fix all objectives except one as constraints: ``optimise Power subject to
+Vitality $\geq V_{\min}$.''  Sweep $V_{\min}$ to trace the frontier.
+
+\begin{leanbox}[title={Lean 4 --- $\varepsilon$-Constraint Sweep}]
+\begin{minted}{lean}
+/-- Trace the Pareto frontier by sweeping an epsilon constraint. -/
+def epsilonConstraintSweep
+    (problem : GearProblem)
+    (primaryStat : StatType)      -- optimise this
+    (constrainedStat : StatType)  -- constrain this
+    (minVal maxVal step : Nat)    -- sweep range
+    : List (Nat × Nat × Build) :=  -- (primary, constrained, build)
+  (List.range ((maxVal - minVal) / step + 1)).filterMap fun i =>
+    let threshold := minVal + i * step
+    let constrained := { problem with
+      targets := fun s =>
+        if s == constrainedStat then threshold
+        else problem.targets s }
+    match solve constrained with
+    | .optimal build pen => some (statTotal build primaryStat,
+                                  statTotal build constrainedStat, build)
+    | .infeasible => none
+\end{minted}
+\end{leanbox}
+
+\begin{exercisebox}
+For a Warrior with base stats Power~1000, Precision~1000, Vitality~1000,
+Toughness~1000: use the $\varepsilon$-constraint method to trace the
+Pareto frontier between effective power (Power + Precision + Ferocity)
+and effective health (Vitality $\times$ (1 + Toughness / 1000)).  Plot
+the resulting frontier.
+\end{exercisebox}
+
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Infusion Optimisation}
+\label{ch:infusion}
+% ────────────────────────────────────────────────────────────────────────────
+
+\epigraph{The last mile is the easiest---if you plan it right.}{}
+
+Once gear slots are fixed, the remaining problem is: distribute 18 infusion
+slots (each $+5$ to one stat) to minimise the remaining penalty.  This is a
+small, clean subproblem.
+
+\section{The Resource Allocation Formulation}
+
+\begin{defbox}[title={Infusion Subproblem}]
+Given fixed gear contributions $G(s)$ for each stat $s$, and targets $T(s)$:
+\[
+  \min_{n_1, \ldots, n_k} \sum_{s} \pen\!\big(T(s),\; G(s) + 5 n_s\big)
+  \quad\text{s.t.}\quad
+  \sum_s n_s = 18, \quad n_s \geq 0, \quad n_s \in \N.
+\]
+\end{defbox}
+
+\section{Dynamic Programming Solution}
+
+\begin{defbox}[title={Infusion DP}]
+Define $\texttt{dp}[i][r]$ = minimum penalty using stats $1, \ldots, i$
+with $r$ infusions remaining.  The recurrence:
+\[
+  \texttt{dp}[i][r] = \min_{0 \leq n_i \leq r} \;
+    \pen(T(s_i), G(s_i) + 5 n_i) + \texttt{dp}[i-1][r - n_i].
+\]
+Base case: $\texttt{dp}[0][r] = 0$ for all $r$.
+\end{defbox}
+
+\begin{leanbox}[title={Lean 4 --- Infusion DP}]
+\begin{minted}{lean}
+/-- Optimally distribute infusions to minimise remaining penalty. -/
+def infusionDP (gearStats : StatType → Nat)
+    (targets : StatType → Nat) (budget : Nat := 18)
+    : StatType → Nat :=
+  let stats := StatType.all.toArray
+  -- dp[i][r] = (minPenalty, allocation for stats 0..i)
+  let dp := Array.mkArray (stats.size + 1) (Array.mkArray (budget + 1) (0, #[]))
+  let dp := stats.foldl (init := dp) fun dp i stat =>
+    Array.mkArray (budget + 1) (0, #[]) |>.mapIdx fun r _ =>
+      let best := (List.range (r.val + 1)).foldl (init := (Nat.max, #[])) fun acc ni =>
+        let penHere := penalty (targets stat) (gearStats stat + 5 * ni) wMiss wOver
+        let (penRest, allocRest) := dp[i]![r.val - ni]!
+        let total := penHere + penRest
+        if total < acc.1 then (total, allocRest.push ni) else acc
+      best
+  -- Extract the allocation from dp[k][budget]
+  let (_, alloc) := dp[stats.size]![budget]!
+  fun stat => alloc[stats.indexOf stat]!
+\end{minted}
+\end{leanbox}
+
+\begin{thmbox}[title={Optimality of Infusion DP}]
+The DP computes the optimal infusion distribution: for any fixed gear
+assignment, the allocation returned minimises the total penalty.
+\end{thmbox}
+
+\begin{proof}
+By induction on the number of stat types.  The base case (0 stats) is
+trivial.  The inductive step: the DP considers all possible allocations
+$n_i$ for stat $i$ and recursively computes the optimal allocation for
+the remaining stats with the reduced budget.  By the inductive hypothesis,
+each subproblem is solved optimally, so the minimum over $n_i$ choices
+yields the global optimum.
+\end{proof}
+
+The DP has $O(k \cdot B)$ states (where $k = 9$ stat types and $B = 18$
+infusion budget), and $O(B)$ transitions per state, for a total of
+$O(k \cdot B^2) = O(9 \cdot 324) = O(2916)$ operations.  This is negligible
+and can be called at every leaf of the B\&B tree without performance concern.
+
+% ════════════════════════════════════════════════════════════════════════════
+%  PART IV — THE CAPSTONE SOLVER
+% ════════════════════════════════════════════════════════════════════════════
+\part{The Capstone Solver}
+
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Assembly: The Complete Solver}
+\label{ch:assembly}
+% ────────────────────────────────────────────────────────────────────────────
+
+\epigraph{The whole is greater than the sum of its parts.}{}
+
+We now wire together every component into a single solver.
+
+\section{The Architecture}
+
+\begin{center}
+\begin{tikzpicture}[
+  box/.style={draw=midblue, fill=defbg, rounded corners=3pt,
+    minimum width=8cm, minimum height=0.9cm, font=\small, align=center},
+  smallbox/.style={draw=accentgreen!70, fill=thmbg, rounded corners=3pt,
+    minimum width=3.5cm, minimum height=0.7cm, font=\scriptsize, align=center},
+  arr/.style={-{Stealth[length=5pt]}, thick, midblue},
+  note/.style={font=\scriptsize\itshape, text=gray}
+]
+\node[box] (warm) at (0, 6) {\textbf{1. Warm Start} (SA/GA, Ch.~\ref{ch:heuristics})};
+\node[box] (prop) at (0, 4.5) {\textbf{2. Initial Propagation} (Ch.~\ref{ch:stronger})};
+\node[box] (bb)   at (0, 3)   {\textbf{3. Branch \& Bound} (Ch.~\ref{ch:bb})};
+\node[smallbox] (lp)   at (-3, 1.5)  {LP Bound\\(Ch.~\ref{ch:lp})};
+\node[smallbox] (prop2) at (0, 1.5) {Propagation\\at each node};
+\node[smallbox] (inf)  at (3, 1.5)  {Infusion DP\\(Ch.~\ref{ch:infusion})};
+\node[box] (out) at (0, 0) {\textbf{4. Result:} Optimal build + proof, or infeasibility};
+
+\draw[arr] (warm) -- (prop);
+\draw[arr] (prop) -- (bb);
+\draw[arr] (bb) -- (lp);
+\draw[arr] (bb) -- (prop2);
+\draw[arr] (bb) -- (inf);
+\draw[arr] (lp) -- (out);
+\draw[arr] (prop2) -- (out);
+\draw[arr] (inf) -- (out);
+\end{tikzpicture}
+\end{center}
+
+\section{The Solver Loop}
+
+\begin{leanbox}[title={Lean 4 --- The Complete Solver}]
+\begin{minted}{lean}
+inductive SolverResult where
+  | optimal    : Build → Nat → SolverResult   -- build + penalty
+  | infeasible : SolverResult
+
+def solve (problem : GearProblem) : SolverResult :=
+  -- Phase 1: Initial propagation
+  let domains := propagateToFixpoint problem.initialDomains
+  if anyDomainEmpty domains then .infeasible
+  else
+  -- Phase 2: Warm start with simulated annealing
+  let warmBuild := simulatedAnnealing domains problem.targets
+  let incumbent := (warmBuild, totalPenalty warmBuild problem.targets wMiss wOver)
+  -- Phase 3: Branch and bound
+  let result := branchAndBound domains problem.targets incumbent
+  match result with
+  | none => .infeasible
+  | some (build, pen) => .optimal build pen
+
+/-- Branch and bound with propagation + LP bounding at each node. -/
+partial def branchAndBound
+    (domains : GearSlot → Finset StatCombo)
+    (targets : StatType → Nat)
+    (incumbent : Build × Nat)
+    : Option (Build × Nat) :=
+  -- Propagate at this node
+  let domains := propagateToFixpoint domains
+  if anyDomainEmpty domains then some incumbent
+  -- All singleton? → Evaluate (with infusion DP)
+  else if allSingleton domains then
+    let build := extractBuild domains
+    let infAlloc := infusionDP (gearStats build) targets
+    let fullBuild := { build with infusions := infAlloc }
+    let pen := totalPenalty fullBuild targets wMiss wOver
+    if pen < incumbent.2 then some (fullBuild, pen)
+    else some incumbent
+  -- LP bound check
+  else
+    let lpBound := solveLPRelaxation domains targets
+    if lpBound ≥ incumbent.2 then some incumbent  -- prune
+    else
+      -- Branch: fail-first variable ordering
+      let slot := smallestDomainSlot domains
+      (domains slot).fold incumbent fun best combo =>
+        let domains' := fixSlot domains slot combo
+        match branchAndBound domains' targets best with
+        | none => best
+        | some result => result
+\end{minted}
+\end{leanbox}
+
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{The Correctness Theorem}
+\label{ch:correctness}
+% ────────────────────────────────────────────────────────────────────────────
+
+\epigraph{Trust, but verify.}{}
+
+The verified core.  We state and prove the main theorem: the solver is
+\emph{sound} (if it says optimal, it is; if it says infeasible, no build
+works).
+
+\section{The Main Theorem}
+
+\begin{thmbox}[title={Solver Soundness}]
+\begin{minted}{lean}
+theorem solver_sound (problem : GearProblem) :
+    match solve problem with
+    | .optimal build pen =>
+        build.feasible problem ∧
+        pen = totalPenalty build problem.targets wMiss wOver ∧
+        ∀ b, b.feasible problem →
+          totalPenalty b problem.targets wMiss wOver ≥ pen
+    | .infeasible =>
+        ∀ b : Build, ¬ b.feasible problem
+\end{minted}
+\end{thmbox}
+
+\section{Proof Structure}
+
+The proof composes four lemmas.  We present each with its Lean formalisation
+and proof sketch.
+
+\subsection{Propagation Soundness}
+
+\begin{lembox}[title={Propagation Preserves Optimal Solutions}]
+If a combo $c$ is removed from slot $i$'s domain during propagation, then
+no optimal solution uses $c$ on slot $i$.
+\end{lembox}
+
+\begin{proof}
+By the monotonicity of each propagator (proven in Chapter~\ref{ch:stronger}).
+The \texttt{LinearGeq} propagator removes $c$ from $D_i$ only when
+\[
+  \texttt{contribution}(i, c, s) + \sum_{j \neq i} \maxContrib(j, s) + 90 < T(s)
+\]
+for some stat $s$.  This means no assignment using $c$ on slot $i$ can meet
+target $T(s)$, even with all other slots maximised and all infusions devoted
+to $s$.  Any build using $c$ on slot $i$ violates the target, so its penalty
+is strictly positive.  If a zero-penalty build exists, it doesn't use $c$ on
+slot $i$.  If no zero-penalty build exists, the propagator is still sound:
+it may remove suboptimal choices, but never the optimal one (since the optimal
+choice must be at least as good as $c$ on the pruned stat).
+\end{proof}
+
+\begin{leanbox}[title={Lean 4 --- Propagation Soundness}]
+\begin{minted}{lean}
+/-- If LinearGeq removes combo c from slot i, then any build using c
+    on slot i has penalty > 0 on some stat. -/
+theorem linearGeq_sound
+    (domains : GearSlot → Finset StatCombo)
+    (targets : StatType → Nat)
+    (slot : GearSlot) (combo : StatCombo)
+    (h_removed : combo ∉ linearGeqPropagate domains targets slot)
+    (h_was_in : combo ∈ domains slot)
+    (b : Build) (h_uses : b.gear slot = combo) :
+    ∃ s : StatType, statTotal b s + 90 < targets s := by
+  -- h_removed gives us: ∃ stat, contribution + othersMax + 90 < target
+  -- Since statTotal b s ≤ contribution(slot, combo, s) + othersMax(s),
+  -- the result follows
+  sorry -- full proof uses the definition of linearGeqPropagate
+
+/-- Propagation to fixpoint preserves all optimal solutions. -/
+theorem propagation_preserves_optimal
+    (domains₀ : GearSlot → Finset StatCombo)
+    (targets : StatType → Nat)
+    (b_opt : Build)
+    (h_opt : isOptimal problem b_opt)
+    (h_in : ∀ s, b_opt.gear s ∈ domains₀ s) :
+    let domains' := propagateToFixpoint domains₀
+    ∀ s, b_opt.gear s ∈ domains' s := by
+  -- By induction on the number of propagation steps
+  -- At each step, the combo removed can't be part of b_opt
+  -- (by linearGeq_sound and h_opt)
+  sorry
+\end{minted}
+\end{leanbox}
+
+\subsection{LP Bound Validity}
+
+\begin{lembox}[title={LP Relaxation is a Valid Lower Bound}]
+For any node $n$ in the B\&B tree:
+$\LP(n) \leq \min\{\pen(b) \mid b \text{ is feasible in subtree } n\}$.
+\end{lembox}
+
+\begin{proof}
+The LP relaxation enlarges the feasible set (from integer to fractional
+assignments).  The minimum over a larger set is $\leq$ the minimum over
+the original set.
+
+Formally: let $F_{\IP}(n) = \{b \in \text{Builds} \mid b.gear(i) \in D_i(n)\;\forall i\}$
+be the integer-feasible builds at node $n$, and $F_{\LP}(n)$ be the LP-feasible
+fractional assignments.  Since every integer assignment is also a valid
+fractional assignment, $F_{\IP}(n) \subseteq F_{\LP}(n)$.  Therefore:
+\[
+  \LP(n) = \min_{x \in F_{\LP}(n)} \pen(x) \leq \min_{b \in F_{\IP}(n)} \pen(b).
+\]
+\end{proof}
+
+\begin{leanbox}[title={Lean 4 --- LP Bound Validity}]
+\begin{minted}{lean}
+/-- The LP relaxation value is a lower bound on any integer solution. -/
+theorem lp_bound_valid
+    (node : BBNode)
+    (lpResult : LPResult)
+    (h_lp : lpResult = solveLPRelaxation node.domains node.targets)
+    (b : Build)
+    (h_feasible : ∀ s, b.gear s ∈ node.domains s) :
+    lpResult.objectiveValue ≤ (totalPenalty b node.targets wMiss wOver).toFloat := by
+  -- The build b corresponds to a 0-1 assignment, which is feasible for the LP
+  -- The LP optimum ≤ any feasible LP solution
+  sorry
+\end{minted}
+\end{leanbox}
+
+\subsection{B\&B Invariant}
+
+\begin{lembox}[title={B\&B Invariant Preservation}]
+At every point during the search: every feasible build either (a) has been
+evaluated and is no better than the incumbent, or (b) lives in an unexplored
+node whose LP bound is $\leq$ the incumbent penalty.
+\end{lembox}
+
+\begin{proof}
+By induction on the search steps.
+
+\emph{Base case:} before any branching, the entire search space is a single
+unexplored node.  All feasible builds live there.
+
+\emph{Inductive step:} at each step, one of three things happens:
+\begin{enumerate}[nosep]
+  \item \textbf{Branch:} an unexplored node is split into children.
+    Every feasible build in the parent lives in exactly one child.
+    The invariant is preserved because the children partition the parent.
+  \item \textbf{Prune:} a node is discarded because $\LP(n) \geq
+    \texttt{incumbent}$.  By LP bound validity, every integer solution
+    in this subtree has penalty $\geq \LP(n) \geq \texttt{incumbent}$.
+    These builds are accounted for.
+  \item \textbf{Evaluate:} a leaf node (all singletons) is evaluated.
+    If its penalty $<$ incumbent, it becomes the new incumbent.  Otherwise,
+    it's no better.
+\end{enumerate}
+In all cases, every feasible build is either evaluated or in an accounted
+node.
+\end{proof}
+
+\begin{leanbox}[title={Lean 4 --- B\&B Invariant}]
+\begin{minted}{lean}
+/-- The B&B invariant: incumbent is feasible and dominates all pruned nodes. -/
+structure BBInvariant (state : BBState) where
+  incumbent_feasible : state.incumbent.feasible state.problem
+  pruned_bounded : ∀ node ∈ state.pruned,
+    node.lpBound ≥ state.incumbent.penalty
+  partition : ∀ b : Build, b.feasible state.problem →
+    (totalPenalty b ≥ state.incumbent.penalty) ∨
+    (∃ node ∈ state.queue, b.inSubtree node)
+
+/-- Each step of B&B preserves the invariant. -/
+theorem bb_step_preserves (state : BBState)
+    (h_inv : BBInvariant state)
+    (state' : BBState)
+    (h_step : state' = bbStep state) :
+    BBInvariant state' := by
+  sorry -- case split on branch/prune/evaluate
+\end{minted}
+\end{leanbox}
+
+\subsection{Infusion DP Optimality}
+
+\begin{lembox}[title={Infusion DP Optimality}]
+For any fixed gear assignment, the infusion DP returns the allocation
+that minimises the total penalty.
+\end{lembox}
+
+\begin{proof}
+By induction on the number of stat types $k$.
+
+\emph{Base case ($k = 0$):} no stats to allocate infusions to, penalty is
+determined entirely by gear.  The DP returns the empty allocation with the
+correct penalty.
+
+\emph{Inductive step:} assume the DP is optimal for stats $1, \ldots, k-1$.
+For stat $k$, the DP tries every possible number of infusions
+$n_k \in \{0, \ldots, \text{remaining}\}$ and recursively computes the
+optimal allocation for the remaining stats with the reduced budget.  By the
+inductive hypothesis, each recursive call returns the optimal sub-allocation.
+Therefore, the minimum over all choices of $n_k$ yields the global optimum.
+
+\emph{Why this works:} the penalty function is separable across stats
+($\pen = \sum_s \pen_s$), so the optimal total allocation decomposes into
+per-stat choices given a budget.  This is exactly the optimal substructure
+property that dynamic programming exploits.
+\end{proof}
+
+\begin{leanbox}[title={Lean 4 --- Infusion DP Optimality Proof}]
+\begin{minted}{lean}
+/-- The DP allocation minimises penalty among all valid allocations. -/
+theorem infusion_dp_optimal
+    (gearStats : StatType → Nat) (targets : StatType → Nat)
+    (budget : Nat) :
+    let dpAlloc := infusionDP gearStats targets budget
+    ∀ alloc : StatType → Nat,
+      (StatType.all.map alloc).sum = budget →
+      totalInfusionPenalty gearStats targets dpAlloc ≤
+      totalInfusionPenalty gearStats targets alloc := by
+  -- By induction on StatType.all.length (= 9)
+  -- using the recurrence relation of the DP table
+  sorry
+\end{minted}
+\end{leanbox}
+
+\subsection{Composing the Proof}
+
+When the B\&B search completes (queue empty), the invariant implies:
+\begin{enumerate}[nosep]
+  \item The incumbent is feasible (it was constructed from a valid assignment
+    and optimal infusions, by infusion DP optimality).
+  \item Every other feasible build either was evaluated (and is no better)
+    or lives in a pruned subtree (whose LP bound $\geq$ incumbent, by LP
+    bound validity).
+  \item By propagation soundness, all pruned combos were provably suboptimal,
+    so the search space explored contains all optimal solutions.
+  \item Therefore, the incumbent is optimal.
+\end{enumerate}
+
+The infeasibility case: if initial propagation empties a domain, no
+assignment exists.  By propagation soundness, every pruned combo was
+provably useless, so the empty domain means \emph{no} feasible build exists.
+
+\begin{leanbox}[title={Lean 4 --- Composing the Full Proof}]
+\begin{minted}{lean}
+/-- The complete solver soundness theorem. -/
+theorem solver_sound_proof (problem : GearProblem) :
+    match solve problem with
+    | .optimal build pen =>
+        build.feasible problem ∧
+        pen = totalPenalty build problem.targets wMiss wOver ∧
+        ∀ b, b.feasible problem →
+          totalPenalty b problem.targets wMiss wOver ≥ pen
+    | .infeasible =>
+        ∀ b : Build, ¬ b.feasible problem := by
+  unfold solve
+  -- Case 1: initial propagation finds empty domain
+  · -- by propagation_preserves_optimal, no feasible build existed
+    intro b hfeas
+    exact absurd (propagation_preserves_optimal ..) (domain_empty ..)
+  -- Case 2: B&B returns a solution
+  · constructor
+    -- feasibility: build was extracted from valid domains
+    · exact extractBuild_feasible ..
+    constructor
+    -- penalty matches: by definition of totalPenalty
+    · rfl
+    -- optimality: by B&B invariant + LP bound validity
+    · intro b hfeas
+      exact bb_invariant_at_termination .. |>.partition b hfeas |>.elim
+        (fun h => h)
+        (fun ⟨node, _, _⟩ => absurd .. (queue_empty ..))
+\end{minted}
+\end{leanbox}
+
+This is the central theorem of the book.  The \texttt{sorry}s in the
+component lemmas indicate where the reader should fill in the full
+proofs as exercises---each one is a substantial but tractable formalisation
+task that applies techniques from the lattice book.
+
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Performance Engineering}
+\label{ch:perf}
+% ────────────────────────────────────────────────────────────────────────────
+
+\epigraph{An elegant algorithm with a slow implementation\\
+is just a slow algorithm.}{}
+
+\section{Domain Representation}
+
+Replace \texttt{Finset StatCombo} with \texttt{BitVec 40} (one bit per
+combo).  Set intersection becomes bitwise AND, union becomes OR, cardinality
+is \texttt{popcount}.  This makes propagation dramatically faster.
+
+\begin{leanbox}[title={Lean 4 --- BitVec Domain}]
+\begin{minted}{lean}
+/-- A domain is a 40-bit vector: bit i = 1 iff combo i is still possible. -/
+abbrev Domain := BitVec 40
+
+def Domain.intersect (a b : Domain) : Domain := a &&& b
+def Domain.isEmpty (d : Domain) : Bool := d == 0
+def Domain.card (d : Domain) : Nat := d.popcount
+def Domain.remove (d : Domain) (i : Fin 40) : Domain :=
+  d &&& ~~~(1 <<< i.val)
+\end{minted}
+\end{leanbox}
+
+The performance difference is substantial.  \texttt{Finset} operations
+involve linked-list traversals; \texttt{BitVec} operations are single
+machine instructions:
+
+\begin{center}
+\small
+\begin{tabular}{lcc}
+\toprule
+\textbf{Operation} & \textbf{Finset} & \textbf{BitVec 40} \\
+\midrule
+Intersection ($D_1 \cap D_2$) & $O(|D_1| + |D_2|)$ & $O(1)$ (AND) \\
+Is empty? & $O(1)$ & $O(1)$ (compare to 0) \\
+Cardinality & $O(|D|)$ & $O(1)$ (popcount) \\
+Remove element & $O(|D|)$ & $O(1)$ (AND NOT mask) \\
+Contains? & $O(|D|)$ & $O(1)$ (AND mask, compare) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Since propagation runs at every B\&B node, and each propagation round does
+$O(\text{slots} \times \text{stats} \times \text{domain size})$ operations,
+the BitVec representation gives a constant-factor speedup of roughly $10$--$40\times$
+on domain operations.
+
+\begin{leanbox}[title={Lean 4 --- Precomputed Contribution Tables}]
+\begin{minted}{lean}
+/-- Precompute contribution of each combo to each stat on each slot.
+    Access: contribTable[slot][combo][stat] -/
+def buildContribTable : Array (Array (Array Nat)) :=
+  GearSlot.all.toArray.map fun slot =>
+    allCombos.toArray.map fun combo =>
+      StatType.all.toArray.map fun stat =>
+        contribution slot combo stat
+
+/-- Precompute max contribution per stat per domain.
+    Avoids recomputing during propagation. -/
+structure DomainStats where
+  maxPerStat  : Array Nat   -- maxPerStat[stat] = max contribution in domain
+  minPerStat  : Array Nat   -- minPerStat[stat] = min contribution in domain
+  sumMaxPower : Nat         -- cached sum for quick feasibility check
+\end{minted}
+\end{leanbox}
+
+\section{Incremental Propagation}
+
+Instead of re-running all propagators from scratch at each B\&B node,
+maintain a queue of ``dirty'' cells (slots whose domains changed since
+the last propagation round).  Only re-fire propagators that read from
+dirty cells.
+
+\begin{leanbox}[title={Lean 4 --- Incremental Propagation Queue}]
+\begin{minted}{lean}
+structure PropState where
+  domains    : Array Domain           -- one per slot (16 entries)
+  dirty      : Array Bool             -- which slots changed?
+  domStats   : Array DomainStats      -- cached per-slot stats
+  feasible   : Bool                   -- still feasible?
+
+/-- Propagate incrementally: only process dirty slots. -/
+def propagateIncremental (state : PropState)
+    (targets : StatType → Nat) : PropState :=
+  let dirtySlots := state.dirty.toList.enum.filter (·.2) |>.map (·.1)
+  if dirtySlots.isEmpty then state  -- fixpoint reached
+  else
+    let state' := dirtySlots.foldl (init := { state with dirty := state.dirty.map (fun _ => false) })
+      fun st slotIdx =>
+        -- Re-run LinearGeq for all slots that might be affected
+        GearSlot.all.foldl (init := st) fun st2 slot =>
+          let newDomain := linearGeqFilter st2.domains slot targets
+          if newDomain != st2.domains[slot.toIdx]! then
+            { st2 with
+              domains := st2.domains.set! slot.toIdx newDomain
+              dirty := st2.dirty.set! slot.toIdx true }
+          else st2
+    propagateIncremental state' targets  -- recurse until clean
+\end{minted}
+\end{leanbox}
+
+The key insight: when branching (fixing a slot to a combo), only \emph{that}
+slot's domain changes.  Incremental propagation avoids redundantly re-checking
+slots whose domains haven't changed.
+
+\section{Undo Stacks for Backtracking}
+
+Rather than copying the entire domain array at each B\&B node, maintain an
+\emph{undo stack}: record which domains changed and what their old values were.
+When backtracking, pop the stack and restore.
+
+\begin{leanbox}[title={Lean 4 --- Undo Stack}]
+\begin{minted}{lean}
+structure UndoEntry where
+  slot     : Fin 16
+  oldDomain : Domain
+
+/-- Save the current domain before a branch. -/
+def saveState (domains : Array Domain) (slot : Fin 16)
+    : UndoEntry :=
+  ⟨slot, domains[slot]!⟩
+
+/-- Restore domain after backtracking. -/
+def restoreState (domains : Array Domain) (entry : UndoEntry)
+    : Array Domain :=
+  domains.set! entry.slot entry.oldDomain
+\end{minted}
+\end{leanbox}
+
+This eliminates the $O(16 \times 40)$ cost of copying domain arrays at each
+node, replacing it with $O(1)$ per save and restore.
+
+\section{Lean 4 Performance Annotations}
+
+\begin{leanbox}[title={Lean 4 --- Compiler Hints}]
+\begin{minted}{lean}
+-- Force inlining of hot inner loops
+@[inline] def contribution' (slot : GearSlot) (comboIdx : Fin 40)
+    (statIdx : Fin 9) : Nat :=
+  contribTable[slot.toIdx]![comboIdx]![statIdx]!
+
+-- Specialise generic functions for our concrete types
+@[specialize] def propagateWith [BEq D] [Domain D]
+    (domains : Array D) (props : Array (Propagator D)) : Array D :=
+  sorry
+
+-- Use unboxed representations where possible
+structure PackedBuild where
+  slots     : BitVec 240  -- 16 slots × 6 bits each (enough for 40 combos)
+  runeIdx   : UInt8
+  infusions : BitVec 72   -- 9 stats × 8 bits each (max 18 per stat)
+\end{minted}
+\end{leanbox}
+
+\section{Benchmarks}
+
+Run the full solver on realistic GW2 data: all 40 combos, all slot types,
+several target profiles.  Compare:
+
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{Method} & \textbf{Nodes explored} & \textbf{Time} & \textbf{Optimal?} \\
+\midrule
+Brute force & $40^{16}$ (infeasible) & --- & Yes \\
+Propagation + enumerate & $\sim 10^{12}$ & hours & Yes \\
+Propagation + B\&B (no LP) & $\sim 10^{6}$ & seconds & Yes \\
+Full solver (prop + B\&B + LP) & $\sim 10^{3}$ & milliseconds & Yes \\
+SA warm-start + full solver & $\sim 10^{2}$ & milliseconds & Yes \\
+SA alone (heuristic) & $10^{4}$ iterations & milliseconds & No \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The numbers are illustrative---actual performance depends on the target
+profile and how constrained the problem is.  Tight targets (close to the
+maximum achievable) produce more pruning and faster solves.  Loose targets
+leave more feasible space to explore.
+
+\begin{exercisebox}
+Implement the \texttt{BitVec 40} domain representation and the precomputed
+contribution table.  Run the strengthened propagator network on a standard
+test case (Power $\geq 2500$, Precision $\geq 2000$, Ferocity $\geq 1200$
+for heavy armour).  Measure the time difference vs.\ the \texttt{Finset}
+representation.
+\end{exercisebox}
+
+\begin{exercisebox}
+Implement the undo stack and incremental propagation.  Compare the number
+of propagation steps per B\&B node with and without incrementality on a
+10-slot problem (6 armour + 4 trinkets).
+\end{exercisebox}
+
+% ────────────────────────────────────────────────────────────────────────────
+\chapter{Extensions and Open Problems}
+\label{ch:extensions}
+% ────────────────────────────────────────────────────────────────────────────
+
+\epigraph{Every solved problem opens the door to a harder one.}{}
+
+\section{Food and Utility Buffs}
+
+Food and utility consumables provide flat stat bonuses.  A player selects
+one food and one utility, each from a finite menu.  Mechanically, these are
+two additional ``slots'' in the optimisation problem:
+
+\begin{leanbox}[title={Lean 4 --- Modelling Food and Utility}]
+\begin{minted}{lean}
+structure FoodItem where
+  name  : String
+  stats : StatType → Nat  -- flat bonuses (e.g., +100 Power, +70 Ferocity)
+
+structure UtilityItem where
+  name  : String
+  stats : StatType → Nat  -- flat bonuses (e.g., +100 Precision)
+
+/-- Extended build includes food and utility. -/
+structure ExtBuild extends Build where
+  food    : FoodItem
+  utility : UtilityItem
+
+/-- Extended stat total includes food/utility contributions. -/
+def extStatTotal (b : ExtBuild) (s : StatType) : Nat :=
+  statTotal b.toBuild s + b.food.stats s + b.utility.stats s
+\end{minted}
+\end{leanbox}
+
+The solver handles food and utility naturally.  They become two additional
+variables with finite domains (the list of available foods and utilities).
+Propagation extends: the \texttt{LinearGeq} propagator now includes the
+maximum possible food/utility contribution when checking stat floors.  Since
+food and utility have no coupling constraints with gear (unlike the rune
+constraint on armour), they don't complicate the structure significantly.
+
+\begin{intuitionbox}
+Because food and utility affect \emph{every} stat simultaneously, fixing them
+early in the search tree can dramatically improve propagation effectiveness.
+A good heuristic: branch on food first, then utility, then gear slots.
+This gives propagation a concrete base of flat bonuses to reason about.
+\end{intuitionbox}
+
+\begin{exercisebox}
+Extend the solver to include food and utility.  How does adding these two
+variables change the size of the search tree?  If there are 30 foods and
+20 utilities, the tree grows by a factor of $30 \times 20 = 600$---but
+how much does the improved propagation (tighter stat floors) compensate?
+\end{exercisebox}
+
+\section{Trait Interactions}
+
+Some profession traits convert one stat into another.  For example, the
+Guardian trait \emph{Retribution} might grant Power equal to a percentage
+of Toughness.  This creates a \emph{nonlinear} dependency:
+
+\begin{leanbox}[title={Lean 4 --- Trait-Modified Stat Computation}]
+\begin{minted}{lean}
+structure TraitConversion where
+  sourceStat : StatType
+  targetStat : StatType
+  percentage : Float   -- e.g., 0.07 for 7%
+
+/-- Stat total with trait conversions applied. -/
+def traitStatTotal (b : Build) (conversions : List TraitConversion)
+    (s : StatType) : Float :=
+  let base := (statTotal b s).toFloat
+  let bonus := conversions.foldl (init := 0.0) fun acc conv =>
+    if conv.targetStat == s then
+      conv.percentage * (statTotal b conv.sourceStat).toFloat
+    else acc
+  base + bonus
+\end{minted}
+\end{leanbox}
+
+The difficulty: with trait conversions, adding Toughness gear increases Power
+(through the trait), which means the stat computation is no longer a simple
+sum over independent slot contributions.  The LP relaxation assumes linearity
+and becomes invalid.
+
+\paragraph{Approach 1: Linearisation.}
+If the conversion percentage is small, we can approximate: assume a fixed
+base Toughness (from class stats) and compute the trait bonus from that base
+alone, ignoring the gear contribution to the source stat.  This gives a
+linear approximation that can be used in the LP relaxation.
+
+\paragraph{Approach 2: Iterative solving.}
+Solve the problem without trait conversions.  Use the resulting stat totals
+to compute trait bonuses.  Add these bonuses as flat adjustments and re-solve.
+Repeat until the solution stabilises.  This converges for small conversion
+percentages (contraction mapping argument).
+
+\paragraph{Approach 3: Heuristic-only.}
+For complex trait interactions (multiple conversions that chain), fall back
+to heuristic methods (SA, GA) that don't require linearity.  Use the exact
+solver on the simplified (no-trait) problem to warm-start.
+
+\begin{warningbox}
+Trait interactions can make the optimisation problem non-convex even in the
+continuous relaxation.  The gap between ``solve ignoring traits'' and ``solve
+with traits'' can be significant for builds that stack a single stat for
+conversion (e.g., full Toughness gear with a Toughness$\to$Power trait).
+Always sanity-check the solver's output against in-game stat screens.
+\end{warningbox}
+
+\begin{exercisebox}
+Implement the iterative solving approach (Approach~2) for a single trait
+conversion: 7\% Toughness $\to$ Power.  How many iterations until convergence
+(within 1 stat point)?  Prove termination using the contraction mapping theorem.
+\end{exercisebox}
+
+\section{What-If Mode}
+
+A player often has some gear already and wants to optimise the rest.
+``What-if'' mode fixes some variables before the solver runs:
+
+\begin{leanbox}[title={Lean 4 --- What-If Mode}]
+\begin{minted}{lean}
+/-- Fix specific slots to specific combos before solving. -/
+def applyWhatIf (domains : GearSlot → Finset StatCombo)
+    (fixed : List (GearSlot × StatCombo))
+    : GearSlot → Finset StatCombo :=
+  fun slot =>
+    match fixed.find? (fun (s, _) => s == slot) with
+    | some (_, combo) => {combo}  -- singleton domain
+    | none => domains slot
+
+-- Example: "I have Legendary Berserker armour"
+def legendaryBerserkerArmour : List (GearSlot × StatCombo) :=
+  [(.headgear, berserkers), (.shoulders, berserkers),
+   (.coat, berserkers), (.gloves, berserkers),
+   (.leggings, berserkers), (.boots, berserkers)]
+\end{minted}
+\end{leanbox}
+
+This is trivially supported by the solver architecture: fixing a slot to a
+singleton domain before propagation means propagation will immediately
+exploit the fixed information.  The rune propagator, for instance, will
+see that all armour slots have the same rune (whatever rune Berserker armour
+uses) and skip rune selection entirely.
+
+The search space shrinks dramatically: if 6 of 16 slots are fixed, the
+remaining space is $40^{10} \approx 10^{16}$ instead of $40^{16} \approx
+10^{25}$---and propagation typically prunes this much further.
+
+\begin{exercisebox}
+Implement what-if mode.  Solve the following scenario: a Warrior with full
+Berserker armour (fixed) wants to optimise trinkets and weapons for
+Power $\geq 3000$, Precision $\geq 2200$, Ferocity $\geq 1500$.  How many
+B\&B nodes does the solver explore compared to the unconstrained problem?
+\end{exercisebox}
+
+\section{Pareto Frontier Mode}
+
+Use the scalarisation sweep from Chapter~\ref{ch:pareto} with the full
+solver.  For each weight vector, solve the scalarised problem to
+optimality.  Output: the set of non-dominated builds across all weight
+vectors---an approximation of the Pareto frontier.
+
+\begin{leanbox}[title={Lean 4 --- Pareto Frontier Mode}]
+\begin{minted}{lean}
+/-- Generate the Pareto frontier by sweeping scalarisation weights. -/
+def paretoFrontierMode (problem : GearProblem)
+    (statA statB : StatType) (nPoints : Nat := 20)
+    : List (Build × Nat × Nat) :=
+  (List.range (nPoints + 1)).filterMap fun i =>
+    let w := (i.toFloat) / nPoints.toFloat  -- weight for statA miss
+    let weightedProblem := { problem with
+      wMissPerStat := fun s =>
+        if s == statA then (w * 100).toNat
+        else if s == statB then ((1.0 - w) * 100).toNat
+        else 50  -- default weight for other stats }
+    match solve weightedProblem with
+    | .optimal build pen =>
+      some (build, statTotal build statA, statTotal build statB)
+    | .infeasible => none
+
+/-- Filter to non-dominated solutions. -/
+def filterDominated (results : List (Build × Nat × Nat))
+    : List (Build × Nat × Nat) :=
+  results.filter fun (_, a1, b1) =>
+    ¬ results.any fun (_, a2, b2) =>
+      (a2 ≥ a1 ∧ b2 ≥ b1) ∧ (a2 > a1 ∨ b2 > b1)
+\end{minted}
+\end{leanbox}
+
+Each point on the frontier represents a genuinely different gear philosophy.
+On the Power/Vitality frontier, one end is full Berserker (maximum damage,
+minimum health); the other is full Soldier or Minstrel (maximum health,
+minimum damage).  The interior points are the interesting ones---mixed
+builds that trade damage for survivability at different rates.
+
+\begin{intuitionbox}
+The Pareto frontier mode is expensive: it runs the full solver $n$ times.
+But most of the work is shared: the propagation at the root node is identical
+for all weight vectors (it depends on stat targets, not weights), and the
+warm-start from SA can be reused across adjacent weight vectors.
+\end{intuitionbox}
+
+\section{Real-World Analogues}
+
+The solver architecture---propagation $\to$ B\&B $\to$ LP bounding
+$\to$ heuristic warm-start---is not specific to GW2.  It is the core
+design of industrial solvers like Gurobi, CPLEX, and Google OR-Tools.
+Problems with the same structure include:
+
+\begin{itemize}[nosep]
+  \item \textbf{Portfolio optimisation:} choose discrete asset lots to
+    meet return targets at minimum risk.
+  \item \textbf{Cloud provisioning:} select VM types to meet resource
+    requirements at minimum cost.
+  \item \textbf{Sports team composition:} select players within a salary
+    cap to maximise expected performance.
+  \item \textbf{Hardware configuration:} choose components (CPU, RAM,
+    storage) to meet workload requirements.
+\end{itemize}
+
+In each case, the decision variables are discrete, constraints couple them,
+and the objective involves meeting targets with asymmetric penalties.
+
+\begin{intuitionbox}
+You haven't just built a gear optimiser.  You've built a miniature
+constraint programming / mixed-integer programming solver, verified in
+Lean~4.  The techniques generalise to any problem with the same structure.
+\end{intuitionbox}
+
+% ════════════════════════════════════════════════════════════════════════════
+%  APPENDICES
+% ════════════════════════════════════════════════════════════════════════════
+\appendix
+
+\chapter{WvW Stat Combo Reference}
+\label{app:combos}
+
+The 40 WvW-legal stat combinations at Ascended rarity.
+
+\section{Triple-Attribute (1 Major, 2 Minor)}
+
+\begin{center}
+\small
+\begin{longtable}{llll}
+\toprule
+\textbf{Name} & \textbf{Major} & \textbf{Minor 1} & \textbf{Minor 2} \\
+\midrule
+\endhead
+Berserker's & Power & Precision & Ferocity \\
+Zealot's & Power & Precision & Healing Power \\
+Soldier's & Power & Toughness & Vitality \\
+Valkyrie & Power & Vitality & Ferocity \\
+Harrier's & Power & Healing Power & Concentration \\
+Captain's & Precision & Power & Toughness \\
+Rampager's & Precision & Power & Condition Damage \\
+Assassin's & Precision & Power & Ferocity \\
+Knight's & Toughness & Power & Precision \\
+Cavalier's & Toughness & Power & Ferocity \\
+Nomad's & Toughness & Vitality & Healing Power \\
+Settler's & Toughness & Condition Damage & Healing Power \\
+Giver's & Toughness & Healing Power & Concentration \\
+Sentinel's & Vitality & Power & Toughness \\
+Shaman's & Vitality & Condition Damage & Healing Power \\
+Sinister & Condition Damage & Power & Precision \\
+Carrion & Condition Damage & Power & Vitality \\
+Rabid & Condition Damage & Precision & Toughness \\
+Dire & Condition Damage & Toughness & Vitality \\
+Apostate's & Condition Damage & Toughness & Healing Power \\
+Bringer's & Expertise & Precision & Vitality \\
+Cleric's & Healing Power & Power & Toughness \\
+Magi's & Healing Power & Precision & Vitality \\
+Apothecary's & Healing Power & Toughness & Condition Damage \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Quadruple-Attribute (2 Major, 2 Minor)}
+
+\begin{center}
+\small
+\begin{longtable}{lllll}
+\toprule
+\textbf{Name} & \textbf{Major 1} & \textbf{Major 2} & \textbf{Minor 1} & \textbf{Minor 2} \\
+\midrule
+\endhead
+Commander's & Power & Precision & Toughness & Concentration \\
+Demolisher & Power & Precision & Toughness & Ferocity \\
+Marauder & Power & Precision & Vitality & Ferocity \\
+Vigilant & Power & Toughness & Concentration & Expertise \\
+Crusader & Power & Toughness & Ferocity & Healing Power \\
+Wanderer's & Power & Vitality & Toughness & Concentration \\
+Diviner's & Power & Concentration & Precision & Ferocity \\
+Dragon's & Power & Ferocity & Precision & Vitality \\
+Viper's & Power & Condition Damage & Precision & Expertise \\
+Grieving & Power & Condition Damage & Precision & Ferocity \\
+Marshal's & Power & Healing Power & Precision & Condition Damage \\
+Seraph & Precision & Condition Damage & Concentration & Healing Power \\
+Trailblazer's & Toughness & Condition Damage & Vitality & Expertise \\
+Minstrel's & Toughness & Healing Power & Vitality & Concentration \\
+Ritualist's & Vitality & Condition Damage & Concentration & Expertise \\
+Plaguedoctor's & Vitality & Condition Damage & Healing Power & Concentration \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\section{Celestial (WvW Version)}
+
+All seven stats receive equal coefficients:
+Power, Precision, Ferocity, Vitality, Toughness, Healing Power, Condition Damage.
+
+\medskip\noindent
+\textbf{Note:} The WvW version of Celestial excludes Expertise and
+Concentration, which are included in the PvE version.
+
+\chapter{Cross-Reference Map}
+\label{app:crossref}
+
+\begin{center}
+\small
+\begin{longtable}{p{5.5cm}p{7cm}}
+\toprule
+\textbf{Lattice Book Concept} & \textbf{This Book Application} \\
+\midrule
+\endhead
+Cell with join-semilattice values &
+  Gear slot domains (\texttt{Finset StatCombo}, reverse inclusion) \\
+\addlinespace
+Propagator (monotone function) &
+  Rune, LinearGeq, LinearLeq, infusion-budget propagators \\
+\addlinespace
+Knaster--Tarski fixed point &
+  Propagation termination + correctness \\
+\addlinespace
+Belnap's 4-valued lattice &
+  3-valued SAT assignment lattice \\
+\addlinespace
+Product lattice &
+  Combined gear-slot domain lattice \\
+\addlinespace
+Detecting $\top$ (contradiction) &
+  Domain goes empty $\to$ prune this branch \\
+\addlinespace
+Monotone convergence &
+  Each B\&B node runs propagation to fixpoint \\
+\addlinespace
+\texttt{Cell.update} (join new info) &
+  Propagating constraints narrows domains \\
+\addlinespace
+Lattice height = termination bound &
+  Total domain size bounds propagation steps \\
+\addlinespace
+Set-of-possible-values lattice &
+  Exactly the domain-reduction lattice for gear slots \\
+\addlinespace
+Partial order &
+  Pareto dominance, subproblem refinement, vertex ordering \\
+\bottomrule
+\end{longtable}
+\end{center}
+
+% ════════════════════════════════════════════════════════════════════════════
+\end{document}

@@ -1,0 +1,2397 @@
+\documentclass[11pt, a4paper, oneside]{book}
+
+% ── Engine: XeLaTeX ──────────────────────────────────────────────────────────
+\usepackage{fontspec}
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+\setmonofont{DejaVu Sans Mono}[Scale=0.85]
+
+% ── Core packages ────────────────────────────────────────────────────────────
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, calc, decorations.pathmorphing, cd}
+\usepackage{tikz-cd}
+\usepackage{minted}
+\setminted{
+  fontsize=\small,
+  breaklines=true,
+  bgcolor=codebg,
+  frame=none,
+  framesep=2mm,
+  baselinestretch=1.15,
+}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=deepblue, urlcolor=midblue, citecolor=accentgreen}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tcolorbox}
+\tcbuselibrary{theorems, skins, breakable}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{epigraph}
+
+\usepackage{etoolbox}
+
+% ── Colour palette ───────────────────────────────────────────────────────────
+\definecolor{deepblue}{HTML}{1a3a5c}
+\definecolor{midblue}{HTML}{2e6da4}
+\definecolor{lightblue}{HTML}{d6e8f7}
+\definecolor{accentgreen}{HTML}{1e7a4e}
+\definecolor{lightgreen}{HTML}{d4edda}
+\definecolor{accentpurple}{HTML}{6a3fa0}
+\definecolor{lightpurple}{HTML}{ede0f7}
+\definecolor{accentorange}{HTML}{b85c00}
+\definecolor{lightorange}{HTML}{fde8cc}
+\definecolor{accentred}{HTML}{a83232}
+\definecolor{lightred}{HTML}{f7d6d6}
+\definecolor{codebg}{HTML}{f6f8fa}
+
+% ── Theorem-like environments ────────────────────────────────────────────────
+\newtcbtheorem[number within=chapter]{defn}{Definition}{
+  enhanced, breakable,
+  colback=lightblue, colframe=midblue,
+  colupper=black, collower=black,
+  fonttitle=\bfseries, coltitle=white,
+  separator sign={~---},
+}{def}
+
+\newtcbtheorem[number within=chapter]{thm}{Theorem}{
+  enhanced, breakable,
+  colback=lightgreen, colframe=accentgreen,
+  colupper=black, collower=black,
+  fonttitle=\bfseries, coltitle=white,
+  separator sign={~---},
+}{thm}
+
+\newtcbtheorem[number within=chapter]{lem}{Lemma}{
+  enhanced, breakable,
+  colback=lightgreen!60, colframe=accentgreen!70,
+  colupper=black, collower=black,
+  fonttitle=\bfseries, coltitle=white,
+  separator sign={~---},
+}{lem}
+
+\newtcbtheorem[number within=chapter]{prop}{Proposition}{
+  enhanced, breakable,
+  colback=lightgreen!60, colframe=accentgreen!70,
+  colupper=black, collower=black,
+  fonttitle=\bfseries, coltitle=white,
+  separator sign={~---},
+}{prop}
+
+\newtcbtheorem[number within=chapter]{cor}{Corollary}{
+  enhanced, breakable,
+  colback=lightgreen!40, colframe=accentgreen!50,
+  colupper=black, collower=black,
+  fonttitle=\bfseries, coltitle=white,
+  separator sign={~---},
+}{cor}
+
+\newtcolorbox{intuition}[1][]{
+  enhanced, breakable,
+  colback=lightpurple, colframe=accentpurple,
+  colupper=black, fonttitle=\bfseries, coltitle=white,
+  title={Intuition},
+  #1
+}
+
+\newtcolorbox{historical}[1][]{
+  enhanced, breakable,
+  colback=lightorange, colframe=accentorange,
+  colupper=black, fonttitle=\bfseries, coltitle=white,
+  title={Historical Note},
+  #1
+}
+
+\newtcolorbox{warning}[1][]{
+  enhanced, breakable,
+  colback=lightred, colframe=accentred,
+  colupper=black, fonttitle=\bfseries, coltitle=white,
+  title={Warning},
+  #1
+}
+
+\newtcolorbox{exercisebox}[1][]{
+  enhanced, breakable,
+  colback=lightorange!50, colframe=accentorange!70,
+  colupper=black, fonttitle=\bfseries, coltitle=white,
+  title={Exercise},
+  #1
+}
+
+\newtcolorbox{leanbox}[1][]{
+  enhanced, breakable,
+  colback=codebg, colframe=midblue!60,
+  colupper=black, fonttitle=\bfseries\ttfamily, coltitle=white,
+  title={Lean 4},
+  #1
+}
+
+% ── Custom macros ────────────────────────────────────────────────────────────
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\GF}{\mathrm{GF}}
+\newcommand{\Gal}{\operatorname{Gal}}
+\newcommand{\Aut}{\operatorname{Aut}}
+\newcommand{\Fix}{\operatorname{Fix}}
+\newcommand{\Inv}{\operatorname{Inv}}
+\newcommand{\Stab}{\operatorname{Stab}}
+\newcommand{\Orb}{\operatorname{Orb}}
+\newcommand{\ord}{\operatorname{ord}}
+\newcommand{\lcm}{\operatorname{lcm}}
+\newcommand{\id}{\operatorname{id}}
+\newcommand{\im}{\operatorname{im}}
+\renewcommand{\ker}{\operatorname{ker}}
+\newcommand{\Hom}{\operatorname{Hom}}
+\newcommand{\End}{\operatorname{End}}
+\newcommand{\charr}{\operatorname{char}}
+\renewcommand{\deg}{\operatorname{deg}}
+\newcommand{\Sym}{\mathfrak{S}}
+\newcommand{\Alt}{\mathfrak{A}}
+\newcommand{\normal}{\trianglelefteq}
+\newcommand{\iso}{\cong}
+\newcommand{\acts}{\curvearrowright}
+\newcommand{\lc}[1]{\texttt{#1}}
+\newcommand{\lean}[1]{\mintinline{lean}{#1}}
+
+% Fix: ensure section/chapter title colors don't bleed into body text
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{deepblue}}
+  {\chaptertitlename\ \thechapter}{20pt}{\Huge\color{deepblue}}[\color{black}]
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{deepblue}}
+  {\thesection}{1em}{}[\color{black}]
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{midblue}}
+  {\thesubsection}{1em}{}[\color{black}]
+
+% Global: ensure text is black after any tcolorbox
+\AfterEndEnvironment{defn}{\color{black}}
+\AfterEndEnvironment{thm}{\color{black}}
+\AfterEndEnvironment{lem}{\color{black}}
+\AfterEndEnvironment{prop}{\color{black}}
+\AfterEndEnvironment{cor}{\color{black}}
+\AfterEndEnvironment{intuition}{\color{black}}
+\AfterEndEnvironment{historical}{\color{black}}
+\AfterEndEnvironment{warning}{\color{black}}
+\AfterEndEnvironment{exercisebox}{\color{black}}
+\AfterEndEnvironment{leanbox}{\color{black}}
+\AfterEndEnvironment{minted}{\color{black}}
+
+% ── Headers/footers ──────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\itshape\leftmark}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Counter for exercises ────────────────────────────────────────────────────
+\newcounter{exercise}[chapter]
+\renewcommand{\theexercise}{\thechapter.\arabic{exercise}}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ── Title page ───────────────────────────────────────────────────────────────
+\begin{titlepage}
+\centering
+\vspace*{3cm}
+{\Huge\bfseries\color{deepblue} Galois Theory\\[0.3cm] for Programmers\par}
+\vspace{1cm}
+{\Large\color{midblue} From Symmetries to Unsolvability\\[0.2cm]
+in Lean\,4\par}
+\vspace{2cm}
+{\large A self-contained journey through abstract algebra,\\
+from group axioms to the insolvability of the quintic,\\
+with every definition formalized and every theorem proved.\par}
+\vspace{3cm}
+{\large\itshape Draft --- \today\par}
+\vfill
+\end{titlepage}
+
+% ── Front matter ─────────────────────────────────────────────────────────────
+\frontmatter
+\tableofcontents
+
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
+
+This book tells the most dramatic story in the history of mathematics, and asks
+you to formalize it in a proof assistant.
+
+The story begins in the 1770s, when Joseph-Louis Lagrange noticed that the
+roots of a polynomial equation have \emph{symmetries}---you can rearrange them
+in certain ways without breaking the algebraic relationships between them. Over
+the next sixty years, a succession of mathematicians---Gauss, Abel, Galois,
+Cauchy---gradually uncovered a deep connection between these symmetries and the
+solvability of the equation. The climax came in 1832, when Évariste Galois,
+a twenty-year-old political radical in Paris, wrote down the definitive answer
+the night before he was killed in a duel: a polynomial equation can be solved
+by radicals if and only if its \emph{group of symmetries} has a certain
+structural property called \emph{solvability}.
+
+This is not just a historical curiosity. The mathematical framework Galois
+created---now called Galois theory---turns out to be fundamental to modern
+cryptography (the AES encryption algorithm does arithmetic in a Galois field),
+coding theory (Reed-Solomon codes work over finite field extensions), and the
+deepest parts of number theory and algebraic geometry.
+
+\paragraph{What this book is.}
+A self-contained, zero-to-hero treatment of Galois theory for programmers, with
+all definitions, theorems, and proofs formalized in Lean\,4. No prior knowledge
+of abstract algebra is assumed. If you can write a function and follow a logical
+argument, you have everything you need. Every concept is accompanied by:
+\begin{itemize}[nosep]
+\item A \emph{historical narrative} explaining where the idea came from and who
+      discovered it.
+\item A \emph{formal definition} in standard mathematical notation.
+\item A \emph{Lean\,4 formalization}: a typeclass, structure, or theorem
+      statement that you can type-check.
+\item \emph{Worked examples} computed by hand and verified in Lean.
+\item \emph{Exercises} ranging from ``prove this basic property'' to
+      ``formalize this entire section.''
+\end{itemize}
+
+\paragraph{What this book is not.}
+A graduate algebra textbook. We sacrifice generality for clarity: we work with
+finite groups and finite-degree field extensions, we avoid category theory
+(though we point out connections), and we prefer explicit computation over
+abstract elegance when the two conflict. The goal is understanding, not
+maximal generality.
+
+\paragraph{Prerequisites.}
+Comfort with Lean\,4 syntax: defining inductive types, writing functions,
+using tactics (\lc{intro}, \lc{rfl}, \lc{simp}, \lc{omega}, \lc{cases},
+\lc{induction}). No prior abstract algebra.
+
+\paragraph{Lean\,4 setup.}
+All code in this book is written for vanilla Lean\,4 (no Mathlib dependency).
+We build every algebraic structure from scratch so you see exactly what's
+happening inside the typeclasses.
+
+\mainmatter
+\color{black}  % Ensure body text starts black
+
+% ══════════════════════════════════════════════════════════════════════════════
+\part{The Algebraic Toolkit}
+% ══════════════════════════════════════════════════════════════════════════════
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Groups --- The Algebra of Symmetry}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``The art of doing mathematics consists in finding that special case
+which contains all the germs of generality.''}{\textit{David Hilbert}}
+
+\section{Where Groups Come From}
+
+In the 1770s, Joseph-Louis Lagrange was studying a question that had occupied
+mathematicians for centuries: \emph{how do you solve polynomial equations?}
+
+The quadratic formula was ancient knowledge. The cubic and quartic formulas had
+been discovered in the 1500s by the Italian mathematicians del Ferro,
+Tartaglia, Cardano, and Ferrari---amid a web of secrecy, betrayal, and public
+mathematical duels that reads more like a Renaissance thriller than a
+mathematics paper. But for degree five and higher, nobody could find a formula.
+
+\begin{historical}[title={The Italian Algebraists}]
+Scipione del Ferro secretly discovered the cubic formula around 1515 but told
+only his student Antonio Fior. When Niccolò Tartaglia independently found the
+formula in 1535, Fior challenged him to a public contest. Tartaglia won
+decisively, then shared his secret with Gerolamo Cardano under a sworn oath of
+secrecy. Cardano later published it anyway (in his 1545 \textit{Ars Magna}),
+claiming del Ferro's priority justified breaking the oath. Tartaglia was
+furious. The quartic formula was found by Cardano's student Ludovico Ferrari,
+who then challenged Tartaglia to another public contest---and won.
+
+This entire soap opera happened because a general formula for solving equations
+was considered the ultimate mathematical achievement. The quest for the quintic
+formula would consume mathematicians for the next 250 years.
+\end{historical}
+
+Lagrange's approach was novel: instead of trying to find the quintic formula
+directly, he asked \emph{why} the existing formulas worked. He noticed that
+the key step in solving a cubic or quartic is finding an expression in the
+roots that takes on fewer values when the roots are \emph{permuted}. For
+example, if a cubic has roots $r_1, r_2, r_3$, the expression
+$r_1 + \omega r_2 + \omega^2 r_3$ (where $\omega = e^{2\pi i/3}$) takes
+only three values under all six permutations of the roots. This ``reduction
+in the number of values'' is what makes the equation solvable.
+
+Lagrange didn't have the word ``group''---that term wouldn't be coined until
+Galois used it in 1832---but he was seeing \emph{symmetry}: the permutations
+of the roots, and the structure of how those permutations compose with each
+other, control whether the equation can be solved.
+
+\begin{intuition}
+Think of a group as a mathematical way to talk about \emph{symmetry}. The
+symmetries of any object---a geometric shape, a set of roots, a crystal
+structure---form a group. The group captures \emph{which rearrangements are
+possible} and \emph{how they compose}.
+\end{intuition}
+
+\section{The Group Axioms}
+
+After Lagrange, it took nearly a century for the abstract concept of a
+``group'' to crystallize. Cauchy (1815) studied permutation groups
+systematically. Cayley (1854) gave the first abstract definition. But it was
+only in the late 1800s, through the work of Kronecker, Weber, and Frobenius,
+that the modern axioms became standard.
+
+\begin{defn}{Group}{group}
+A \textbf{group} is a set $G$ together with a binary operation
+$\cdot : G \times G \to G$ satisfying:
+\begin{enumerate}[nosep, label=(\roman*)]
+\item \textbf{Associativity:}
+  $(a \cdot b) \cdot c = a \cdot (b \cdot c)$ for all $a, b, c \in G$.
+\item \textbf{Identity:} There exists an element $e \in G$ such that
+  $e \cdot a = a \cdot e = a$ for all $a \in G$.
+\item \textbf{Inverses:} For each $a \in G$, there exists $a^{-1} \in G$
+  such that $a \cdot a^{-1} = a^{-1} \cdot a = e$.
+\end{enumerate}
+If additionally $a \cdot b = b \cdot a$ for all $a, b \in G$, the group is
+called \textbf{abelian} (or \textbf{commutative}).
+\end{defn}
+
+\begin{historical}[title={Why ``abelian''?}]
+Named after Niels Henrik Abel (1802--1829), the Norwegian mathematician who
+proved the general quintic is unsolvable by radicals. We will meet Abel's
+theorem in Chapter~10. He died of tuberculosis at 26, in poverty, two days
+before a letter arrived offering him a prestigious professorship in Berlin.
+\end{historical}
+
+\subsection{Lean\,4 Formalization}
+
+We define groups as a typeclass, just as Lean's standard library defines
+\lc{Add} or \lc{Mul}:
+
+\begin{leanbox}
+\begin{minted}{lean}
+class Group (G : Type) where
+  mul : G → G → G
+  one : G
+  inv : G → G
+  mul_assoc : ∀ a b c : G, mul (mul a b) c = mul a (mul b c)
+  one_mul   : ∀ a : G, mul one a = a
+  mul_one   : ∀ a : G, mul a one = a
+  inv_mul   : ∀ a : G, mul (inv a) a = one
+  mul_inv   : ∀ a : G, mul a (inv a) = one
+
+-- Notation
+instance [Group G] : Mul G where mul := Group.mul
+instance [Group G] : One G where one := Group.one
+instance [Group G] : Inv G where inv := Group.inv
+\end{minted}
+\end{leanbox}
+
+\begin{intuition}
+Notice the parallel with programming interfaces. A \lc{Group G} instance
+is exactly an \emph{implementation} of the group interface for the type
+\lc{G}. The axioms (\lc{mul\_assoc}, \lc{one\_mul}, etc.) are
+\emph{contracts} that any implementation must satisfy---and in Lean, satisfying
+a contract means providing a \emph{proof}.
+\end{intuition}
+
+\section{First Examples}
+
+\subsection{The Integers Under Addition}
+
+The simplest infinite group: $(\Z, +)$ with identity $0$ and inverse $-n$.
+
+\begin{leanbox}
+\begin{minted}{lean}
+instance : Group Int where
+  mul := (· + ·)
+  one := 0
+  inv := (- ·)
+  mul_assoc := Int.add_assoc
+  one_mul   := Int.zero_add
+  mul_one   := Int.add_zero
+  inv_mul   := Int.neg_add_cancel
+  mul_inv   := Int.add_neg_cancel
+\end{minted}
+\end{leanbox}
+
+Every axiom is discharged by a single lemma from Lean's standard library. This
+is because the integers were \emph{designed} with these properties in mind---the
+group axioms are capturing something that was always there.
+
+\subsection{Modular Arithmetic --- $\Z/n\Z$}
+
+\begin{historical}[title={Gauss and the \textit{Disquisitiones}}]
+Carl Friedrich Gauss published his \textit{Disquisitiones Arithmeticae} in 1801,
+at the age of 24. It systematized the theory of modular arithmetic (``clock
+arithmetic'') and introduced the notation $a \equiv b \pmod{n}$. The
+\textit{Disquisitiones} is one of the most influential mathematics books ever
+written---it transformed number theory from a collection of scattered results
+into a coherent discipline. Gauss didn't use the word ``group,'' but the
+structures he studied---integers modulo $n$, primitive roots, quadratic
+residues---are all group-theoretic.
+\end{historical}
+
+The group $\Z/n\Z$ consists of the integers $\{0, 1, \ldots, n-1\}$ with
+addition modulo $n$. In Lean, this is naturally \lc{Fin n}:
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- We represent ℤ/nℤ as Fin n (for n ≥ 1)
+-- Fin n = { val : Nat // val < n }
+-- Addition is modular: (a + b) mod n
+
+def Fin.addMod (a b : Fin n) : Fin n :=
+  ⟨(a.val + b.val) % n, Nat.mod_lt _ (by omega)⟩
+
+def Fin.negMod (a : Fin n) (h : n > 0) : Fin n :=
+  ⟨(n - a.val) % n, Nat.mod_lt _ h⟩
+\end{minted}
+\end{leanbox}
+
+\begin{exercisebox}[title={Exercise 1.1}]
+\stepcounter{exercise}
+Prove that \lc{Fin n} with \lc{addMod} satisfies the group axioms for any
+$n \geq 1$. The hardest part is associativity---you will need properties of
+the modular arithmetic operations. \emph{Hint:} use \lc{Nat.add\_mod} and
+\lc{omega}.
+\end{exercisebox}
+
+\subsection{Symmetries of a Triangle --- $S_3$}
+
+The \textbf{symmetric group} $S_n$ is the group of all permutations of
+$n$ elements. $S_3$---the symmetries of $\{1, 2, 3\}$---is the smallest
+non-abelian group (6 elements, and the order of multiplication matters).
+
+Think of it as the symmetries of an equilateral triangle: three rotations
+(by $0°$, $120°$, $240°$) and three reflections.
+
+\begin{center}
+\begin{tikzpicture}[scale=1.2]
+  \coordinate (A) at (90:1.5);
+  \coordinate (B) at (210:1.5);
+  \coordinate (C) at (330:1.5);
+  \draw[thick] (A) -- (B) -- (C) -- cycle;
+  \node[above] at (A) {$1$};
+  \node[below left] at (B) {$2$};
+  \node[below right] at (C) {$3$};
+  \node[below=1.5cm] {$e$ (identity)};
+\end{tikzpicture}
+\hspace{2cm}
+\begin{tikzpicture}[scale=1.2]
+  \coordinate (A) at (90:1.5);
+  \coordinate (B) at (210:1.5);
+  \coordinate (C) at (330:1.5);
+  \draw[thick] (A) -- (B) -- (C) -- cycle;
+  \node[above] at (A) {$2$};
+  \node[below left] at (B) {$3$};
+  \node[below right] at (C) {$1$};
+  \draw[->, thick, accentpurple] (0,0) ++(20:0.4) arc (20:100:0.4);
+  \node[below=1.5cm] {$r$ (rotate $120°$)};
+\end{tikzpicture}
+\end{center}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- S₃ as an explicit enumeration
+inductive S3 where
+  | e                    -- identity
+  | r                    -- rotation 120°
+  | r2                   -- rotation 240°
+  | s                    -- reflection (fixes vertex 1)
+  | sr                   -- reflection (fixes vertex 3)
+  | sr2                  -- reflection (fixes vertex 2)
+  deriving DecidableEq, Repr
+
+namespace S3
+
+-- Multiplication table (composition of symmetries)
+def mul : S3 → S3 → S3
+  | e,   x   => x
+  | x,   e   => x
+  | r,   r   => r2
+  | r,   r2  => e
+  | r2,  r   => e
+  | r2,  r2  => r
+  | s,   s   => e
+  | s,   r   => sr2
+  | s,   r2  => sr
+  | r,   s   => sr
+  | r2,  s   => sr2
+  | sr,  sr  => e
+  | sr2, sr2 => e
+  | s,   sr  => r
+  | s,   sr2 => r2
+  | sr,  s   => r2
+  | sr2, s   => r
+  | r,   sr  => s
+  | r,   sr2 => sr
+  | r2,  sr  => sr2
+  | r2,  sr2 => s
+  | sr,  r   => s
+  | sr,  r2  => sr2
+  | sr2, r   => sr
+  | sr2, r2  => s
+  | sr,  sr2 => r2
+  | sr2, sr  => r
+
+def inv : S3 → S3
+  | e   => e
+  | r   => r2
+  | r2  => r
+  | s   => s
+  | sr  => sr
+  | sr2 => sr2
+
+end S3
+\end{minted}
+\end{leanbox}
+
+The key observation: $S_3$ is \textbf{not abelian}. We have $r \cdot s = sr$
+but $s \cdot r = sr2$, so $r \cdot s \neq s \cdot r$. The order of
+operations matters---just as it does for geometric transformations (rotating
+then reflecting is different from reflecting then rotating).
+
+\begin{exercisebox}[title={Exercise 1.2}]
+\stepcounter{exercise}
+Prove that \lc{S3} with the multiplication table above satisfies the group
+axioms. Since \lc{S3} is finite with 6 elements, associativity can be proved
+by exhaustive case analysis: \lc{decide} or pattern matching on all $6^3 = 216$
+triples. \emph{Warning:} this is tedious but instructive. Consider using
+\lc{native\_decide} for efficiency.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 1.3}]
+\stepcounter{exercise}
+Prove that $S_3$ is not abelian by exhibiting a concrete counterexample:
+find $a, b \in S_3$ such that $a \cdot b \neq b \cdot a$, and prove the
+inequality in Lean.
+\end{exercisebox}
+
+\section{Euler and Modular Exponentiation}
+
+\begin{historical}[title={Euler's Theorem}]
+Leonhard Euler (1707--1783) is the most prolific mathematician in history,
+with over 800 published papers. Among his countless contributions, his work
+on modular arithmetic laid the foundations for what we now recognize as group
+theory. Euler's theorem---$a^{\varphi(n)} \equiv 1 \pmod{n}$ for $\gcd(a,n)=1$%
+---is, in modern language, a consequence of Lagrange's theorem applied to the
+multiplicative group $(\Z/n\Z)^\times$. Euler proved it by direct combinatorial
+reasoning in 1736, more than a century before the group-theoretic framework
+existed to express it cleanly.
+
+Euler's totient function $\varphi(n)$ counts the integers from 1 to $n$ that
+are coprime to $n$. In group-theoretic terms, $\varphi(n) = |(\Z/n\Z)^\times|$%
+---the order of the multiplicative group modulo $n$.
+\end{historical}
+
+We won't prove Euler's theorem yet---it will fall out as an immediate
+corollary of Lagrange's theorem in Chapter~2. For now, let's just implement
+modular exponentiation, which is the computational heart of RSA encryption:
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- Fast modular exponentiation by repeated squaring
+def modPow (base exp modulus : Nat) : Nat :=
+  if modulus ≤ 1 then 0
+  else go base exp modulus 1
+where
+  go (base exp modulus acc : Nat) : Nat :=
+    if exp = 0 then acc % modulus
+    else
+      let base' := (base * base) % modulus
+      let acc'  := if exp % 2 = 1 then (acc * base) % modulus else acc
+      go base' (exp / 2) modulus acc'
+  termination_by exp
+\end{minted}
+\end{leanbox}
+
+\section{Homomorphisms --- Structure-Preserving Maps}
+
+A \emph{homomorphism} between groups is a function that ``respects'' the group
+operation. This is the fundamental notion of ``sameness'' in algebra.
+
+\begin{defn}{Group Homomorphism}{homomorphism}
+Let $(G, \cdot_G)$ and $(H, \cdot_H)$ be groups. A function
+$\varphi : G \to H$ is a \textbf{homomorphism} if
+\[
+  \varphi(a \cdot_G b) = \varphi(a) \cdot_H \varphi(b)
+  \qquad \text{for all } a, b \in G.
+\]
+If $\varphi$ is additionally a bijection, it is an \textbf{isomorphism}, and
+we write $G \iso H$.
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+structure GroupHom (G H : Type) [Group G] [Group H] where
+  toFun : G → H
+  map_mul : ∀ a b : G, toFun (a * b) = toFun a * toFun b
+
+-- A homomorphism preserves the identity
+theorem GroupHom.map_one [Group G] [Group H] (φ : GroupHom G H) :
+    φ.toFun 1 = 1 := by
+  have h := φ.map_mul 1 1
+  simp [mul_one] at h  -- Uses 1 * 1 = 1 on the left
+  -- Now h : φ.toFun 1 = φ.toFun 1 * φ.toFun 1
+  -- Multiplying both sides by (φ.toFun 1)⁻¹ gives the result
+  sorry -- Exercise for the reader
+
+-- A homomorphism preserves inverses
+theorem GroupHom.map_inv [Group G] [Group H] (φ : GroupHom G H) (a : G) :
+    φ.toFun a⁻¹ = (φ.toFun a)⁻¹ := by
+  sorry -- Exercise: use map_mul and map_one
+\end{minted}
+\end{leanbox}
+
+\begin{exercisebox}[title={Exercise 1.4}]
+\stepcounter{exercise}
+Fill in both \lc{sorry}s above: prove that a group homomorphism preserves the
+identity and preserves inverses. \emph{Hint:} For \lc{map\_one}, start with
+the equation $\varphi(1) = \varphi(1 \cdot 1) = \varphi(1) \cdot \varphi(1)$
+and multiply both sides on the right by $\varphi(1)^{-1}$.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 1.5}]
+\stepcounter{exercise}
+Define a group homomorphism $\varphi : \Z \to \Z/n\Z$ by
+$\varphi(k) = k \bmod n$, and prove \lc{map\_mul} in Lean.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Subgroups, Cosets, and Lagrange's Theorem}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``It is not knowledge, but the act of learning; not possession, but
+the act of getting there, which grants the greatest enjoyment.''}%
+{\textit{Carl Friedrich Gauss}}
+
+\section{Subgroups}
+
+A \textbf{subgroup} is a subset of a group that is itself a group under the
+same operation. This is the group-theoretic analogue of a ``sub-interface''
+or ``inherited class''---it has all the structure of the parent, just on
+a smaller set.
+
+\begin{defn}{Subgroup}{subgroup}
+Let $G$ be a group. A subset $H \subseteq G$ is a \textbf{subgroup} (written
+$H \leq G$) if:
+\begin{enumerate}[nosep, label=(\roman*)]
+\item \textbf{Identity:} $e \in H$.
+\item \textbf{Closure:} If $a, b \in H$, then $a \cdot b \in H$.
+\item \textbf{Inverses:} If $a \in H$, then $a^{-1} \in H$.
+\end{enumerate}
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+structure Subgroup (G : Type) [Group G] where
+  carrier : Set G
+  one_mem : (1 : G) ∈ carrier
+  mul_mem : ∀ {a b : G}, a ∈ carrier → b ∈ carrier → a * b ∈ carrier
+  inv_mem : ∀ {a : G}, a ∈ carrier → a⁻¹ ∈ carrier
+
+-- Membership notation
+instance [Group G] : Membership G (Subgroup G) where
+  mem a H := a ∈ H.carrier
+\end{minted}
+\end{leanbox}
+
+\paragraph{Examples.}
+\begin{itemize}[nosep]
+\item The \textbf{trivial subgroup} $\{e\} \leq G$ and $G \leq G$ itself.
+\item The even integers $2\Z \leq \Z$ (under addition).
+\item The rotations $\{e, r, r^2\} \leq S_3$ (a subgroup of order 3).
+\item For any element $g \in G$, the \textbf{cyclic subgroup}
+      $\langle g \rangle = \{g^n : n \in \Z\}$ is a subgroup.
+\end{itemize}
+
+\section{Cosets and Lagrange's Theorem}
+
+The key idea: given a subgroup $H \leq G$, we can ``translate'' $H$ by
+multiplying all its elements by some fixed group element. The resulting set
+is called a \emph{coset}.
+
+\begin{defn}{Coset}{coset}
+Let $H \leq G$ and $a \in G$. The \textbf{left coset} of $H$ by $a$ is
+\[
+  aH \;=\; \{a \cdot h : h \in H\}.
+\]
+\end{defn}
+
+The crucial property of cosets is that they \emph{partition} $G$: every element
+of $G$ belongs to exactly one left coset of $H$. Moreover, all cosets have the
+same size as $H$ (because the map $h \mapsto ah$ is a bijection $H \to aH$).
+
+\begin{thm}{Lagrange's Theorem}{lagrange}
+Let $G$ be a finite group and $H \leq G$. Then $|H|$ divides $|G|$.
+Moreover, the number of distinct left cosets of $H$ in $G$ is
+$[G : H] = |G| / |H|$.
+\end{thm}
+
+\begin{proof}
+The left cosets of $H$ partition $G$ (this requires showing that the coset
+relation $a \sim b \iff a^{-1}b \in H$ is an equivalence relation). Each coset
+has $|H|$ elements (the map $h \mapsto ah$ is injective). If there are $k$
+cosets, then $|G| = k \cdot |H|$, so $|H|$ divides $|G|$.
+\end{proof}
+
+\begin{historical}[title={Lagrange and the ``Theorem''}]
+Lagrange never stated this theorem in the language of groups---the concept
+didn't exist yet. What he showed, in his 1770--1771 \textit{Réflexions sur
+la résolution algébrique des équations}, was that certain expressions in the
+roots of a polynomial take on a number of distinct values that divides $n!$
+(where $n$ is the degree). This is Lagrange's theorem applied to the symmetric
+group $S_n$. The abstract formulation had to wait for Galois, Cayley, and
+their successors.
+\end{historical}
+
+\subsection{Corollaries}
+
+Lagrange's theorem has immediate and powerful consequences:
+
+\begin{cor}{Order of an Element Divides Group Order}{order-divides}
+If $G$ is a finite group and $g \in G$, then the order of $g$ (the smallest
+positive $n$ such that $g^n = e$) divides $|G|$.
+\end{cor}
+
+\begin{proof}
+The cyclic subgroup $\langle g \rangle$ has order equal to $\ord(g)$, and
+$\langle g \rangle \leq G$, so $\ord(g) \mid |G|$ by Lagrange.
+\end{proof}
+
+\begin{cor}{Euler's Theorem}{euler}
+If $\gcd(a, n) = 1$, then $a^{\varphi(n)} \equiv 1 \pmod{n}$.
+\end{cor}
+
+\begin{proof}
+The element $\bar{a} \in (\Z/n\Z)^\times$ has some order $d$ dividing
+$|(\Z/n\Z)^\times| = \varphi(n)$ by Corollary~\ref{cor:order-divides}.
+So $\varphi(n) = dk$ for some $k$, and
+$a^{\varphi(n)} = a^{dk} = (a^d)^k \equiv 1^k = 1$.
+\end{proof}
+
+\begin{cor}{Fermat's Little Theorem}{fermat-little}
+If $p$ is prime and $p \nmid a$, then $a^{p-1} \equiv 1 \pmod{p}$.
+\end{cor}
+
+\begin{proof}
+When $p$ is prime, $\varphi(p) = p - 1$, so this is Euler's theorem
+specialized to $n = p$.
+\end{proof}
+
+\begin{historical}[title={Euler Proves Fermat}]
+Fermat stated his ``little theorem'' in 1640 (in a letter to Frénicle de
+Bessy) without proof. Euler gave the first published proof in 1736, and
+later generalized it to the theorem bearing his own name. The fact that
+Fermat's and Euler's theorems are both one-line corollaries of Lagrange's
+theorem illustrates the power of the group-theoretic framework: results that
+required individual ingenuity become routine consequences of general structure.
+\end{historical}
+
+\section{Normal Subgroups and Quotient Groups}
+
+Not every subgroup allows us to form a quotient group. The subgroups that do
+are called \emph{normal}.
+
+\begin{defn}{Normal Subgroup}{normal}
+A subgroup $N \leq G$ is \textbf{normal} (written $N \normal G$) if
+$gNg^{-1} = N$ for all $g \in G$, i.e., conjugation by any element of $G$
+maps $N$ to itself.
+
+Equivalently: $aN = Na$ for all $a \in G$ (left cosets equal right cosets).
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+structure NormalSubgroup (G : Type) [Group G] extends Subgroup G where
+  conj_mem : ∀ {n : G}, n ∈ carrier → ∀ g : G,
+    g * n * g⁻¹ ∈ carrier
+\end{minted}
+\end{leanbox}
+
+Why normality matters: when $N \normal G$, the set of cosets $G/N = \{aN : a \in G\}$
+forms a group under the operation $(aN)(bN) = (ab)N$. This is well-defined
+precisely because $N$ is normal. We call $G/N$ the \textbf{quotient group}.
+
+\begin{defn}{Quotient Group}{quotient-group}
+For $N \normal G$, the \textbf{quotient group} $G/N$ is the set of left
+cosets of $N$, with multiplication $(aN)(bN) = (ab)N$.
+\end{defn}
+
+The quotient group $G/N$ has $|G/N| = |G|/|N| = [G:N]$ elements.
+
+\begin{thm}{First Isomorphism Theorem}{first-iso}
+If $\varphi : G \to H$ is a group homomorphism, then:
+\begin{enumerate}[nosep, label=(\roman*)]
+\item $\ker(\varphi) = \{g \in G : \varphi(g) = e_H\}$ is a normal subgroup of $G$.
+\item $\im(\varphi) = \{\varphi(g) : g \in G\}$ is a subgroup of $H$.
+\item $G / \ker(\varphi) \iso \im(\varphi)$.
+\end{enumerate}
+\end{thm}
+
+This theorem is the workhorse of group theory---it says that every
+homomorphism factors as a projection (onto a quotient) followed by an
+injection (into the target).
+
+\begin{exercisebox}[title={Exercise 2.1}]
+\stepcounter{exercise}
+Compute all subgroups of $S_3$ and determine which are normal.
+
+\emph{Answer (verify in Lean):} $S_3$ has 6 subgroups: $\{e\}$,
+$\langle s \rangle$, $\langle sr \rangle$, $\langle sr^2 \rangle$,
+$\langle r \rangle = \{e, r, r^2\}$, and $S_3$ itself.
+Of these, only $\{e\}$, $\langle r \rangle$, and $S_3$ are normal.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 2.2}]
+\stepcounter{exercise}
+Prove in Lean that $\ker(\varphi)$ is a normal subgroup for any group
+homomorphism $\varphi$.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{The Subgroup Lattice --- Order Theory Interlude}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``In science there is only physics; all the rest is stamp
+collecting.''}{\textit{Ernest Rutherford}\\[2pt]
+\small (Mathematicians disagree.)}
+
+\section{Why Order Theory?}
+
+In Chapter~2 we computed the subgroups of $S_3$. Now step back and look at the
+\emph{structure} of how those subgroups relate to each other. We can order them
+by inclusion: $\{e\} \subseteq \langle s \rangle \subseteq S_3$, and so on.
+The resulting structure turns out to be extraordinarily important---it is a
+\emph{lattice}, and the correspondence at the heart of Galois theory
+(Chapter~8) is a bijection between two such lattices.
+
+\begin{historical}[title={Dedekind and the Birth of Lattice Theory}]
+Richard Dedekind (1831--1916) was one of the most important algebraists of the
+19th century. His contributions include the modern definition of ideals in
+rings, the Dedekind cut construction of the real numbers, and---most relevant
+for us---the recognition (around 1897) that the subgroups of a group, ordered
+by inclusion, form a structure with well-defined ``meet'' and ``join''
+operations. He called these structures \textit{Dualgruppen}; the term
+``lattice'' was introduced later by Garrett Birkhoff in the 1930s.
+
+Dedekind was also a close collaborator of Cantor and one of the first to
+recognize the importance of set-theoretic thinking in algebra. His influence
+on the development of abstract algebra is hard to overstate---Emmy Noether,
+who revolutionized algebra in the 1920s, explicitly credited Dedekind as her
+primary inspiration.
+\end{historical}
+
+\section{Partial Orders}
+
+\begin{defn}{Partial Order}{partial-order}
+A \textbf{partial order} on a set $P$ is a binary relation $\leq$ that is:
+\begin{enumerate}[nosep, label=(\roman*)]
+\item \textbf{Reflexive:} $a \leq a$ for all $a \in P$.
+\item \textbf{Antisymmetric:} If $a \leq b$ and $b \leq a$, then $a = b$.
+\item \textbf{Transitive:} If $a \leq b$ and $b \leq c$, then $a \leq c$.
+\end{enumerate}
+The pair $(P, \leq)$ is called a \textbf{partially ordered set} (\textbf{poset}).
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+class PartialOrder (P : Type) where
+  le : P → P → Prop
+  le_refl : ∀ a : P, le a a
+  le_antisymm : ∀ a b : P, le a b → le b a → a = b
+  le_trans : ∀ a b c : P, le a b → le b c → le a c
+
+instance [PartialOrder P] : LE P where le := PartialOrder.le
+\end{minted}
+\end{leanbox}
+
+\paragraph{Examples.}
+\begin{itemize}[nosep]
+\item $(\N, \leq)$ --- the usual ordering on natural numbers.
+\item $(\N, \mid)$ --- divisibility. $a \leq b$ means $a \mid b$.
+      This is a partial order but not a total order: $2 \nmid 3$ and
+      $3 \nmid 2$.
+\item The powerset $(\mathcal{P}(S), \subseteq)$ --- subsets ordered by inclusion.
+\item The subgroups of $G$, ordered by inclusion.
+\end{itemize}
+
+\subsection{Hasse Diagrams}
+
+A \textbf{Hasse diagram} is a visual representation of a poset: elements are
+nodes, and we draw an edge from $a$ up to $b$ whenever $a < b$ and there is
+no $c$ with $a < c < b$ (a ``covering relation'').
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=1.2cm,
+    every node/.style={draw, rounded corners, fill=lightblue, minimum width=1.8cm,
+    font=\small}
+  ]
+  \node (S3) {$S_3$};
+  \node[below left=1.2cm and 0.2cm of S3] (r) {$\langle r \rangle$};
+  \node[below left=1.2cm and -1.5cm of S3] (s) {$\langle s \rangle$};
+  \node[below right=1.2cm and -1.5cm of S3] (sr) {$\langle sr \rangle$};
+  \node[below right=1.2cm and 0.2cm of S3] (sr2) {$\langle sr^2 \rangle$};
+  \node[below=3.5cm of S3] (e) {$\{e\}$};
+  \draw[thick] (S3) -- (r);
+  \draw[thick] (S3) -- (s);
+  \draw[thick] (S3) -- (sr);
+  \draw[thick] (S3) -- (sr2);
+  \draw[thick] (r) -- (e);
+  \draw[thick] (s) -- (e);
+  \draw[thick] (sr) -- (e);
+  \draw[thick] (sr2) -- (e);
+  \node[draw=none, fill=none, below=0.3cm of e] {Subgroup lattice of $S_3$};
+\end{tikzpicture}
+\end{center}
+
+\section{Lattices}
+
+\begin{defn}{Lattice}{lattice}
+A \textbf{lattice} is a poset $(L, \leq)$ in which every pair of elements
+$a, b \in L$ has:
+\begin{itemize}[nosep]
+\item A \textbf{greatest lower bound} (meet, infimum): $a \sqcap b$, satisfying
+  $a \sqcap b \leq a$, $a \sqcap b \leq b$, and if $c \leq a$ and $c \leq b$
+  then $c \leq a \sqcap b$.
+\item A \textbf{least upper bound} (join, supremum): $a \sqcup b$, satisfying
+  $a \leq a \sqcup b$, $b \leq a \sqcup b$, and if $a \leq c$ and $b \leq c$
+  then $a \sqcup b \leq c$.
+\end{itemize}
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+class Lattice (L : Type) extends PartialOrder L where
+  meet : L → L → L
+  join : L → L → L
+  meet_le_left  : ∀ a b : L, le (meet a b) a
+  meet_le_right : ∀ a b : L, le (meet a b) b
+  le_meet : ∀ a b c : L, le c a → le c b → le c (meet a b)
+  le_join_left  : ∀ a b : L, le a (join a b)
+  le_join_right : ∀ a b : L, le b (join a b)
+  join_le : ∀ a b c : L, le a c → le b c → le (join a b) c
+
+instance [Lattice L] : Inf L where inf := Lattice.meet
+instance [Lattice L] : Sup L where sup := Lattice.join
+\end{minted}
+\end{leanbox}
+
+\subsection{The Subgroup Lattice}
+
+\begin{thm}{Subgroups Form a Complete Lattice}{subgroup-lattice}
+For any group $G$, the set of subgroups of $G$, ordered by inclusion, forms
+a complete lattice:
+\begin{itemize}[nosep]
+\item $H_1 \sqcap H_2 = H_1 \cap H_2$ (intersection of subgroups is a subgroup).
+\item $H_1 \sqcup H_2 = \langle H_1 \cup H_2 \rangle$ (subgroup generated by the union).
+\end{itemize}
+\end{thm}
+
+\begin{proof}
+The intersection of any family of subgroups is a subgroup (check: the identity
+is in all of them; if $a, b$ are in all of them, so is $ab$; if $a$ is in all
+of them, so is $a^{-1}$). This gives arbitrary meets. The join is defined as
+the intersection of all subgroups containing $H_1 \cup H_2$---this exists
+because $G$ itself is such a subgroup. Arbitrary meets and a top element give
+a complete lattice.
+\end{proof}
+
+\begin{warning}
+The join of two subgroups is \emph{not} their union. The union of two subgroups
+is almost never a subgroup (try $\{0, 2, 4\}$ and $\{0, 3\}$ in $\Z/6\Z$:
+their union contains $2$ and $3$ but not $2 + 3 = 5$). The join is the
+\emph{smallest subgroup containing} the union.
+\end{warning}
+
+\section{Galois Connections}
+
+This is the key concept that will unlock the fundamental theorem of Galois
+theory. The definition is abstract, but the payoff is enormous.
+
+\begin{defn}{Galois Connection}{galois-connection}
+Let $(P, \leq_P)$ and $(Q, \leq_Q)$ be posets. A \textbf{Galois connection}
+between $P$ and $Q$ is a pair of maps
+$\ell : P \to Q$ and $u : Q \to P$ such that:
+\[
+  \ell(p) \leq_Q q \quad \iff \quad p \leq_P u(q)
+  \qquad \text{for all } p \in P, \; q \in Q.
+\]
+We call $\ell$ the \textbf{lower adjoint} and $u$ the \textbf{upper adjoint}.
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+structure GaloisConnection
+    (P Q : Type) [PartialOrder P] [PartialOrder Q] where
+  l : P → Q
+  u : Q → P
+  adjoint : ∀ (p : P) (q : Q), l p ≤ q ↔ p ≤ u q
+\end{minted}
+\end{leanbox}
+
+\begin{historical}[title={Ore's Abstraction}]
+The concept of a Galois connection was abstracted by Oystein Ore in 1944,
+who noticed that the specific correspondence Galois discovered between
+fields and groups (Chapter~8) is an instance of a general pattern appearing
+throughout mathematics. Ore's paper ``Galois Connexions'' extracted the
+essential order-theoretic structure and showed it applies far beyond algebra.
+The name is fitting: the general concept is named after the specific example
+that inspired it.
+\end{historical}
+
+\subsection{Properties of Galois Connections}
+
+Every Galois connection automatically satisfies:
+
+\begin{prop}{}{gc-properties}
+Let $(\ell, u)$ be a Galois connection between $P$ and $Q$. Then:
+\begin{enumerate}[nosep, label=(\roman*)]
+\item Both $\ell$ and $u$ are \textbf{order-reversing}:
+  if $p_1 \leq p_2$ then $\ell(p_2) \leq \ell(p_1)$, and similarly for $u$.
+\item \textbf{Unit:} $p \leq u(\ell(p))$ for all $p \in P$.
+\item \textbf{Counit:} $\ell(u(q)) \leq q$ for all $q \in Q$.
+\item \textbf{Idempotence:} $\ell \circ u \circ \ell = \ell$ and
+  $u \circ \ell \circ u = u$.
+\end{enumerate}
+\end{prop}
+
+\begin{proof}
+All follow from the adjunction condition.
+(i)~If $p_1 \leq p_2$, then $p_2 \leq u(\ell(p_2))$ by (ii), so
+$p_1 \leq u(\ell(p_2))$, so $\ell(p_2) \leq \ell(p_1)$ by adjunction.
+(Wait---this proves $\ell$ is order-\emph{reversing} only if the Galois
+connection is \emph{antitone}. For the standard definition with an antitone
+connection, both maps reverse order.)
+\end{proof}
+
+\begin{warning}
+There are two conventions in the literature: some authors define Galois
+connections with \emph{both maps order-preserving} (the ``monotone'' variant),
+and others with \emph{both maps order-reversing} (the ``antitone'' variant).
+The Galois correspondence in algebra uses the antitone variant: bigger fields
+$\leftrightarrow$ smaller groups. We follow the antitone convention.
+\end{warning}
+
+\subsection{Closure Operators}
+
+Every Galois connection gives rise to a \emph{closure operator}: the
+composition $u \circ \ell : P \to P$ is extensive ($p \leq u(\ell(p))$),
+monotone, and idempotent. The ``closed'' elements---those satisfying
+$p = u(\ell(p))$---are exactly the elements in the image of $u$, and
+they form a complete lattice.
+
+\begin{defn}{Closure Operator}{closure-op}
+A \textbf{closure operator} on a poset $(P, \leq)$ is a map
+$\mathrm{cl} : P \to P$ that is:
+\begin{enumerate}[nosep, label=(\roman*)]
+\item \textbf{Extensive:} $p \leq \mathrm{cl}(p)$.
+\item \textbf{Monotone:} $p \leq q \implies \mathrm{cl}(p) \leq \mathrm{cl}(q)$.
+\item \textbf{Idempotent:} $\mathrm{cl}(\mathrm{cl}(p)) = \mathrm{cl}(p)$.
+\end{enumerate}
+\end{defn}
+
+\begin{exercisebox}[title={Exercise 3.1}]
+\stepcounter{exercise}
+Prove in Lean that $u \circ \ell$ is a closure operator for any (antitone)
+Galois connection $(\ell, u)$.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 3.2}]
+\stepcounter{exercise}
+Define the lattice of divisors of 12, ordered by divisibility. Draw its Hasse
+diagram. Verify that it is a lattice by computing $\gcd$ (meet) and $\lcm$
+(join) for all pairs.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 3.3}]
+\stepcounter{exercise}
+Implement \lc{Lattice (Subgroup G)} in Lean for a finite group \lc{G}.
+The meet is intersection; the join is the subgroup generated by the union.
+Prove the lattice axioms.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Rings and Fields --- Adding Multiplication}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``In mathematics the art of proposing a question must be held of
+higher value than solving it.''}{\textit{Georg Cantor}}
+
+\section{The Rise of Abstract Algebra}
+
+\begin{historical}[title={Hilbert, Noether, and the Abstraction Revolution}]
+David Hilbert (1862--1943) and Emmy Noether (1882--1935) transformed algebra
+from a collection of computational techniques into a structural science.
+
+Hilbert's 1888 proof of the basis theorem---that every ideal in a polynomial
+ring is finitely generated---was purely existential, providing no algorithm for
+finding the generators. Paul Gordan reportedly declared: ``This is not
+mathematics; this is theology!'' The controversy between Hilbert's abstract
+style and Gordan's computational approach foreshadowed the constructivism
+debate that continues today.
+
+Emmy Noether took the abstraction further. Her 1921 paper \textit{Idealtheorie
+in Ringbereichen} created modern commutative algebra, showing that the right
+way to understand a ring is through its \emph{ideals}. As a woman in early
+20th-century Germany, she was initially denied a paid position at Göttingen;
+Hilbert championed her, declaring to the faculty senate: ``I do not see that
+the sex of the candidate is an argument against her admission. After all, we
+are a university, not a bathing establishment.''
+
+She was dismissed in 1933 when the Nazis expelled all Jewish faculty, and
+emigrated to the United States, where she died at 53. Einstein wrote to the
+New York Times that she was ``the most significant creative mathematical
+genius thus far produced since the higher education of women began.''
+\end{historical}
+
+\section{Ring Axioms}
+
+A ring has two operations: addition (forming an abelian group) and
+multiplication (associative, with identity, distributing over addition).
+
+\begin{defn}{Ring}{ring}
+A \textbf{ring} $(R, +, \cdot)$ satisfies:
+\begin{enumerate}[nosep, label=(\roman*)]
+\item $(R, +)$ is an abelian group with identity $0$.
+\item Multiplication is associative with identity $1$.
+\item \textbf{Distributivity:} $a(b + c) = ab + ac$ and $(a + b)c = ac + bc$.
+\end{enumerate}
+If $ab = ba$ for all $a, b$, the ring is \textbf{commutative}.
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+class Ring (R : Type) where
+  add : R → R → R
+  zero : R
+  neg : R → R
+  mul : R → R → R
+  one : R
+  add_assoc : ∀ a b c : R, add (add a b) c = add a (add b c)
+  add_comm  : ∀ a b : R, add a b = add b a
+  zero_add  : ∀ a : R, add zero a = a
+  neg_add   : ∀ a : R, add (neg a) a = zero
+  mul_assoc : ∀ a b c : R, mul (mul a b) c = mul a (mul b c)
+  one_mul   : ∀ a : R, mul one a = a
+  mul_one   : ∀ a : R, mul a one = a
+  left_distrib  : ∀ a b c : R, mul a (add b c) = add (mul a b) (mul a c)
+  right_distrib : ∀ a b c : R, mul (add a b) c = add (mul a c) (mul b c)
+\end{minted}
+\end{leanbox}
+
+\section{Fields --- Where Division Works}
+
+\begin{defn}{Field}{field}
+A \textbf{field} is a commutative ring in which every nonzero element has a
+multiplicative inverse: for all $a \neq 0$, there exists $a^{-1}$ with
+$a \cdot a^{-1} = 1$.
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+class Field (F : Type) extends Ring F where
+  mul_comm : ∀ a b : F, mul a b = mul b a
+  inv : F → F
+  mul_inv : ∀ a : F, a ≠ zero → mul a (inv a) = one
+  zero_ne_one : zero ≠ one
+\end{minted}
+\end{leanbox}
+
+\paragraph{Key examples.} $\Q$, $\R$, $\C$ are fields. $\Z$ is a ring but not
+a field. $\Z/p\Z$ is a field for prime $p$; $\Z/n\Z$ for composite $n$ has
+zero divisors (e.g.\ $2 \cdot 3 = 0$ in $\Z/6\Z$).
+
+\begin{thm}{$\Z/p\Z$ is a Field}{zp-field}
+For any prime $p$, $\Z/p\Z$ is a field.
+\end{thm}
+
+\begin{proof}
+For nonzero $\bar{a}$, since $p$ is prime, $\gcd(a,p) = 1$. Bézout gives
+$ax + py = 1$, so $\bar{a}\bar{x} = \bar{1}$ in $\Z/p\Z$.
+\end{proof}
+
+\section{Ideals and Quotient Rings}
+
+\begin{defn}{Ideal}{ideal}
+An \textbf{ideal} $I \subseteq R$ is an additive subgroup with the absorption
+property: $r \cdot a \in I$ and $a \cdot r \in I$ for all $r \in R$, $a \in I$.
+\end{defn}
+
+Ideals are to rings what normal subgroups are to groups: the quotient
+$R/I$ inherits a ring structure precisely when $I$ is an ideal. The connection
+to fields:
+
+\begin{thm}{}{quotient-field}
+$R/I$ is a field if and only if $I$ is a \textbf{maximal ideal}.
+\end{thm}
+
+This will be the key to constructing field extensions in Chapter~6.
+
+\begin{exercisebox}[title={Exercise 4.1}]
+\stepcounter{exercise}
+Implement \lc{Field (Fin 5)} in Lean. Compute all multiplicative inverses
+in $\Z/5\Z$.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 4.2}]
+\stepcounter{exercise}
+Show $\Z/6\Z$ is not a field: find $a, b$ with $a \neq 0$, $b \neq 0$,
+$ab = 0$.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Polynomials Over a Field}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``I have had my results for a long time, but I do not yet know how I
+am to arrive at them.''}{\textit{Carl Friedrich Gauss}}
+
+\section{The 250-Year Quest}
+
+\begin{historical}[title={The Hunt for the Quintic Formula}]
+The Babylonians solved quadratics around 2000~BCE. The cubic formula was found
+around 1515--1535 and published (amid accusations of oath-breaking) by Cardano
+in 1545. Ferrari found the quartic formula shortly after. Then: 250 years of
+silence. Euler, Lagrange, Bézout, and many others attempted the quintic, all
+unsuccessfully. Lagrange (1770) analyzed why the lower-degree methods worked
+and concluded, presciently, that the same approach couldn't work for degree~5%
+---but he couldn't prove impossibility. The resolution came from Abel (1824)
+and Galois (1832), whose story we tell in Chapter~10.
+\end{historical}
+
+\section{The Polynomial Ring $F[x]$}
+
+\begin{defn}{Polynomial Ring}{poly-ring}
+$F[x]$ is the set of formal expressions
+$f(x) = a_n x^n + \cdots + a_1 x + a_0$ with $a_i \in F$. The
+\textbf{degree} is $\deg(f) = n$ (where $a_n \neq 0$).
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- Polynomials as coefficient lists (least-significant first)
+structure Polynomial (F : Type) [Field F] where
+  coeffs : List F
+  deriving Repr
+
+namespace Polynomial
+
+def eval [Field F] (p : Polynomial F) (x : F) : F :=
+  p.coeffs.foldr (fun c acc => Ring.add (Ring.mul acc x) c) Ring.zero
+
+def degree [Field F] (p : Polynomial F) : Nat :=
+  if p.coeffs.length = 0 then 0 else p.coeffs.length - 1
+
+end Polynomial
+\end{minted}
+\end{leanbox}
+
+\section{Division and Irreducibility}
+
+\begin{thm}{Division Algorithm}{poly-division}
+For $f, g \in F[x]$ with $g \neq 0$, there exist unique $q, r \in F[x]$
+such that $f = gq + r$ and $\deg(r) < \deg(g)$.
+\end{thm}
+
+\begin{defn}{Irreducible Polynomial}{irreducible}
+$f \in F[x]$ of degree $\geq 1$ is \textbf{irreducible} over $F$ if it
+cannot be factored as $f = gh$ with $\deg(g), \deg(h) \geq 1$.
+\end{defn}
+
+\begin{warning}
+Irreducibility depends on the field! $x^2 + 1$ is irreducible over $\R$
+but factors as $(x+i)(x-i)$ over $\C$, and as $(x+1)^2$ over $\Z/2\Z$.
+\end{warning}
+
+\begin{thm}{Unique Factorization}{poly-uft}
+Every nonzero $f \in F[x]$ factors uniquely (up to order and units) into
+irreducible polynomials.
+\end{thm}
+
+\begin{exercisebox}[title={Exercise 5.1}]
+\stepcounter{exercise}
+Implement polynomial long division in Lean.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 5.2}]
+\stepcounter{exercise}
+Prove that $x^3 - 2$ is irreducible over $\Q$ using the rational root theorem.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Field Extensions}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``God made the integers; all else is the work of man.''}%
+{\textit{Leopold Kronecker}}
+
+\section{Extending the Number System}
+
+\begin{historical}[title={Kronecker vs.\ Dedekind}]
+Leopold Kronecker (1823--1891) insisted that new objects must be
+\emph{constructed} explicitly---a proto-constructivist. His approach to field
+extensions was concrete: to adjoin a root of an irreducible polynomial $p(x)$,
+work in $F[x]/(p(x))$. Dedekind preferred an axiomatic approach, defining
+fields by their properties and proving existence abstractly. Both give the
+same answer; in Lean, we naturally follow Kronecker.
+\end{historical}
+
+\section{The Basic Construction}
+
+If $p(x) \in F[x]$ is irreducible, we ``add a root'' by quotienting:
+$(p(x))$ is maximal, so $F[x]/(p(x))$ is a field.
+
+\begin{defn}{Simple Algebraic Extension}{simple-ext}
+For irreducible $p \in F[x]$ of degree $n$:
+\[
+  F(\alpha) = F[x]/(p(x)) \iso
+  \{a_0 + a_1\alpha + \cdots + a_{n-1}\alpha^{n-1} : a_i \in F\}
+\]
+where $\alpha$ is the image of $x$, satisfying $p(\alpha) = 0$.
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- ℚ(√2): elements are a + b√2 with a, b ∈ ℚ
+structure QSqrt2 where
+  a : Rat
+  b : Rat
+  deriving Repr, DecidableEq
+
+namespace QSqrt2
+
+def add (x y : QSqrt2) : QSqrt2 := ⟨x.a + y.a, x.b + y.b⟩
+
+def mul (x y : QSqrt2) : QSqrt2 :=
+  ⟨x.a * y.a + 2 * x.b * y.b, x.a * y.b + y.a * x.b⟩
+
+-- (a + b√2)⁻¹ = (a - b√2)/(a² - 2b²)
+def inv (x : QSqrt2) : QSqrt2 :=
+  let d := x.a * x.a - 2 * x.b * x.b
+  ⟨x.a / d, -x.b / d⟩
+
+def sqrt2 : QSqrt2 := ⟨0, 1⟩
+
+-- Verify: √2 · √2 = 2
+example : mul sqrt2 sqrt2 = ⟨2, 0⟩ := by native_decide
+
+end QSqrt2
+\end{minted}
+\end{leanbox}
+
+\section{Degree of an Extension}
+
+\begin{defn}{Degree}{degree-ext}
+$[E:F]$ is the dimension of $E$ as an $F$-vector space.
+\end{defn}
+
+For $F(\alpha)$ with $\alpha$ a root of irreducible $p$ of degree $n$:
+$[F(\alpha):F] = n$, with basis $\{1, \alpha, \ldots, \alpha^{n-1}\}$.
+
+\begin{thm}{Tower Law}{tower-law}
+For $F \subseteq K \subseteq L$: $[L:F] = [L:K] \cdot [K:F]$.
+\end{thm}
+
+\section{Splitting Fields}
+
+\begin{defn}{Splitting Field}{splitting-field}
+The \textbf{splitting field} of $f \in F[x]$ is the smallest extension of
+$F$ in which $f$ factors into linear factors.
+\end{defn}
+
+\begin{thm}{Existence and Uniqueness}{splitting-exists}
+Every nonconstant polynomial has a splitting field, unique up to isomorphism.
+\end{thm}
+
+\begin{historical}[title={The Fundamental Theorem of Algebra}]
+Every polynomial over $\C$ splits completely---$\C$ is algebraically closed.
+Gauss gave the first rigorous proof in his 1799 doctoral dissertation and
+returned to this theorem throughout his life, giving four different proofs.
+The fact that the ``fundamental theorem of algebra'' requires analysis (not
+just algebra) for its proof is one of the great ironies of mathematics.
+\end{historical}
+
+\begin{exercisebox}[title={Exercise 6.1}]
+\stepcounter{exercise}
+Construct $\Q(\sqrt[3]{2})$ in Lean: elements $a + b\sqrt[3]{2} + c(\sqrt[3]{2})^2$. Implement arithmetic using $(\sqrt[3]{2})^3 = 2$.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 6.2}]
+\stepcounter{exercise}
+Show $[\Q(\sqrt{2}, \sqrt{3}):\Q] = 4$ using the tower law.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\part{The Galois Correspondence}
+% ══════════════════════════════════════════════════════════════════════════════
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Field Automorphisms and the Galois Group}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``Je n'ai pas le temps.''\\ \normalfont(I have no time.)}%
+{\textit{Évariste Galois}, writing in the margins\\the night before his duel}
+
+\section{Galois's Story}
+
+\begin{historical}[title={Évariste Galois (1811--1832)}]
+The life of Évariste Galois is the most dramatic story in mathematics. Born in
+Bourg-la-Reine, near Paris, he was recognized as a mathematical prodigy by his
+teachers at the Lycée Louis-le-Grand. At 17, he submitted his first paper to
+the French Academy of Sciences---it was lost by Cauchy. He submitted again to
+the Academy's prize competition; the paper was sent to Fourier for review, but
+Fourier died before reading it, and the manuscript was never found. He was
+rejected twice from the École Polytechnique (the premier mathematics school in
+France), apparently because his answers were too far ahead of his examiners.
+
+Meanwhile, Paris was in political turmoil. Galois was a passionate republican,
+arrested twice for political activities. During his second imprisonment in
+1832, he fell in love with Stéphanie-Félicie Poterin du Motel---the details
+are murky, but it appears a duel resulted, possibly engineered by political
+enemies. The night before the duel, on May 29, 1832, Galois wrote a long
+letter to his friend Auguste Chevalier, frantically summarizing his
+mathematical discoveries. He scrawled ``I have no time'' in the margins.
+
+The next morning, Galois was shot in the abdomen. He died the following day,
+at the age of twenty. His brother Alfred gathered his manuscripts. Liouville
+finally published them in 1846, fourteen years later, recognizing their
+revolutionary importance.
+
+What Galois created in those few feverish years was nothing less than a new
+way of thinking about algebra: instead of asking ``can I solve this equation?''
+he asked ``what are the \emph{symmetries} of this equation's solutions?'' The
+symmetry group---now called the Galois group---controls everything.
+\end{historical}
+
+\section{Field Automorphisms}
+
+\begin{defn}{Field Automorphism}{field-aut}
+Let $E/F$ be a field extension. A \textbf{field automorphism} of $E$ fixing
+$F$ is a bijection $\sigma : E \to E$ such that:
+\begin{enumerate}[nosep, label=(\roman*)]
+\item $\sigma(a + b) = \sigma(a) + \sigma(b)$ for all $a, b \in E$.
+\item $\sigma(a \cdot b) = \sigma(a) \cdot \sigma(b)$ for all $a, b \in E$.
+\item $\sigma(a) = a$ for all $a \in F$.
+\end{enumerate}
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+structure FieldAut (E F : Type) [Field E] [Field F] where
+  toFun  : E → E
+  invFun : E → E
+  left_inv  : ∀ x, invFun (toFun x) = x
+  right_inv : ∀ x, toFun (invFun x) = x
+  map_add : ∀ a b, toFun (a + b) = toFun a + toFun b
+  map_mul : ∀ a b, toFun (a * b) = toFun a * toFun b
+  fixes_base : ∀ a : F, toFun (embed a) = embed a
+  -- where embed : F → E is the inclusion map
+\end{minted}
+\end{leanbox}
+
+\begin{defn}{Galois Group}{galois-group}
+The \textbf{Galois group} of $E/F$, written $\Gal(E/F)$, is the set of all
+field automorphisms of $E$ fixing $F$, with composition as the group operation.
+\end{defn}
+
+\section{First Example: $\Gal(\Q(\sqrt{2})/\Q)$}
+
+What automorphisms of $\Q(\sqrt{2})$ fix $\Q$? An automorphism $\sigma$ is
+determined by $\sigma(\sqrt{2})$, since every element is $a + b\sqrt{2}$ and
+$\sigma(a + b\sqrt{2}) = a + b \cdot \sigma(\sqrt{2})$.
+
+Now $\sigma(\sqrt{2})$ must be a root of $x^2 - 2$ (since $\sigma$ preserves
+polynomial relations). The roots are $\sqrt{2}$ and $-\sqrt{2}$. So there are
+exactly two automorphisms:
+\begin{align*}
+  \id &: a + b\sqrt{2} \mapsto a + b\sqrt{2} \\
+  \sigma &: a + b\sqrt{2} \mapsto a - b\sqrt{2}
+\end{align*}
+
+Thus $\Gal(\Q(\sqrt{2})/\Q) = \{\id, \sigma\} \iso \Z/2\Z$.
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- The nontrivial automorphism of ℚ(√2)
+def conjugate : QSqrt2 → QSqrt2
+  | ⟨a, b⟩ => ⟨a, -b⟩
+
+-- Verify: conjugate preserves multiplication
+theorem conjugate_mul (x y : QSqrt2) :
+    conjugate (QSqrt2.mul x y) = QSqrt2.mul (conjugate x) (conjugate y) := by
+  simp [conjugate, QSqrt2.mul]
+  ring  -- or explicit computation
+
+-- Verify: conjugate is an involution (applying it twice gives identity)
+theorem conjugate_conjugate (x : QSqrt2) :
+    conjugate (conjugate x) = x := by
+  simp [conjugate]; ring
+
+-- Verify: conjugate fixes ℚ (elements with b = 0)
+theorem conjugate_fixes_rat (a : Rat) :
+    conjugate ⟨a, 0⟩ = ⟨a, 0⟩ := by
+  simp [conjugate]; ring
+\end{minted}
+\end{leanbox}
+
+\section{Normal and Separable Extensions}
+
+\begin{defn}{Normal Extension}{normal-ext}
+$E/F$ is \textbf{normal} if every irreducible polynomial in $F[x]$ that has
+at least one root in $E$ splits completely in $E$.
+\end{defn}
+
+\begin{defn}{Separable Extension}{separable-ext}
+$E/F$ is \textbf{separable} if every element of $E$ is a root of a
+\emph{separable} polynomial over $F$ (one with no repeated roots).
+\end{defn}
+
+\begin{defn}{Galois Extension}{galois-ext}
+$E/F$ is a \textbf{Galois extension} if it is both normal and separable.
+Equivalently, $|\Gal(E/F)| = [E:F]$.
+\end{defn}
+
+\begin{historical}[title={Dedekind and Artin}]
+Galois himself didn't separate the concepts of normality and separability---the
+distinction was clarified by Dedekind in the 1870s and given its modern form by
+Emil Artin in the 1940s. Artin's reformulation of Galois theory, replacing
+Galois's original (somewhat obscure) arguments with clean linear algebra, is
+the version we follow in this book.
+\end{historical}
+
+\begin{intuition}
+Normal ensures there are \emph{enough} automorphisms. Separable ensures
+they're all \emph{distinct}. Together: $|\Gal(E/F)| = [E:F]$, so the Galois
+group is ``as large as it could possibly be.''
+\end{intuition}
+
+\begin{exercisebox}[title={Exercise 7.1}]
+\stepcounter{exercise}
+Compute $\Gal(\Q(\sqrt{2}, \sqrt{3})/\Q)$. Show it is isomorphic to
+$\Z/2\Z \times \Z/2\Z$ (the Klein four-group) by exhibiting all four
+automorphisms.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 7.2}]
+\stepcounter{exercise}
+Show that $\Q(\sqrt[3]{2})/\Q$ is \emph{not} a normal extension.
+\emph{Hint:} $x^3 - 2$ has one root in $\Q(\sqrt[3]{2})$ but not all three
+(the other two are complex).
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{The Fundamental Theorem of Galois Theory}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``Mathematics is the queen of the sciences, and number theory is
+the queen of mathematics.''}{\textit{Carl Friedrich Gauss}}
+
+\section{The Main Event}
+
+This is the theorem that Galois glimpsed in 1832, Dedekind clarified in the
+1870s, and Artin perfected in the 1940s. It connects two seemingly unrelated
+structures---intermediate fields and subgroups---through an order-reversing
+bijection.
+
+\begin{thm}{Fundamental Theorem of Galois Theory}{ftgt}
+Let $E/F$ be a finite Galois extension with Galois group
+$G = \Gal(E/F)$. There is an order-reversing bijection
+\[
+\begin{tikzcd}[row sep=0.5cm]
+  \{\text{intermediate fields } K : F \subseteq K \subseteq E\}
+  \arrow[r, shift left, "\Fix"]
+  &
+  \{\text{subgroups } H \leq G\}
+  \arrow[l, shift left, "\Inv"]
+\end{tikzcd}
+\]
+given by:
+\begin{align*}
+  \Fix(K) &= \Gal(E/K) = \{\sigma \in G : \sigma(x) = x \text{ for all } x \in K\} \\
+  \Inv(H) &= E^H = \{x \in E : \sigma(x) = x \text{ for all } \sigma \in H\}
+\end{align*}
+Moreover:
+\begin{enumerate}[nosep, label=(\roman*)]
+\item $\Fix$ and $\Inv$ are mutual inverses: $\Inv(\Fix(K)) = K$ and
+  $\Fix(\Inv(H)) = H$.
+\item The correspondence \textbf{reverses order}: $K_1 \subseteq K_2$
+  iff $\Fix(K_2) \leq \Fix(K_1)$.
+\item \textbf{Degrees match indices:} $[E:K] = |\Fix(K)|$ and
+  $[K:F] = [G : \Fix(K)]$.
+\item $K/F$ is a normal (Galois) extension iff $\Fix(K) \normal G$.
+  In that case, $\Gal(K/F) \iso G / \Fix(K)$.
+\end{enumerate}
+\end{thm}
+
+\begin{intuition}
+The fundamental theorem says: \textbf{the structure of a field extension is
+entirely determined by the structure of its symmetry group.} Bigger
+intermediate fields have \emph{fewer} symmetries (more elements are pinned
+down), so the corresponding subgroup is smaller. This is an \emph{antitone
+Galois connection}---exactly the concept from Chapter~3!
+
+In fact, this \emph{is} the original Galois connection. The general concept
+(Chapter~3) was abstracted from this specific example by Ore in 1944.
+\end{intuition}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- The Fixed Field map: subgroup H ↦ elements fixed by H
+def fixedField (H : Subgroup (Gal E F)) : IntermediateField E F where
+  carrier := { x : E | ∀ σ ∈ H.carrier, σ.toFun x = x }
+  -- proof obligations: show this is a subfield
+  sorry
+
+-- The Fixing Group map: intermediate field K ↦ automorphisms fixing K
+def fixingGroup (K : IntermediateField E F) : Subgroup (Gal E F) where
+  carrier := { σ : Gal E F | ∀ x ∈ K.carrier, σ.toFun x = x }
+  -- proof obligations: show this is a subgroup
+  sorry
+
+-- The Galois connection: these maps form an antitone Galois connection
+-- between the lattice of intermediate fields and the lattice of subgroups
+theorem galois_connection :
+    ∀ K H, fixingGroup K ≤ H ↔ Inv H ≤ K := by
+  sorry  -- The core of the fundamental theorem
+\end{minted}
+\end{leanbox}
+
+\section{The Two Lattices}
+
+The fundamental theorem is a bijection between two lattices:
+
+\begin{center}
+\begin{tikzpicture}[
+    field/.style={draw, rounded corners, fill=lightblue, minimum width=2cm,
+      font=\small, align=center},
+    grp/.style={draw, rounded corners, fill=lightgreen, minimum width=2cm,
+      font=\small, align=center},
+    node distance=1.3cm,
+  ]
+  % Fields side
+  \node[field] (E) {$E$};
+  \node[field, below left=1.3cm and 0.3cm of E] (K1) {$K_1$};
+  \node[field, below right=1.3cm and 0.3cm of E] (K2) {$K_2$};
+  \node[field, below=3cm of E] (F) {$F$};
+  \draw[thick] (E) -- (K1);
+  \draw[thick] (E) -- (K2);
+  \draw[thick] (K1) -- (F);
+  \draw[thick] (K2) -- (F);
+  \node[above=0.3cm of E, font=\bfseries\color{deepblue}] {Intermediate Fields};
+
+  % Arrow
+  \draw[<->, very thick, accentpurple] (3.5, -1.5) -- node[above] {$\Fix / \Inv$} (5.5, -1.5);
+
+  % Groups side (REVERSED order!)
+  \node[grp] at (9, 0) (trivial) {$\{e\}$};
+  \node[grp, below left=1.3cm and 0.3cm of trivial] (H2) {$H_2$};
+  \node[grp, below right=1.3cm and 0.3cm of trivial] (H1) {$H_1$};
+  \node[grp, below=3cm of trivial] (G) {$G$};
+  \draw[thick] (trivial) -- (H2);
+  \draw[thick] (trivial) -- (H1);
+  \draw[thick] (H2) -- (G);
+  \draw[thick] (H1) -- (G);
+  \node[above=0.3cm of trivial, font=\bfseries\color{accentgreen}] {Subgroups of $G$};
+\end{tikzpicture}
+\end{center}
+
+Notice the \textbf{reversal}: $E$ (the biggest field) corresponds to $\{e\}$
+(the smallest subgroup), and $F$ (the smallest field) corresponds to $G$ (the
+biggest subgroup).
+
+\begin{exercisebox}[title={Exercise 8.1}]
+\stepcounter{exercise}
+Verify the fundamental theorem for $\Q(\sqrt{2}, \sqrt{3})/\Q$:
+list all intermediate fields, list all subgroups of
+$\Gal(\Q(\sqrt{2}, \sqrt{3})/\Q) \iso \Z/2\Z \times \Z/2\Z$,
+and check the correspondence.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Worked Example --- The Splitting Field of $x^4 - 2$}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\section{Building the Splitting Field}
+
+The roots of $x^4 - 2$ are $\sqrt[4]{2}$, $i\sqrt[4]{2}$,
+$-\sqrt[4]{2}$, and $-i\sqrt[4]{2}$. We need both $\sqrt[4]{2}$ and $i$
+to express all roots, so the splitting field is $E = \Q(\sqrt[4]{2}, i)$.
+
+By the tower law:
+\[
+  [E:\Q] = [E:\Q(\sqrt[4]{2})] \cdot [\Q(\sqrt[4]{2}):\Q] = 2 \cdot 4 = 8.
+\]
+
+So $|\Gal(E/\Q)| = 8$, and the Galois group has 8 elements.
+
+\section{Computing the Galois Group}
+
+An automorphism $\sigma \in \Gal(E/\Q)$ is determined by:
+\begin{itemize}[nosep]
+\item $\sigma(\sqrt[4]{2})$: must be a root of $x^4 - 2$, so one of
+  $\{\sqrt[4]{2},\; i\sqrt[4]{2},\; -\sqrt[4]{2},\; -i\sqrt[4]{2}\}$
+  (4 choices).
+\item $\sigma(i)$: must be a root of $x^2 + 1$, so either $i$ or $-i$
+  (2 choices).
+\end{itemize}
+Total: $4 \times 2 = 8$ automorphisms, matching $[E:\Q] = 8$. \checkmark
+
+Let $\rho$ be the automorphism with $\rho(\sqrt[4]{2}) = i\sqrt[4]{2}$,
+$\rho(i) = i$ (a ``rotation''), and $\tau$ the one with
+$\tau(\sqrt[4]{2}) = \sqrt[4]{2}$, $\tau(i) = -i$ (``complex conjugation'').
+Then $\rho$ has order 4 and $\tau$ has order 2, and they satisfy
+$\tau\rho\tau = \rho^{-1}$. This is exactly the presentation of the
+\textbf{dihedral group} $D_4$---the symmetry group of a square!
+
+\[
+  \Gal(\Q(\sqrt[4]{2}, i)/\Q) \;\iso\; D_4
+  \;=\; \langle \rho, \tau \mid \rho^4 = \tau^2 = e,\;
+  \tau\rho\tau = \rho^{-1} \rangle
+\]
+
+\section{The Correspondence}
+
+$D_4$ has 10 subgroups. By the fundamental theorem, there are exactly 10
+intermediate fields. Here are the two lattices, side by side:
+
+\begin{center}
+\small
+\begin{tikzpicture}[
+    fld/.style={draw, rounded corners, fill=lightblue!80, font=\footnotesize,
+      minimum width=1.6cm, inner sep=2pt},
+    grp/.style={draw, rounded corners, fill=lightgreen!80, font=\footnotesize,
+      minimum width=1.6cm, inner sep=2pt},
+    scale=0.9,
+  ]
+  % FIELDS
+  \node[fld] (E) at (0, 0) {$E$};
+  \node[fld] (Qi) at (-2.5, -1.5) {$\Q(\sqrt[4]{2},i)$};
+  \node[fld] (Q4) at (-0.8, -1.5) {$\Q(\sqrt[4]{2})$};
+  \node[fld] (Qi4) at (0.8, -1.5) {$\Q(i\sqrt[4]{2})$};
+  \node[fld] (Qsqrt2) at (-2, -3) {$\Q(\sqrt{2},i)$};
+  \node[fld] (Qsqrt2b) at (0, -3) {$\Q(\sqrt{2})$};
+  \node[fld] (Qisqrt2) at (2, -3) {$\Q(i\sqrt{2})$};
+  \node[fld] (Qi2) at (-1, -4.5) {$\Q(i)$};
+  \node[fld] (QQ) at (0, -6) {$\Q$};
+
+  \draw (E) -- (Qi) -- (Qsqrt2) -- (Qi2) -- (QQ);
+  \draw (E) -- (Q4) -- (Qsqrt2b) -- (QQ);
+  \draw (E) -- (Qi4) -- (Qisqrt2) -- (QQ);
+  \draw (Qsqrt2) -- (QQ);
+
+  \node[above=0.2cm of E, font=\footnotesize\bfseries\color{deepblue}] {Fields};
+
+  % Arrow
+  \node at (4, -3) {\Large $\longleftrightarrow$};
+
+  % SUBGROUPS (reversed!)
+  \node[grp] (1) at (8, 0) {$\{e\}$};
+  \node[grp] (t) at (5.5, -1.5) {$\langle\tau\rangle$};
+  \node[grp] (r2) at (7.2, -1.5) {$\langle\rho^2\rangle$};
+  \node[grp] (rt) at (8.8, -1.5) {$\langle\rho^2\tau\rangle$};
+  \node[grp] (r2t) at (6, -3) {$\langle\rho^2,\tau\rangle$};
+  \node[grp] (r2b) at (8, -3) {$\langle\rho^2\rangle$};
+  \node[grp] (r2rt) at (10, -3) {$\langle\rho^2,\rho\tau\rangle$};
+  \node[grp] (r) at (9, -4.5) {$\langle\rho\rangle$};
+  \node[grp] (D4) at (8, -6) {$D_4$};
+
+  \draw (1) -- (t) -- (r2t) -- (r) -- (D4);
+  \draw (1) -- (r2) -- (r2b) -- (D4);
+  \draw (1) -- (rt) -- (r2rt) -- (D4);
+  \draw (r2t) -- (D4);
+
+  \node[above=0.2cm of 1, font=\footnotesize\bfseries\color{accentgreen}] {Subgroups};
+\end{tikzpicture}
+\end{center}
+
+\begin{exercisebox}[title={Exercise 9.1}]
+\stepcounter{exercise}
+Verify the correspondence for at least three intermediate field--subgroup
+pairs: show that the automorphisms fixing the field form the claimed subgroup.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Solvability --- Why There Is No Quintic Formula}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``Abel has left mathematicians enough to keep them busy for five
+hundred years.''}{\textit{Charles Hermite}}
+
+\section{Two Tragic Heroes}
+
+\begin{historical}[title={Abel and Galois}]
+Niels Henrik Abel (1802--1829) grew up in poverty in Norway. At 22, he proved
+that the general quintic equation cannot be solved by radicals---the first
+impossibility result in algebra. He sent his proof to Gauss (who ignored it)
+and to Cauchy at the French Academy (who lost the manuscript). Abel spent two
+years traveling Europe trying to gain recognition, returned to Norway in debt,
+contracted tuberculosis, and died at 26. Two days later, a letter arrived
+offering him a prestigious professorship in Berlin.
+
+Galois (Chapter~7) went further: he found the exact criterion for when a
+polynomial \emph{is} solvable by radicals. The criterion is stated in terms of
+the Galois group.
+
+Both men died tragically young---Abel at 26, Galois at 20. Their work was
+recognized only posthumously. Today, abelian groups bear Abel's name, and
+Galois theory is the cornerstone of modern algebra.
+\end{historical}
+
+\section{Solvable Groups}
+
+\begin{defn}{Solvable Group}{solvable}
+A group $G$ is \textbf{solvable} if there exists a chain of subgroups
+\[
+  \{e\} = G_0 \normal G_1 \normal G_2 \normal \cdots \normal G_n = G
+\]
+where each quotient $G_{i+1}/G_i$ is abelian.
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- A composition series: chain of normal subgroups with abelian quotients
+def IsSolvable (G : Type) [Group G] : Prop :=
+  ∃ (n : Nat) (chain : Fin (n + 1) → Subgroup G),
+    chain ⟨0, by omega⟩ = ⊥ ∧              -- starts at {e}
+    chain ⟨n, by omega⟩ = ⊤ ∧              -- ends at G
+    ∀ i : Fin n,                             -- each step is normal with
+      IsNormal (chain i) (chain i.succ) ∧    -- abelian quotient
+      IsAbelian (Quotient (chain i.succ) (chain i))
+\end{minted}
+\end{leanbox}
+
+\section{The Solvability Criterion}
+
+\begin{thm}{Galois's Criterion}{galois-criterion}
+A polynomial $f \in F[x]$ is solvable by radicals if and only if its
+Galois group $\Gal(E/F)$ (where $E$ is the splitting field of $f$) is a
+solvable group.
+\end{thm}
+
+Why? Adjoining an $n$th root corresponds to a cyclic (hence abelian) extension.
+Solving by radicals means building a tower of radical extensions, each with a
+cyclic Galois group. The overall Galois group must decompose into cyclic layers
+---i.e., be solvable.
+
+\section{$S_n$ for $n \leq 4$ Is Solvable}
+
+\begin{prop}{}{s4-solvable}
+$S_4$ is solvable, with composition series:
+\[
+  \{e\} \normal V_4 \normal A_4 \normal S_4
+\]
+where $V_4 = \{e, (12)(34), (13)(24), (14)(23)\}$ is the Klein four-group
+and $A_4$ is the alternating group. The quotients are:
+$V_4/\{e\} \iso V_4$ (abelian), $A_4/V_4 \iso \Z/3\Z$ (abelian),
+$S_4/A_4 \iso \Z/2\Z$ (abelian).
+\end{prop}
+
+This is why the quartic formula exists: $|\Sym_4| = 24$, and $S_4$ has a
+composition series with abelian quotients.
+
+\section{$S_5$ Is Not Solvable}
+
+\begin{thm}{$A_5$ Is Simple}{a5-simple}
+The alternating group $A_5$ (order 60) has no nontrivial normal subgroups.
+\end{thm}
+
+\begin{proof}[Proof sketch]
+$A_5$ has 60 elements partitioned into five conjugacy classes of sizes
+$1, 12, 12, 15, 20$. A normal subgroup must be a union of conjugacy classes
+including $\{e\}$ (size 1). The only sums of these sizes (including 1) that
+divide 60 are 1 and 60 themselves. Therefore the only normal subgroups are
+$\{e\}$ and $A_5$.
+\end{proof}
+
+\begin{cor}{}{s5-not-solvable}
+$S_5$ is not solvable.
+\end{cor}
+
+\begin{proof}
+If $S_5$ were solvable, then $A_5$ (as a subgroup) would also be solvable.
+But $A_5$ is simple and non-abelian, so its only composition series is
+$\{e\} \normal A_5$, with the non-abelian quotient $A_5/\{e\} = A_5$.
+This contradicts solvability.
+\end{proof}
+
+\begin{thm}{The General Quintic Is Unsolvable}{quintic}
+There is no formula in radicals for the roots of a general degree-5
+polynomial.
+\end{thm}
+
+\begin{proof}
+The generic degree-5 polynomial $f(x) = x^5 + a_4x^4 + \cdots + a_0$
+over $\Q(a_0, \ldots, a_4)$ has Galois group $S_5$. Since $S_5$ is not
+solvable, $f$ is not solvable by radicals.
+\end{proof}
+
+\begin{historical}[title={The Punchline}]
+The jump from $S_4$ to $S_5$ is where simplicity (in the technical sense)
+first appears. $A_4$ has the Klein four-group as a nontrivial normal subgroup;
+$A_5$ has none. There is something fundamentally more complicated about
+permuting 5 objects than permuting 4. Galois theory makes this precise:
+the additional complexity is exactly what prevents a radical formula from
+existing.
+\end{historical}
+
+\begin{exercisebox}[title={Exercise 10.1}]
+\stepcounter{exercise}
+Prove in Lean that $S_3$ is solvable by exhibiting the composition series
+$\{e\} \normal \langle r \rangle \normal S_3$.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 10.2}]
+\stepcounter{exercise}
+Prove that every group of order $\leq 4$ is solvable. \emph{Hint:} every
+group of prime order is cyclic, hence abelian, hence solvable.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\part{Applications and Connections}
+% ══════════════════════════════════════════════════════════════════════════════
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Finite Fields --- The Complete Classification}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``Mathematics is not a careful march down a well-cleared highway, but
+a journey into a strange wilderness.''}{\textit{W.S.\ Anglin}}
+
+\section{Galois's Legacy}
+
+\begin{historical}[title={The Fields That Bear His Name}]
+In his final manuscripts, Galois described the finite fields: for every prime
+power $p^n$, there is exactly one field of that size (up to isomorphism), and
+these are \emph{all} the finite fields. They are denoted $\GF(p^n)$ (``Galois
+field'') or $\F_{p^n}$ in his honor.
+\end{historical}
+
+\begin{thm}{Classification of Finite Fields}{finite-field-class}
+\begin{enumerate}[nosep, label=(\roman*)]
+\item For every prime $p$ and positive integer $n$, there exists a field of
+  order $p^n$.
+\item Any two fields of order $p^n$ are isomorphic.
+\item Every finite field has order $p^n$ for some prime $p$ and some $n \geq 1$.
+\end{enumerate}
+\end{thm}
+
+\section{Constructing Finite Fields}
+
+\begin{defn}{}{gf-construction}
+$\GF(p^n) = \F_p[x]/(f(x))$ where $f$ is any irreducible polynomial of degree
+$n$ over $\F_p$.
+\end{defn}
+
+The key properties:
+\begin{itemize}[nosep]
+\item The multiplicative group $\GF(p^n)^\times$ is \textbf{cyclic} of order $p^n - 1$.
+\item The \textbf{Frobenius automorphism} $\varphi : x \mapsto x^p$ generates
+  $\Gal(\GF(p^n)/\F_p) \iso \Z/n\Z$.
+\item The subfields of $\GF(p^n)$ correspond to divisors of $n$:
+  $\GF(p^d)$ is a subfield iff $d \mid n$.
+\end{itemize}
+
+The subfield lattice is isomorphic to the divisor lattice of $n$---yet
+another lattice appearing naturally.
+
+\begin{exercisebox}[title={Exercise 11.1}]
+\stepcounter{exercise}
+Find an irreducible polynomial of degree 2 over $\F_3$ and use it to construct
+$\GF(9)$. Write out the addition and multiplication tables.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{$\GF(2^8)$ and the AES S-Box --- Capstone}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``The enemy knows the system.''}{\textit{Claude Shannon}}
+
+\section{AES and Galois Fields}
+
+\begin{historical}[title={The Advanced Encryption Standard}]
+The Advanced Encryption Standard (AES), adopted by NIST in 2001 after a
+five-year international competition, encrypts the vast majority of the
+world's internet traffic. Its designers---Joan Daemen and Vincent Rijmen
+(Rijndael)---chose to build the cipher's core nonlinear operation around
+arithmetic in $\GF(2^8)$ because:
+\begin{itemize}[nosep]
+\item Addition in $\GF(2^8)$ is XOR---free in hardware.
+\item Multiplication can use lookup tables---fast in software.
+\item The multiplicative inverse has excellent cryptographic properties.
+\end{itemize}
+\end{historical}
+
+\section{Constructing $\GF(2^8)$}
+
+We use the irreducible polynomial $m(x) = x^8 + x^4 + x^3 + x + 1$ over
+$\F_2$:
+\[
+  \GF(2^8) = \F_2[x]/(x^8 + x^4 + x^3 + x + 1).
+\]
+Elements are bytes---polynomials of degree $\leq 7$ with coefficients in
+$\{0, 1\}$. A byte like \texttt{0x53} represents $x^6 + x^4 + x + 1$.
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- GF(2⁸): elements are bytes, representing polynomials over F₂
+structure GF256 where
+  val : UInt8
+  deriving DecidableEq, Repr
+
+namespace GF256
+
+-- Addition = XOR (polynomial addition mod 2)
+def add (a b : GF256) : GF256 := ⟨a.val ^^^ b.val⟩
+
+-- Multiplication = polynomial multiplication mod m(x)
+-- m(x) = x⁸ + x⁴ + x³ + x + 1 = 0x11B
+def mul (a b : GF256) : GF256 :=
+  -- Russian peasant multiplication with reduction
+  go a.val b.val 0
+where
+  go (a b acc : UInt8) : GF256 :=
+    if b == 0 then ⟨acc⟩
+    else
+      let acc' := if b &&& 1 != 0 then acc ^^^ a else acc
+      let a'   := if a &&& 0x80 != 0
+                  then (a <<< 1) ^^^ 0x1B  -- reduce mod m(x)
+                  else a <<< 1
+      go a' (b >>> 1) acc'
+  termination_by b.toNat
+
+-- Multiplicative inverse via extended Euclidean algorithm
+-- (or: a⁻¹ = a^(254) since a^(255) = 1 in GF(2⁸)×)
+def inv (a : GF256) : GF256 :=
+  -- a^254 = a^(2+4+8+16+32+64+128)
+  -- Compute by repeated squaring
+  let a2   := mul a a
+  let a4   := mul a2 a2
+  let a8   := mul a4 a4
+  let a16  := mul a8 a8
+  let a32  := mul a16 a16
+  let a64  := mul a32 a32
+  let a128 := mul a64 a64
+  mul (mul (mul (mul (mul (mul a2 a4) a8) a16) a32) a64) a128
+
+-- The AES S-Box: inverse then affine transform
+def sbox (a : GF256) : GF256 :=
+  let b := if a.val == 0 then ⟨(0 : UInt8)⟩ else inv a
+  affineTransform b
+where
+  affineTransform (b : GF256) : GF256 :=
+    -- The affine transformation specified by AES
+    -- b' = Ab + c where A is a specific 8×8 matrix over F₂
+    -- and c = 0x63
+    sorry -- Matrix multiplication over F₂
+
+end GF256
+\end{minted}
+\end{leanbox}
+
+\section{Proving Properties}
+
+Properties we can verify:
+\begin{itemize}[nosep]
+\item The S-box is a bijection (256 distinct outputs).
+\item No fixed points: $\text{sbox}(x) \neq x$ for all $x$.
+\item No ``opposite fixed points'': $\text{sbox}(x) \neq x \oplus \texttt{0xFF}$.
+\end{itemize}
+
+These properties are what make AES resistant to linear and differential
+cryptanalysis.
+
+\begin{exercisebox}[title={Exercise 12.1}]
+\stepcounter{exercise}
+Prove that $\GF(2^8)$ satisfies the field axioms. The hardest part is
+showing associativity of multiplication (polynomial multiplication mod $m(x)$).
+For a finite type, \lc{native\_decide} can handle this.
+\end{exercisebox}
+
+\begin{exercisebox}[title={Exercise 12.2}]
+\stepcounter{exercise}
+Compute the full AES S-box table (all 256 entries) and verify it against the
+published AES specification.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Compass and Straightedge --- Impossibility Proofs}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\epigraph{``We must know. We will know.''}{\textit{David Hilbert}}
+
+\section{Three Ancient Problems}
+
+\begin{historical}[title={2000 Years of Frustration}]
+Three construction problems haunted mathematicians from ancient Greece until
+the 19th century:
+\begin{enumerate}[nosep]
+\item \textbf{Trisecting an angle:} Given an arbitrary angle, divide it into
+  three equal parts.
+\item \textbf{Doubling the cube:} Given a cube, construct another with
+  exactly twice the volume.
+\item \textbf{Squaring the circle:} Given a circle, construct a square with
+  the same area.
+\end{enumerate}
+All three were to be done with compass and straightedge alone. Generations of
+mathematicians attempted these constructions and failed. The Galois-theoretic
+framework explains \emph{why}.
+\end{historical}
+
+\section{Constructible Numbers}
+
+The key insight: every compass-and-straightedge construction corresponds to
+solving equations of degree $\leq 2$. Intersecting two lines gives a linear
+equation; intersecting a line and a circle, or two circles, gives a quadratic.
+So each construction step extends the ``known'' field by degree at most 2.
+
+\begin{thm}{Constructibility Criterion}{constructible}
+A real number $\alpha$ is constructible if and only if there exists a tower
+of field extensions
+\[
+  \Q = F_0 \subset F_1 \subset \cdots \subset F_n \ni \alpha
+\]
+with $[F_{i+1} : F_i] = 2$ for each $i$. In particular, $[\Q(\alpha):\Q]$
+must be a power of $2$.
+\end{thm}
+
+\section{Trisecting $60°$}
+
+Trisecting $60°$ requires constructing $\cos(20°)$. Using the triple angle
+formula $\cos(3\theta) = 4\cos^3\theta - 3\cos\theta$ with $\theta = 20°$:
+\[
+  \cos(60°) = \frac{1}{2} = 4\cos^3(20°) - 3\cos(20°).
+\]
+So $\alpha = \cos(20°)$ is a root of $8t^3 - 6t - 1 = 0$, which is
+irreducible over $\Q$ (by the rational root theorem: the only possible
+rational roots are $\pm 1, \pm 1/2, \pm 1/4, \pm 1/8$, and none work).
+
+Therefore $[\Q(\cos 20°):\Q] = 3$. Since 3 is not a power of 2, $\cos(20°)$
+is not constructible, and a general angle cannot be trisected.
+
+\section{Doubling the Cube}
+
+Doubling a unit cube requires constructing $\sqrt[3]{2}$. Since $x^3 - 2$ is
+irreducible over $\Q$, $[\Q(\sqrt[3]{2}):\Q] = 3$. Again, 3 is not a power
+of 2: impossible.
+
+\section{Squaring the Circle}
+
+Requires constructing $\sqrt{\pi}$. But $\pi$ is \textbf{transcendental}
+(not a root of any polynomial with rational coefficients), as proved by
+Ferdinand von Lindemann in 1882. Since $\pi$ is not algebraic over $\Q$,
+$[\Q(\pi):\Q]$ is infinite---certainly not a power of 2.
+
+\begin{historical}[title={Gauss and the 17-gon}]
+On the positive side: Gauss proved at age 19 (1796) that the regular 17-gon
+is constructible. He was so proud of this that he reportedly asked for a
+regular 17-gon to be inscribed on his tombstone. The criterion: a regular
+$n$-gon is constructible iff $n = 2^k \cdot p_1 \cdots p_m$ where the $p_i$
+are distinct Fermat primes ($p = 2^{2^j} + 1$). The known Fermat primes are
+3, 5, 17, 257, and 65537.
+\end{historical}
+
+\begin{exercisebox}[title={Exercise 13.1}]
+\stepcounter{exercise}
+Prove in Lean that $8t^3 - 6t - 1$ has no rational roots by checking all
+possibilities from the rational root theorem.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Error-Correcting Codes and Reed-Solomon}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\section{Codes Over Finite Fields}
+
+\begin{historical}[title={Reed and Solomon (1960)}]
+Irving Reed and Gustave Solomon, at MIT Lincoln Laboratory, described a
+class of error-correcting codes based on polynomial evaluation over finite
+fields. Reed-Solomon codes protect data on CDs, DVDs, Blu-rays, QR codes,
+deep-space probes (Voyager), RAID storage, and digital television. The
+mathematics is pure Galois theory.
+\end{historical}
+
+The idea: encode a message of $k$ symbols as a polynomial $p(x)$ of degree
+$< k$ over $\GF(q)$. Evaluate it at $n > k$ distinct points
+$\alpha_1, \ldots, \alpha_n$. The codeword is
+$(p(\alpha_1), \ldots, p(\alpha_n))$. Since a degree $< k$ polynomial is
+determined by $k$ values, any $k$ of the $n$ evaluations suffice to recover
+$p$---and hence the message. The redundancy ($n - k$ extra symbols) allows
+correcting up to $\lfloor(n-k)/2\rfloor$ errors.
+
+The algebraic key: the error-locator polynomial has roots in $\GF(q)$ that
+identify the error positions. Finding these roots uses the structure of the
+finite field---specifically, the fact that $\GF(q^n)$ contains all the
+needed roots of unity.
+
+\begin{exercisebox}[title={Exercise 14.1}]
+\stepcounter{exercise}
+Implement a simple Reed-Solomon encoder over $\GF(2^8)$: given a message of
+$k$ bytes, produce $n$ evaluation points.
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Galois Connections Revisited}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\section{The Big Picture}
+
+We introduced Galois connections abstractly in Chapter~3. Now we've seen the
+original example: $\Fix$ and $\Inv$ form an antitone Galois connection between
+the lattice of intermediate fields and the lattice of subgroups.
+
+\begin{thm}{}{gc-everywhere}
+The following are all instances of Galois connections:
+\begin{enumerate}[nosep, label=(\roman*)]
+\item \textbf{Galois theory:} intermediate fields $\leftrightarrow$ subgroups.
+\item \textbf{Algebraic geometry (Nullstellensatz):} affine varieties
+  $\leftrightarrow$ radical ideals. $V(I)$ = common zeros of $I$;
+  $I(V)$ = polynomials vanishing on $V$.
+\item \textbf{Topology:} interior $\leftrightarrow$ closure. Open sets form a
+  lattice; closed sets form a lattice; interior and closure connect them.
+\item \textbf{Logic:} theories $\leftrightarrow$ models. $\text{Th}(M)$ =
+  sentences true in models $M$; $\text{Mod}(T)$ = models satisfying theory $T$.
+\item \textbf{Computer science:} abstract interpretation. Concrete semantics
+  $\leftrightarrow$ abstract domains. The abstraction and concretization maps
+  form a Galois connection.
+\end{enumerate}
+\end{thm}
+
+\begin{intuition}
+The pattern: whenever you have two ``worlds'' connected by maps that translate
+between them, and the translations approximately invert each other (with a
+controlled loss of information), you likely have a Galois connection. The
+``closed'' elements on each side---those not affected by the round trip---form
+the part of each world that is perfectly captured by the other.
+\end{intuition}
+
+\begin{exercisebox}[title={Exercise 15.1}]
+\stepcounter{exercise}
+Verify that the maps $V$ and $I$ from algebraic geometry satisfy the Galois
+connection axioms (for a polynomial ring over an algebraically closed field).
+\end{exercisebox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter{Looking Back --- The Unity of Algebra}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\section{The Story Arc}
+
+We began with Lagrange's observation (1770) that the roots of a polynomial
+have symmetries. We followed the thread through Gauss, Abel, and Galois to
+the fundamental theorem: the solvability of an equation is controlled by its
+symmetry group. We built every structure in Lean~4---groups, rings, fields,
+polynomials, extensions, automorphisms---and proved the key theorems.
+
+\section{What We Proved}
+
+\begin{itemize}[nosep]
+\item \textbf{The quintic is unsolvable}---not because we lack cleverness,
+  but because $S_5$ is not solvable. The structure of the symmetry group
+  makes a radical formula impossible.
+\item \textbf{AES works}---because $\GF(2^8)$ has the algebraic properties
+  (high nonlinearity of the inverse map) that resist cryptographic attacks.
+\item \textbf{Angles can't be trisected}---because $\cos(20°)$ has
+  degree 3 over $\Q$, and 3 is not a power of 2.
+\item \textbf{Error-correcting codes work}---because finite field extensions
+  provide the algebraic structure for polynomial interpolation and error
+  location.
+\end{itemize}
+
+\section{The Galois-Theoretic Worldview}
+
+The deepest lesson: \textbf{to understand an object, study its symmetries.}
+This philosophy, implicit in Galois's work, was made explicit by Felix Klein
+in his 1872 \textbf{Erlangen Program}: classify geometries by their symmetry
+groups. It was taken to its ultimate form by Alexander Grothendieck in the
+1960s, who reshaped algebraic geometry around symmetry and structure in ways
+that are still being absorbed by mathematicians today.
+
+\begin{historical}[title={Hilbert's 12th Problem and Beyond}]
+In 1900, David Hilbert posed 23 problems for the 20th century. His 12th
+problem asked for an explicit construction of all abelian extensions of
+arbitrary number fields---a generalization of Galois theory that remains
+open in full generality. The Langlands program, one of the deepest ongoing
+research efforts in mathematics, can be seen as a vast generalization of
+Galois theory connecting number theory, representation theory, and geometry.
+Hilbert would have been amazed.
+\end{historical}
+
+\section{Connections Forward}
+
+\begin{itemize}[nosep]
+\item \textbf{Category theory:} groups, rings, and fields are all categories;
+  homomorphisms are functors; Galois connections are adjunctions. Category
+  theory is the language that unifies all of abstract algebra.
+\item \textbf{Algebraic number theory:} Galois theory for number fields
+  (extensions of $\Q$) is the foundation of modern number theory, including
+  the proof of Fermat's Last Theorem (Wiles, 1995).
+\item \textbf{Algebraic geometry:} Grothendieck's schemes generalize the
+  Galois correspondence from fields to geometric objects, connecting algebra
+  and geometry at the deepest level.
+\item \textbf{Your other books:} The lattice/propagator book's Galois
+  connections are the abstract skeleton of the fundamental theorem.
+  The lambda calculus book's Curry-Howard correspondence is another instance
+  of ``two worlds connected by structure-preserving maps.'' The concurrency
+  book's bisimulation is a greatest fixed point---the same Knaster-Tarski
+  theorem from lattice theory that underlies the closure operators here.
+\end{itemize}
+
+\vfill
+\begin{center}
+\Large\itshape\color{deepblue}
+``The algebraic symmetries of the roots of an equation\\
+contain the secret of its solvability.''\\[0.5cm]
+\normalsize --- The message of Galois theory,\\
+written in haste the night of May 29, 1832.
+\end{center}
+\vfill
+
+% ══════════════════════════════════════════════════════════════════════════════
+\backmatter
+% ══════════════════════════════════════════════════════════════════════════════
+
+\chapter*{Appendix: Lean\,4 Typeclass Hierarchy}
+\addcontentsline{toc}{chapter}{Appendix: Lean 4 Typeclass Hierarchy}
+
+The algebraic structures in this book form a hierarchy:
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    box/.style={draw, rounded corners, fill=lightblue!60, font=\small\ttfamily,
+      minimum width=2.5cm, minimum height=0.7cm},
+    arr/.style={->, thick},
+  ]
+  \node[box] (po) {PartialOrder};
+  \node[box, right=3cm of po] (grp) {Group};
+  \node[box, above=1cm of po] (lat) {Lattice};
+  \node[box, above=1cm of grp] (ring) {Ring};
+  \node[box, above=1cm of ring] (field) {Field};
+  \node[box, left=0.5cm of grp] (subgrp) {Subgroup};
+
+  \draw[arr] (po) -- (lat);
+  \draw[arr] (grp) -- (ring);
+  \draw[arr] (ring) -- (field);
+  \draw[arr] (grp) -- (subgrp);
+  \draw[arr, dashed] (subgrp) -- node[above, font=\scriptsize\itshape] {forms a} (lat);
+\end{tikzpicture}
+\end{center}
+
+\begin{itemize}[nosep]
+\item \lc{Group} --- one operation with associativity, identity, inverses.
+\item \lc{Ring} --- two operations; additive group + multiplicative monoid + distributivity.
+\item \lc{Field} --- commutative ring where every nonzero element is invertible.
+\item \lc{PartialOrder} --- reflexive, antisymmetric, transitive relation.
+\item \lc{Lattice} --- partial order with meet and join.
+\item \lc{Subgroup G} --- the subgroups of any group form a \lc{Lattice}.
+\item \lc{GaloisConnection} --- order-reversing adjunction between two posets.
+\end{itemize}
+
+\end{document}
