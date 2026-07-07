@@ -1,7 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{k+kd}{inductive}\PYG{+w}{ }\PYG{n}{Expr}\PYG{+w}{ }\PYG{n}{where}
-\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{bvar}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Expr}\PYG{+w}{        }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} bound variable: de Bruijn index}
-\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{lam}\PYG{+w}{  }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Expr}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Expr}\PYG{+w}{       }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} lambda: no name needed!}
-\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{app}\PYG{+w}{  }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Expr}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Expr}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Expr}
-\PYG{+w}{  }\PYG{n}{deriving}\PYG{+w}{ }\PYG{n}{Repr}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{DecidableEq}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{Inhabited}
-\end{MintedVerbatim}

@@ -1,3 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{Dual}\PYG{+w}{ }\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{α}
-\end{MintedVerbatim}

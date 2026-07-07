@@ -1,5 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{n}{x} \PYG{o}{=} \PYG{l+m+mi}{10}
-\PYG{k}{def}\PYG{+w}{ }\PYG{n+nf}{f}\PYG{p}{(}\PYG{n}{x}\PYG{p}{):}       \PYG{c+c1}{\PYGZsh{} this x shadows the outer x}
-    \PYG{k}{return} \PYG{n}{x}    \PYG{c+c1}{\PYGZsh{} refers to the parameter, not 10}
-\end{MintedVerbatim}

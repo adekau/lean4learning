@@ -1,4 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{isDeadlocked}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{P}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{CCS}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Prop}\PYG{+w}{ }\PYG{o}{:=}
-\PYG{+w}{  }\PYG{n}{P}\PYG{+w}{ }\PYG{n+nb+bp}{≠}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{nil}\PYG{+w}{ }\PYG{n+nb+bp}{∧}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{α}\PYG{+w}{ }\PYG{n}{P\PYGZsq{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{¬}\PYG{+w}{ }\PYG{n}{CCSStep}\PYG{+w}{ }\PYG{n}{P}\PYG{+w}{ }\PYG{n}{α}\PYG{+w}{ }\PYG{n}{P\PYGZsq{}}
-\end{MintedVerbatim}

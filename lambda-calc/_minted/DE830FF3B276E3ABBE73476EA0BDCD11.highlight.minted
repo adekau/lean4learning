@@ -1,9 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{k+kd}{interface}\PYG{+w}{ }\PYG{n+nx}{Functor}\PYG{o}{\PYGZlt{}}\PYG{n+nx}{F}\PYG{+w}{ }\PYG{k}{extends}\PYG{+w}{ }\PYG{n+nb}{Array}\PYG{o}{\PYGZlt{}}\PYG{n+nx}{unknown}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{o}{|}\PYG{+w}{ }\PYG{n+nb}{Set}\PYG{o}{\PYGZlt{}}\PYG{n+nx}{unknown}\PYG{o}{\PYGZgt{}\PYGZgt{}}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
-\PYG{+w}{  }\PYG{n+nx}{map}\PYG{o}{\PYGZlt{}}\PYG{n+nx}{A}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nx}{B}\PYG{o}{\PYGZgt{}}\PYG{p}{(}\PYG{n+nx}{fa}\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{F}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nx}{f}\PYG{o}{:}\PYG{+w}{ }\PYG{p}{(}\PYG{n+nx}{a}\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{A}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n+nx}{B}\PYG{p}{)}\PYG{o}{:}\PYG{+w}{ }\PYG{o}{???}\PYG{p}{;}
-\PYG{+w}{  }\PYG{c+c1}{//                                \PYGZca{}\PYGZca{}\PYGZca{}}
-\PYG{+w}{  }\PYG{c+c1}{// Problem: F is already Array\PYGZlt{}unknown\PYGZgt{} — a concrete type.}
-\PYG{+w}{  }\PYG{c+c1}{// We can\PYGZsq{}t \PYGZdq{}re\PYGZhy{}open\PYGZdq{} it and change the inner type from A to B.}
-\PYG{+w}{  }\PYG{c+c1}{// We can\PYGZsq{}t express \PYGZdq{}same container, different contents.\PYGZdq{}}
-\PYG{p}{\PYGZcb{}}
-\end{MintedVerbatim}

@@ -1,3 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{n}{partial}\PYG{+w}{ }\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{spin}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{n}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{spin}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} never terminates; legal}
-\end{MintedVerbatim}

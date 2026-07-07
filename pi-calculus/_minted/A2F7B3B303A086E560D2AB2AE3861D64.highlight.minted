@@ -1,3 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{k+kd}{instance}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Inhabited}\PYG{+w}{ }\PYG{n}{Tree}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{⟨}\PYG{n+nb+bp}{.}\PYG{n}{leaf}\PYG{o}{⟩}
-\end{MintedVerbatim}

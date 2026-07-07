@@ -1,7 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{k}{\PYGZsh{}eval}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{some}\PYG{+w}{ }\PYG{l+m+mi}{3}\PYG{+w}{ }\PYG{n}{matches}\PYG{+w}{ }\PYG{n}{Option.some}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{o}{)}\PYG{+w}{   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} true}
-\PYG{k}{\PYGZsh{}eval}\PYG{+w}{ }\PYG{o}{(([]}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{matches}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{o}{::}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{o}{)}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} false}
-
-\PYG{c+c1}{\PYGZhy{}\PYGZhy{} `x matches some \PYGZus{}` is literally:}
-\PYG{c+c1}{\PYGZhy{}\PYGZhy{}   match x with | Option.some \PYGZus{} =\PYGZgt{} true | \PYGZus{} =\PYGZgt{} false}
-\end{MintedVerbatim}

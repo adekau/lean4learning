@@ -1,1 +1,36 @@
 /.lake
+
+# ---------------------------------------------------------------------------
+# LaTeX build artifacts
+#
+# The books in this repo are built to PDF in CI (see
+# .github/workflows/build-books.yml) and published to GitHub Releases, so the
+# generated output is no longer committed. Only the .tex sources are tracked.
+# ---------------------------------------------------------------------------
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.nav
+*.out
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+*.xdv
+
+# minted / pygments cache (regenerated on every build)
+_minted/
+_minted-*/
+.minted-cache/
+
+# Built PDFs (produced in CI, published to Releases)
+*.pdf
+
+# ...except the hand-authored guide, which has no .tex source and cannot be
+# regenerated, so it stays under version control.
+!lambda-calc/lambda_calculus_guide.pdf

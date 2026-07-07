@@ -1,6 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Schematic only: `Vec` is not part of core Lean (you would define it}
-\PYG{c+c1}{\PYGZhy{}\PYGZhy{} yourself, or import Mathlib). We show just the SIGNATURE to make the}
-\PYG{c+c1}{\PYGZhy{}\PYGZhy{} point; there is no body here, so this is illustrative pseudocode.}
-\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{zipWith}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{f}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{β}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{γ}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Vec}\PYG{+w}{ }\PYG{n}{α}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Vec}\PYG{+w}{ }\PYG{n}{β}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Vec}\PYG{+w}{ }\PYG{n}{γ}\PYG{+w}{ }\PYG{n}{n}
-\end{MintedVerbatim}

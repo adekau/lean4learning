@@ -1,4 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{betaReduce}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{body}\PYG{+w}{ }\PYG{n}{arg}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Expr}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Expr}\PYG{+w}{ }\PYG{o}{:=}
-\PYG{+w}{  }\PYG{n}{shift}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{o}{)}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{subst}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{shift}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{n}{arg}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{body}\PYG{o}{)}
-\end{MintedVerbatim}

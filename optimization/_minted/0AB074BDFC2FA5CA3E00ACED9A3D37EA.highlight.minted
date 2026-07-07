@@ -1,8 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{k+kd}{example}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{P}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{k+kt}{Prop}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∃}\PYG{+w}{ }\PYG{n}{n}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{P}\PYG{+w}{ }\PYG{n}{n}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∃}\PYG{+w}{ }\PYG{n}{m}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{P}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k+kd}{by}
-\PYG{+w}{  }\PYG{n}{obtain}\PYG{+w}{ }\PYG{o}{⟨}\PYG{n}{n}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{hn}\PYG{o}{⟩}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{h}
-\PYG{+w}{  }\PYG{n}{exact}\PYG{+w}{ }\PYG{o}{⟨}\PYG{n}{n}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{hn}\PYG{o}{⟩}
-\PYG{c+c1}{\PYGZhy{}\PYGZhy{} desugaring:}
-\PYG{k+kd}{example}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{P}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{k+kt}{Prop}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∃}\PYG{+w}{ }\PYG{n}{n}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{P}\PYG{+w}{ }\PYG{n}{n}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∃}\PYG{+w}{ }\PYG{n}{m}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{P}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{o}{:=}
-\PYG{+w}{  }\PYG{n}{Exists.elim}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n}{hn}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{⟨}\PYG{n}{n}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{hn}\PYG{o}{⟩)}
-\end{MintedVerbatim}

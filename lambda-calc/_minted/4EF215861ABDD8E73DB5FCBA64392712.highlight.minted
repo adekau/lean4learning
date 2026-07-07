@@ -1,6 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-subst 0 (bvar 1) (λ. 1)
-  = λ. (subst 1 (shift 1 0 (bvar 1)) (bvar 1))
-  = λ. (subst 1 (bvar 2) (bvar 1))       \PYGZhy{}\PYGZhy{} s shifted: 1 → 2
-  = λ. (bvar 2)                           ✓  correctly points past the λ
-\end{MintedVerbatim}

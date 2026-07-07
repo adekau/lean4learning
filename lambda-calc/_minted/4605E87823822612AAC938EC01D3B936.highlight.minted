@@ -1,9 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{typedPipeline}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{defs}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Defs}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{input}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{String}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{n}{String}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
-\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{named}\PYG{+w}{    }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{parse}\PYG{+w}{ }\PYG{n}{input}
-\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{expanded}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{expandDefs}\PYG{+w}{ }\PYG{n}{defs}\PYG{+w}{ }\PYG{n}{named}
-\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{expr}\PYG{+w}{     }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{toDeBruijn}\PYG{+w}{ }\PYG{o}{[]}\PYG{+w}{ }\PYG{n}{expanded}
-\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{ty}\PYG{+w}{       }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{typeCheck}\PYG{+w}{ }\PYG{o}{[]}\PYG{+w}{ }\PYG{n}{expr}\PYG{+w}{      }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} NEW: reject ill\PYGZhy{}typed terms}
-\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{result}\PYG{+w}{   }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{eval}\PYG{+w}{ }\PYG{l+m+mi}{1000}\PYG{+w}{ }\PYG{n}{expr}
-\PYG{+w}{  }\PYG{n}{pure}\PYG{+w}{ }\PYG{n}{s}\PYG{n+nb+bp}{!}\PYG{l+s+s2}{\PYGZdq{}\PYGZob{}display result\PYGZcb{} : \PYGZob{}displayTy ty\PYGZcb{}\PYGZdq{}}
-\end{MintedVerbatim}

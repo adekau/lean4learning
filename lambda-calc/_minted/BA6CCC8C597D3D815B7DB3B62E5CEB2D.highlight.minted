@@ -1,6 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Test: the polymorphic identity  Λα. λ(x:α). x : ∀α. α → α}
-\PYG{k}{\PYGZsh{}eval}\PYG{+w}{ }\PYG{n}{fTypeCheck}\PYG{+w}{ }\PYG{o}{[]}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{tlam}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{tvar}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{bvar}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{o}{)))}
-\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Result: some (FTy.forall\PYGZus{} (FTy.arrow (FTy.tvar 0) (FTy.tvar 0)))}
-\PYG{c+c1}{\PYGZhy{}\PYGZhy{}       = some (∀α. α → α)  ✓}
-\end{MintedVerbatim}

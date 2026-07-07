@@ -1,3 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{n}{deriving}\PYG{+w}{ }\PYG{k+kn}{instance}\PYG{+w}{ }\PYG{n}{DecidableEq}\PYG{+w}{ }\PYG{n}{for}\PYG{+w}{ }\PYG{n}{FlatNat}
-\end{MintedVerbatim}

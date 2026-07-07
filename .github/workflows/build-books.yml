@@ -1,0 +1,108 @@
+name: Build Books
+
+# Builds every LaTeX book to PDF in CI and publishes them.
+#
+#   * every push / PR  -> PDFs uploaded as workflow artifacts (downloadable
+#                         from the run's summary page, kept for 90 days)
+#   * push to main     -> a versioned GitHub Release is cut with all PDFs
+#                         attached, tagged with a date+commit version
+#                         (e.g. v2026.07.06-9325451)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref to save minutes.
+concurrency:
+  group: build-books-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Full TeX Live (matches the local toolchain: XeLaTeX + minted v3 +
+    # latexminted). Debian-based, so the system DejaVu fonts land at the
+    # /usr/share/fonts/truetype/dejavu path the books look for.
+    container: texlive/texlive:latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { dir: calculus,       tex: verified-calculus-complete }
+          - { dir: crdt,           tex: from-propagators-to-replicas }
+          - { dir: galois,         tex: galois-theory-for-programmers }
+          - { dir: lambda-calc,    tex: lambda_calculus }
+          - { dir: optimization,   tex: verified-optimization }
+          - { dir: order-lattices, tex: from-zero-to-propagators }
+          - { dir: pi-calculus,    tex: process-calculi-and-concurrency }
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install fonts and code-highlighting deps
+        run: |
+          apt-get update
+          # Full system DejaVu (TeX Live's bundled copy is trimmed and drops
+          # glyphs such as U+2294 the Lean listings use). python3/pygments back
+          # the minted v3 `latexminted` helper.
+          apt-get install -y --no-install-recommends \
+            fonts-dejavu fonts-dejavu-extra python3 python3-pygments
+          fc-cache -f
+          # latexminted ships with recent TeX Live; fall back to pip if absent.
+          latexminted --version || pip3 install --break-system-packages latexminted pygments
+
+      - name: Build ${{ matrix.dir }}
+        working-directory: ${{ matrix.dir }}
+        run: |
+          latexmk -xelatex -shell-escape -interaction=nonstopmode "${{ matrix.tex }}.tex" || true
+          # Success == the PDF was produced. latexmk can exit non-zero on the
+          # benign unicode-math "already defined" warnings some preambles emit.
+          if [ ! -f "${{ matrix.tex }}.pdf" ]; then
+            echo "::error::${{ matrix.tex }}.pdf was not produced"
+            tail -n 60 "${{ matrix.tex }}.log" || true
+            exit 1
+          fi
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf-${{ matrix.dir }}
+          path: ${{ matrix.dir }}/${{ matrix.tex }}.pdf
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write   # required to create the release + tag
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Compute version
+        id: version
+        run: echo "version=$(date -u +%Y.%m.%d)-$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Collect built PDFs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pdf-*
+          path: pdfs
+          merge-multiple: true
+
+      - name: Include the hand-authored guide (no .tex source)
+        run: cp lambda-calc/lambda_calculus_guide.pdf pdfs/
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Books ${{ steps.version.outputs.version }}
+          body: |
+            Book PDFs built from `${{ github.sha }}`.
+            Version `${{ steps.version.outputs.version }}` (build date + short commit).
+          files: pdfs/*.pdf
+          make_latest: true

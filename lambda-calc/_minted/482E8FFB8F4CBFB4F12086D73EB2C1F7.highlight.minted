@@ -1,6 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-  Π(A : Type). Π(\PYGZus{} : A).  A
-  ↑ binder 1    ↑ binder 0  ↑ bvar 1 = skip inner binder,
-                               grab outer binder = A  ✓
-                ↑ (.bvar 0) = A, because only the outer Π is in scope here
-\end{MintedVerbatim}

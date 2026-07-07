@@ -1,9 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-substV2 0 (bvar 5) (λ. 0)
-  = λ. (substV2 1 (bvar 5) (bvar 0))
-  = λ. (bvar 0)                            ✓  bound var untouched!
-
-substV2 0 (bvar 5) (λ. 1)
-  = λ. (substV2 1 (bvar 5) (bvar 1))
-  = λ. (bvar 5)                            ✓  free var replaced!
-\end{MintedVerbatim}

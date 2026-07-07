@@ -1,5 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{k+kd}{structure}\PYG{+w}{ }\PYG{n}{NormalSubgroup}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{G}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{Group}\PYG{+w}{ }\PYG{n}{G}\PYG{o}{]}\PYG{+w}{ }\PYG{k+kd}{extends}\PYG{+w}{ }\PYG{n}{Subgroup}\PYG{+w}{ }\PYG{n}{G}\PYG{+w}{ }\PYG{n}{where}
-\PYG{+w}{  }\PYG{n}{conj\PYGZus{}mem}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{n}{n}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{G}\PYG{o}{\PYGZcb{},}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{∈}\PYG{+w}{ }\PYG{n}{carrier}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{g}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{G}\PYG{o}{,}
-\PYG{+w}{    }\PYG{n}{g}\PYG{+w}{ }\PYG{n+nb+bp}{*}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{*}\PYG{+w}{ }\PYG{n}{g}\PYG{n+nb+bp}{⁻¹}\PYG{+w}{ }\PYG{n+nb+bp}{∈}\PYG{+w}{ }\PYG{n}{carrier}
-\end{MintedVerbatim}

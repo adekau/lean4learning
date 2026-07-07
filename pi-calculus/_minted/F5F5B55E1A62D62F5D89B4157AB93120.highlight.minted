@@ -1,8 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{c+c1}{// Worker A waits for B\PYGZsq{}s response before sending its own}
-\PYG{c+c1}{// Worker B waits for A\PYGZsq{}s response before sending its own}
-\PYG{c+c1}{// Neither can proceed: DEADLOCK}
-
-\PYG{n+nx}{workerA}\PYG{p}{.}\PYG{n+nx}{postMessage}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}waiting for B\PYGZsq{}}\PYG{p}{);}\PYG{+w}{  }\PYG{c+c1}{// A blocks until B responds}
-\PYG{n+nx}{workerB}\PYG{p}{.}\PYG{n+nx}{postMessage}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}waiting for A\PYGZsq{}}\PYG{p}{);}\PYG{+w}{  }\PYG{c+c1}{// B blocks until A responds}
-\end{MintedVerbatim}

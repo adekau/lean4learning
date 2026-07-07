@@ -1,8 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-expr   ::= \PYGZsq{}\PYGZbs{}\PYGZsq{} ident+ \PYGZsq{}.\PYGZsq{} expr    \PYGZhy{}\PYGZhy{} lambda: \PYGZbs{}x y z. body
-         | app
-app    ::= atom+                  \PYGZhy{}\PYGZhy{} one or more atoms, left\PYGZhy{}assoc
-atom   ::= \PYGZsq{}(\PYGZsq{} expr \PYGZsq{})\PYGZsq{}           \PYGZhy{}\PYGZhy{} grouped expression
-         | ident                   \PYGZhy{}\PYGZhy{} variable name
-ident  ::= [a\PYGZhy{}zA\PYGZhy{}Z\PYGZus{}][a\PYGZhy{}zA\PYGZhy{}Z0\PYGZhy{}9\PYGZus{}\PYGZsq{}]*
-\end{MintedVerbatim}

@@ -1,6 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-substNaive 0 (bvar 5) (bvar 0)       = bvar 5     ✓  replaced
-substNaive 0 (bvar 5) (bvar 3)       = bvar 3     ✓  left alone
-substNaive 0 (bvar 5) (app (bvar 0) (bvar 1))
-                                      = app (bvar 5) (bvar 1)  ✓
-\end{MintedVerbatim}

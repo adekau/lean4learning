@@ -1,7 +1,0 @@
-\begin{MintedVerbatim}[commandchars=\\\{\}]
-\PYG{k+kd}{structure}\PYG{+w}{ }\PYG{n}{GaloisConnection}
-\PYG{+w}{    }\PYG{o}{(}\PYG{n}{P}\PYG{+w}{ }\PYG{n}{Q}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{PartialOrder}\PYG{+w}{ }\PYG{n}{P}\PYG{o}{]}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{PartialOrder}\PYG{+w}{ }\PYG{n}{Q}\PYG{o}{]}\PYG{+w}{ }\PYG{n}{where}
-\PYG{+w}{  }\PYG{n}{l}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{P}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Q}
-\PYG{+w}{  }\PYG{n}{u}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Q}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{P}
-\PYG{+w}{  }\PYG{n}{adjoint}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{p}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{P}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{q}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Q}\PYG{o}{),}\PYG{+w}{ }\PYG{n}{q}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{l}\PYG{+w}{ }\PYG{n}{p}\PYG{+w}{ }\PYG{n+nb+bp}{↔}\PYG{+w}{ }\PYG{n}{p}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{u}\PYG{+w}{ }\PYG{n}{q}
-\end{MintedVerbatim}
