@@ -1,0 +1,91 @@
+\contentsline {chapter}{Preface}{iv}{chapter*.2}%
+\contentsline {paragraph}{Historical arc.}{iv}{chapter*.2}%
+\contentsline {paragraph}{Prerequisites.}{iv}{chapter*.2}%
+\contentsline {paragraph}{Lean\,4 setup.}{iv}{chapter*.2}%
+\contentsline {part}{I\hspace {1em}Foundations of Communicating Processes}{1}{part.1}%
+\contentsline {chapter}{\numberline {1}Why Concurrency Is Hard}{2}{chapter.1}%
+\contentsline {section}{\numberline {1.1}The Problem}{2}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Concurrency in Node.js}{2}{section.1.2}%
+\contentsline {subsection}{\numberline {1.2.1}The Event Loop}{2}{subsection.1.2.1}%
+\contentsline {subsection}{\numberline {1.2.2}Worker Threads}{3}{subsection.1.2.2}%
+\contentsline {section}{\numberline {1.3}What Can Go Wrong}{3}{section.1.3}%
+\contentsline {subsection}{\numberline {1.3.1}Race Conditions}{4}{subsection.1.3.1}%
+\contentsline {subsection}{\numberline {1.3.2}Deadlock}{4}{subsection.1.3.2}%
+\contentsline {section}{\numberline {1.4}The Way Forward}{4}{section.1.4}%
+\contentsline {chapter}{\numberline {2}Labeled Transition Systems}{6}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Processes as State Machines}{6}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Traces}{7}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Example: A Vending Machine}{7}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Determinism and Nondeterminism}{7}{section.2.4}%
+\contentsline {chapter}{\numberline {3}CCS --- The Calculus of Communicating Systems}{9}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Robin Milner and the Quest for a Theory}{9}{section.3.1}%
+\contentsline {section}{\numberline {3.2}CCS Syntax}{9}{section.3.2}%
+\contentsline {paragraph}{What each constructor means:}{10}{tcb@cnt@defn.3.1}%
+\contentsline {section}{\numberline {3.3}Operational Semantics}{11}{section.3.3}%
+\contentsline {section}{\numberline {3.4}The Communication Rule}{11}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Worked Example: Request-Response}{12}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}The Node.js Mapping}{12}{subsection.3.4.2}%
+\contentsline {chapter}{\numberline {4}Bisimulation --- When Are Two Systems ``The Same''?}{13}{chapter.4}%
+\contentsline {section}{\numberline {4.1}The Coffee Machine Problem}{13}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Bisimulation}{14}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Bisimulation as a Greatest Fixed Point}{14}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Properties of Bisimilarity}{15}{section.4.4}%
+\contentsline {chapter}{\numberline {5}Deadlock, Livelock, and Safety Properties}{16}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Dining Philosophers}{16}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Deadlock}{16}{section.5.2}%
+\contentsline {subsection}{\numberline {5.2.1}Deadlock in CCS}{17}{subsection.5.2.1}%
+\contentsline {section}{\numberline {5.3}Livelock}{17}{section.5.3}%
+\contentsline {section}{\numberline {5.4}Safety and Liveness}{17}{section.5.4}%
+\contentsline {section}{\numberline {5.5}The Dining Philosophers in CCS}{18}{section.5.5}%
+\contentsline {part}{II\hspace {1em}Advanced Theory}{19}{part.2}%
+\contentsline {chapter}{\numberline {6}The $\pi $-Calculus --- Mobile Channels}{20}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Beyond Fixed Topologies}{20}{section.6.1}%
+\contentsline {section}{\numberline {6.2}$\pi $-Calculus Syntax}{20}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Communication and Scope Extrusion}{21}{section.6.3}%
+\contentsline {subsection}{\numberline {6.3.1}The Node.js Connection}{22}{subsection.6.3.1}%
+\contentsline {section}{\numberline {6.4}Encoding the $\lambda $-Calculus}{23}{section.6.4}%
+\contentsline {chapter}{\numberline {7}Structural Congruence and Algebraic Laws}{25}{chapter.7}%
+\contentsline {section}{\numberline {7.1}The Algebra of Processes}{25}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Laws of CCS (Up to Bisimilarity)}{25}{section.7.2}%
+\contentsline {section}{\numberline {7.3}Structural Congruence}{26}{section.7.3}%
+\contentsline {chapter}{\numberline {8}Hennessy-Milner Logic}{28}{chapter.8}%
+\contentsline {section}{\numberline {8.1}A Logic for Processes}{28}{section.8.1}%
+\contentsline {section}{\numberline {8.2}The Adequacy Theorem}{29}{section.8.2}%
+\contentsline {subsection}{\numberline {8.2.1}Distinguishing the Coffee Machines}{29}{subsection.8.2.1}%
+\contentsline {section}{\numberline {8.3}Specification via Logic}{29}{section.8.3}%
+\contentsline {part}{III\hspace {1em}Types for Concurrency}{31}{part.3}%
+\contentsline {chapter}{\numberline {9}Session Types --- Protocols as Types}{32}{chapter.9}%
+\contentsline {section}{\numberline {9.1}Typing Communication}{32}{section.9.1}%
+\contentsline {section}{\numberline {9.2}Session Type Syntax}{32}{section.9.2}%
+\contentsline {section}{\numberline {9.3}Duality}{33}{section.9.3}%
+\contentsline {section}{\numberline {9.4}Type Safety}{34}{section.9.4}%
+\contentsline {section}{\numberline {9.5}The Linear Logic Connection}{34}{section.9.5}%
+\contentsline {chapter}{\numberline {10}Practical Session Types for TypeScript}{36}{chapter.10}%
+\contentsline {section}{\numberline {10.1}What Session Types Would Look Like}{36}{section.10.1}%
+\contentsline {section}{\numberline {10.2}Current TypeScript Approximations}{36}{section.10.2}%
+\contentsline {subsection}{\numberline {10.2.1}State Machine Pattern}{36}{subsection.10.2.1}%
+\contentsline {subsection}{\numberline {10.2.2}Discriminated Unions with XState}{37}{subsection.10.2.2}%
+\contentsline {section}{\numberline {10.3}What's Missing in TypeScript}{37}{section.10.3}%
+\contentsline {section}{\numberline {10.4}Languages with Real Session Type Support}{37}{section.10.4}%
+\contentsline {chapter}{\numberline {11}Multiparty Session Types}{38}{chapter.11}%
+\contentsline {section}{\numberline {11.1}Beyond Two Parties}{38}{section.11.1}%
+\contentsline {section}{\numberline {11.2}Global Types}{38}{section.11.2}%
+\contentsline {subsection}{\numberline {11.2.1}Example: Client-Server-Database}{39}{subsection.11.2.1}%
+\contentsline {section}{\numberline {11.3}Projection}{39}{section.11.3}%
+\contentsline {section}{\numberline {11.4}Connection to Choreographic Programming}{40}{section.11.4}%
+\contentsline {part}{IV\hspace {1em}Capstone}{41}{part.4}%
+\contentsline {chapter}{\numberline {12}Capstone --- Verified Worker Pool Protocol}{42}{chapter.12}%
+\contentsline {section}{\numberline {12.1}The Protocol}{42}{section.12.1}%
+\contentsline {subsection}{\numberline {12.1.1}Global Type}{42}{subsection.12.1.1}%
+\contentsline {subsection}{\numberline {12.1.2}$\pi $-Calculus Formalization}{43}{subsection.12.1.2}%
+\contentsline {section}{\numberline {12.2}Properties to Prove}{44}{section.12.2}%
+\contentsline {section}{\numberline {12.3}The TypeScript Implementation}{44}{section.12.3}%
+\contentsline {chapter}{\numberline {13}Looking Back --- The Science of Concurrency}{47}{chapter.13}%
+\contentsline {section}{\numberline {13.1}The Intellectual Arc}{47}{section.13.1}%
+\contentsline {section}{\numberline {13.2}Where the Models Live in Industry}{47}{section.13.2}%
+\contentsline {section}{\numberline {13.3}What We Didn't Cover}{47}{section.13.3}%
+\contentsline {section}{\numberline {13.4}Cross-Book Connections}{48}{section.13.4}%
+\contentsline {chapter}{Appendix A: Quick Reference}{49}{chapter*.3}%
+\contentsline {chapter}{Appendix B: Lean 4 Definitions Index}{50}{chapter*.4}%
+\contentsline {chapter}{Appendix C: Historical Timeline}{51}{chapter*.5}%
+\contentsline {chapter}{Appendix D: A Lean 4 Primer}{52}{chapter*.6}%

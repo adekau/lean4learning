@@ -1,0 +1,9 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{counterDemo}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{IO}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{IO}\PYG{n+nb+bp}{.}\PYG{n}{mkRef}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{     }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} allocate a mutable reference holding 0}
+\PYG{+w}{  }\PYG{n}{r}\PYG{n+nb+bp}{.}\PYG{n}{set}\PYG{+w}{ }\PYG{l+m+mi}{5}\PYG{+w}{                }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} overwrite the contents}
+\PYG{+w}{  }\PYG{n}{r}\PYG{n+nb+bp}{.}\PYG{n}{modify}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{)}\PYG{+w}{       }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} apply a function to the contents}
+\PYG{+w}{  }\PYG{n}{r}\PYG{n+nb+bp}{.}\PYG{n}{get}\PYG{+w}{                  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} read it back}
+
+\PYG{n+nb+bp}{\PYGZsh{}}\PYG{n}{eval}\PYG{+w}{ }\PYG{n}{counterDemo}\PYG{+w}{        }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} 6}
+\end{MintedVerbatim}

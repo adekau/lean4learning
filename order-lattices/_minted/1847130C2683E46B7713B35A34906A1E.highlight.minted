@@ -1,0 +1,48 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{namespace}\PYG{+w}{ }\PYG{n}{Propagators}
+
+\PYG{k+kn}{open}\PYG{+w}{ }\PYG{n}{FlatNat}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Addition propagator: addFn wrapped in IO — read the inputs, apply}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} the pure monotone function, merge the result into the output cell.}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} When either input is unknown, addFn returns unknown = ⊥, and}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} merging ⊥ changes nothing (write returns false). When an input is}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} conflict, addFn returns conflict — so contradictions propagate.}
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{addProp}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{cx}\PYG{+w}{ }\PYG{n}{cy}\PYG{+w}{ }\PYG{n}{csum}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Cell}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{PropStep}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cx}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{y}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cy}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{  }\PYG{n}{csum}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{addFn}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{ }\PYG{n}{y}\PYG{o}{)}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Subtraction (used to deduce y = sum \PYGZhy{} x): subFn wrapped in IO.}
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{subProp}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{csum}\PYG{+w}{ }\PYG{n}{cx}\PYG{+w}{ }\PYG{n}{cy}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Cell}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{PropStep}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{csum}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cx}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{  }\PYG{n}{cy}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{subFn}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{x}\PYG{o}{)}
+
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{exampleNetwork}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{IO}\PYG{+w}{ }\PYG{n}{Unit}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{cx}\PYG{+w}{   }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{Cell}\PYG{n+nb+bp}{.}\PYG{n}{new}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{o}{)}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{cy}\PYG{+w}{   }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{Cell}\PYG{n+nb+bp}{.}\PYG{n}{new}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{o}{)}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{csum}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{Cell}\PYG{n+nb+bp}{.}\PYG{n}{new}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{o}{)}
+
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Seed known facts}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cx}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{known}\PYG{+w}{ }\PYG{l+m+mi}{3}\PYG{o}{)}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{csum}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{known}\PYG{+w}{ }\PYG{l+m+mi}{10}\PYG{o}{)}
+
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{net}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Network}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n}{steps}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZsh{}}\PYG{o}{[}
+\PYG{+w}{      }\PYG{n}{addProp}\PYG{+w}{ }\PYG{n}{cx}\PYG{+w}{ }\PYG{n}{cy}\PYG{+w}{ }\PYG{n}{csum}\PYG{o}{,}
+\PYG{+w}{      }\PYG{n}{subProp}\PYG{+w}{ }\PYG{n}{csum}\PYG{+w}{ }\PYG{n}{cx}\PYG{+w}{ }\PYG{n}{cy}\PYG{o}{,}
+\PYG{+w}{      }\PYG{n}{subProp}\PYG{+w}{ }\PYG{n}{csum}\PYG{+w}{ }\PYG{n}{cy}\PYG{+w}{ }\PYG{n}{cx}
+\PYG{+w}{    }\PYG{o}{]}
+\PYG{+w}{  }\PYG{o}{\PYGZcb{}}
+
+\PYG{+w}{  }\PYG{n}{net}\PYG{n+nb+bp}{.}\PYG{n}{run}
+
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{yVal}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cy}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{  }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{yVal}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{known}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{IO}\PYG{n+nb+bp}{.}\PYG{n}{println}\PYG{+w}{ }\PYG{n}{s!}\PYG{l+s+s2}{\PYGZdq{}y = \PYGZob{}n\PYGZcb{}\PYGZdq{}}\PYG{+w}{   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} prints: y = 7}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{unknown}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{IO}\PYG{n+nb+bp}{.}\PYG{n}{println}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}y is unknown\PYGZdq{}}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{conflict}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{IO}\PYG{n+nb+bp}{.}\PYG{n}{println}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}contradiction!\PYGZdq{}}
+
+\PYG{k+kn}{end}\PYG{+w}{ }\PYG{n}{Propagators}
+\end{MintedVerbatim}

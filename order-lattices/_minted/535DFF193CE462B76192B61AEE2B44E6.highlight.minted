@@ -1,0 +1,39 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{namespace}\PYG{+w}{ }\PYG{n}{TypeInfer}
+
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{infer}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{e}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Expr}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{IO}\PYG{+w}{ }\PYG{n}{Ty}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{stepsRef}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{IO}\PYG{n+nb+bp}{.}\PYG{n}{mkRef}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Array}\PYG{n+nb+bp}{.}\PYG{n}{empty}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Array}\PYG{+w}{ }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{PropStep}\PYG{o}{)}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{cResult}\PYG{+w}{  }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{inferExpr}\PYG{+w}{ }\PYG{o}{[]}\PYG{+w}{ }\PYG{n}{e}\PYG{+w}{ }\PYG{n}{stepsRef}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{steps}\PYG{+w}{    }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{stepsRef}\PYG{n+nb+bp}{.}\PYG{n}{get}
+\PYG{+w}{  }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{runToFixpoint}\PYG{+w}{ }\PYG{n}{steps}
+\PYG{+w}{  }\PYG{n}{cResult}\PYG{n+nb+bp}{.}\PYG{n}{read}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Helper to show types}
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{Ty}\PYG{n+nb+bp}{.}\PYG{n}{toString}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Ty}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{String}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{unknown}\PYG{+w}{       }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}?\PYGZdq{}}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{int}\PYG{+w}{           }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}Int\PYGZdq{}}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{bool}\PYG{+w}{          }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}Bool\PYGZdq{}}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{fun\PYGZus{}}\PYG{+w}{ }\PYG{n}{d}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{      }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{s!}\PYG{l+s+s2}{\PYGZdq{}(\PYGZob{}Ty.toString d\PYGZcb{} → \PYGZob{}Ty.toString r\PYGZcb{})\PYGZdq{}}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{typeError}\PYG{+w}{     }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}TypeError\PYGZdq{}}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Examples}
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{ex1}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Expr}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{add}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{intLit}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{intLit}\PYG{+w}{ }\PYG{l+m+mi}{2}\PYG{o}{)}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Expected: Int}
+
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{ex2}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Expr}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}x\PYGZdq{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{add}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{var}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}x\PYGZdq{}}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{intLit}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{))}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Expected: (Int → Int)}
+
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{ex3}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Expr}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{ifExpr}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{boolLit}\PYG{+w}{ }\PYG{n}{true}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{intLit}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{intLit}\PYG{+w}{ }\PYG{l+m+mi}{2}\PYG{o}{)}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Expected: Int}
+
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{ex4}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Expr}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{add}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{boolLit}\PYG{+w}{ }\PYG{n}{true}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{intLit}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{)}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Expected: TypeError (Bool ≠ Int)}
+
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{runExamples}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{IO}\PYG{+w}{ }\PYG{n}{Unit}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{n}{for}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{name}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{)}\PYG{+w}{ }\PYG{k}{in}\PYG{+w}{ }\PYG{o}{[(}\PYG{l+s+s2}{\PYGZdq{}1 + 2\PYGZdq{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{ex1}\PYG{o}{),}\PYG{+w}{ }\PYG{o}{(}\PYG{l+s+s2}{\PYGZdq{}λx. x+1\PYGZdq{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{ex2}\PYG{o}{),}
+\PYG{+w}{                    }\PYG{o}{(}\PYG{l+s+s2}{\PYGZdq{}if true 1 2\PYGZdq{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{ex3}\PYG{o}{),}\PYG{+w}{ }\PYG{o}{(}\PYG{l+s+s2}{\PYGZdq{}true + 1\PYGZdq{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{ex4}\PYG{o}{)]}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{ty}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{infer}\PYG{+w}{ }\PYG{n}{e}
+\PYG{+w}{    }\PYG{n}{IO}\PYG{n+nb+bp}{.}\PYG{n}{println}\PYG{+w}{ }\PYG{n}{s!}\PYG{l+s+s2}{\PYGZdq{}\PYGZob{}name\PYGZcb{} : \PYGZob{}Ty.toString ty\PYGZcb{}\PYGZdq{}}
+
+\PYG{k+kn}{end}\PYG{+w}{ }\PYG{n}{TypeInfer}
+\end{MintedVerbatim}

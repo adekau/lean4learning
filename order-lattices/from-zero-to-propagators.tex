@@ -6,12 +6,20 @@
 
 % ── Fonts & encoding ────────────────────────────────────────
 \usepackage{fontspec}
-\usepackage{unicode-math}
 \setmainfont{Latin Modern Roman}
-\setmathfont{Latin Modern Math}
+% NB: load DejaVu Sans Mono from the system files explicitly — the
+% TeX-distribution copy is trimmed and lacks ⊓ (U+2293) and ⊔ (U+2294),
+% which the Lean listings need.
 \setmonofont[Scale=0.82,
-             BoldFont={DejaVu Sans Mono:style=Bold}
-            ]{DejaVu Sans Mono}
+             Path=/usr/share/fonts/truetype/dejavu/,
+             Extension=.ttf,
+             UprightFont=DejaVuSansMono,
+             BoldFont=DejaVuSansMono-Bold,
+             ItalicFont=DejaVuSansMono,
+             ItalicFeatures={FakeSlant=0.2},
+             BoldItalicFont=DejaVuSansMono-Bold,
+             BoldItalicFeatures={FakeSlant=0.2}
+            ]{DejaVuSansMono}
 
 % ── Layout ──────────────────────────────────────────────────
 \usepackage[top=1in, bottom=1.15in, left=1.1in, right=1.1in, headheight=14pt]{geometry}
@@ -26,6 +34,10 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{mathtools}
+% unicode-math must come AFTER amssymb (it redefines symbols the
+% ams packages would otherwise re-declare).
+\usepackage{unicode-math}
+\setmathfont{Latin Modern Math}
 
 % ── Theorems ────────────────────────────────────────────────
 \usepackage{amsthm}
@@ -381,6 +393,16 @@ instance [PartialOrder α] : LT α := ⟨lt⟩
 end OrderBook
 \end{minted}
 
+\begin{notebox}
+  \textbf{A naming convention.} Definitions like \lc{PartialOrder} live in
+  our \lc{OrderBook} namespace so they cannot collide with core Lean's.
+  Listings that sit outside an explicit \lc{namespace OrderBook … end}
+  block assume \lc{open OrderBook} is in effect (occasionally written
+  explicitly as \lc{open OrderBook in} before a single declaration), which
+  lets us write \lc{PartialOrder.le\_antisymm} instead of the fully
+  qualified \lc{OrderBook.PartialOrder.le\_antisymm}.
+\end{notebox}
+
 \subsection{The Natural Numbers}
 
 The natural numbers with the usual $\leq$ form our first instance.
@@ -393,8 +415,6 @@ In Lean~4's core library, \lc{Nat.le} is defined inductively:
 --   | step : Nat.le n m → Nat.le n (m + 1)
 
 instance : OrderBook.PartialOrder Nat where
-  le          := Nat.ble  -- wait, we want Prop, not Bool
-  -- Use the propositional version:
   le          := (· ≤ ·)      -- uses Nat.le which is in core
   le_refl     := Nat.le_refl
   le_antisymm := fun a b h1 h2 => Nat.le_antisymm h1 h2
@@ -414,9 +434,10 @@ $m$'', i.e.\ $\exists k, m = n \cdot k$. This is a genuinely different order fro
 $\leq$: for instance $3 \leq 12$ (since $12 = 3 \cdot 4$) but $4 \not\leq 6$
 (no natural number $k$ satisfies $6 = 4k$).
 
-As discussed in the previous section, we cannot attach a second \lc{LE} instance
-to \lc{Nat} (one already exists for the usual order), so we introduce a newtype
-wrapper.
+Core Lean already attaches an \lc{LE Nat} instance for the usual order, and
+adding a second one for divisibility would make every \lc{≤} on \lc{Nat}
+ambiguous. So we introduce a newtype wrapper and give \emph{it} the
+divisibility order.
 
 \begin{notebox}
   \textbf{Why \lc{structure} and not \lc{def DvdNat := Nat}?}
@@ -460,6 +481,17 @@ The reflexivity and transitivity proofs are short. Antisymmetry --- ``if $a
 lives. Rather than writing it as a single inscrutable block, we build it from
 three small lemmas, each of which is worth understanding on its own.
 
+\begin{notebox}
+  \textbf{First contact with tactics.}
+  The proofs below are our first \emph{tactic proofs}: everything after
+  \lc{by} is a sequence of commands (\lc{obtain}, \lc{simp}, \lc{exact},
+  \ldots) that transform the goal step by step. Every tactic and
+  programming construct used anywhere in this book has an entry --- with a
+  small worked example, and where illuminating, the term it desugars to ---
+  in the primer of Appendix~\ref{app:quickref}. Keep it bookmarked; we will
+  not re-explain a tactic after its first appearance.
+\end{notebox}
+
 \medskip
 \textbf{Lemma 1: if $a = 0$ and $a \mid b$, then $b = 0$.}
 
@@ -500,7 +532,9 @@ be $\geq 2$ (product would be $\geq 2$).
 
 \begin{minted}{lean4}
 -- In ℕ, k * j = 1 forces k = 1 (and by symmetry, j = 1).
--- No omega or linarith — proved by explicit structural case analysis.
+-- Proved by explicit case analysis on k; omega only closes the final
+-- numeric contradiction. NB: the calc chain is written in the ≤
+-- direction — core Lean ships a Trans instance for ≤ but not for ≥.
 theorem mul_eq_one_left {k j : Nat} (h : k * j = 1) : k = 1 := by
   match k with
   | 0 =>
@@ -519,11 +553,10 @@ theorem mul_eq_one_left {k j : Nat} (h : k * j = 1) : k = 1 := by
       | zero   => simp [Nat.mul_zero] at h
       | succ j => exact Nat.succ_le_succ (Nat.zero_le j)
     -- Now show the product is at least 2.
-    have hbig : (k + 2) * j ≥ 2 :=
-      calc (k + 2) * j
-          ≥ (k + 2) * 1 := Nat.mul_le_mul_left (k + 2) hj
-        _ = k + 2       := Nat.mul_one (k + 2)
-        _ ≥ 2           := Nat.le_add_left 2 k
+    have hbig : 2 ≤ (k + 2) * j :=
+      calc 2 ≤ k + 2         := Nat.le_add_left 2 k
+        _ = (k + 2) * 1      := (Nat.mul_one (k + 2)).symm
+        _ ≤ (k + 2) * j      := Nat.mul_le_mul_left (k + 2) hj
     -- h says the product is 1, but hbig says it is ≥ 2. Contradiction.
     omega
 
@@ -575,20 +608,25 @@ theorem dvd_antisymm_pos
 With the lemmas in hand, each field is a short delegation.
 
 \begin{minted}{lean4}
+open OrderBook in
 instance : PartialOrder DvdNat where
+
+  -- The order itself: divisibility.
+  le := Dvd'
 
   -- Reflexivity: n | n via witness k = 1, since n.val = n.val * 1.
   le_refl := fun n =>
     ⟨1, (Nat.mul_one n.val).symm⟩
 
-  -- Antisymmetry: case-split on whether n.val is zero or positive,
-  -- then delegate to Lemma 1 or Lemma 3 respectively.
-  le_antisymm := fun n m ⟨k, hk⟩ ⟨j, hj⟩ => by
-    -- Reduce  n = m  (DvdNat equality) to  n.val = m.val
+  -- Antisymmetry: expose the divisibility witnesses, then case-split
+  -- on whether n.val is zero or positive, delegating to Lemma 1 or
+  -- Lemma 3 respectively.
+  le_antisymm := fun n m hnm hmn => by
+    obtain ⟨k, hk⟩ := hnm
+    obtain ⟨j, hj⟩ := hmn
+    -- Reduce  n = m  (DvdNat equality) to  a = b  on the .val fields:
+    -- cases exposes the fields, congr 1 splits the constructor.
     cases n; cases m
-    -- Now n and m are gone; we have a b : Nat as the .val fields.
-    -- The goal is  DvdNat.mk a = DvdNat.mk b.
-    -- congr 1 reduces this to  a = b.
     congr 1
     rename_i a b
     cases Nat.eq_zero_or_pos a with
@@ -598,13 +636,27 @@ instance : PartialOrder DvdNat where
       exact (dvd_zero_left ⟨b⟩ ⟨k, hk⟩).symm
     | inr ha =>
       -- a > 0: use Lemma 3 directly.
-      exact (dvd_antisymm_pos ha k hk j hj).symm
+      exact dvd_antisymm_pos ha k hk j hj
 
   -- Transitivity: compose witnesses.  b.val = a.val * k and
   -- c.val = b.val * j, so c.val = a.val * (k * j).
   le_trans := fun a b c ⟨k, hk⟩ ⟨j, hj⟩ =>
     ⟨k * j, by rw [hj, hk, Nat.mul_assoc]⟩
 \end{minted}
+
+\begin{notebox}
+  \textbf{Three details worth noticing.}
+  (1) Our \lc{PartialOrder} class bundles the order itself as the \lc{le}
+  field, so the instance must supply it even though we also declared an
+  \lc{LE DvdNat} instance above --- that one only provides the \lc{≤}
+  notation.
+  (2) We destructure the hypotheses with \lc{obtain} \emph{inside} the
+  tactic block rather than in the lambda binders: pattern-matching binders
+  like \lc{fun n m ⟨k, hk⟩ ⟨j, hj⟩ =>} would leave the witnesses
+  inaccessible to \lc{rename\_i} after \lc{cases n; cases m}.
+  (3) \lc{dvd\_antisymm\_pos} already concludes \lc{a = b}, exactly the
+  goal, so no \lc{.symm} is needed in the positive case.
+\end{notebox}
 
 \subsubsection{Reflection}
 
@@ -920,7 +972,7 @@ end OrderBook
     \node[node] (f)   at (2,4)   {$f$};
     \node[node] (top) at (1,5.5) {$g$};
     \draw[hasseedge] (a)--(b);
-    \draw[hasseedge] (a)--(c); \draw[hasseedge] (b)--(c);
+    \draw[hasseedge] (b)--(c);
     \draw[hasseedge] (b)--(d);
     \draw[hasseedge] (c)--(e); \draw[hasseedge] (d)--(e);
     \draw[hasseedge] (c)--(f); \draw[hasseedge] (d)--(f);
@@ -1009,7 +1061,7 @@ central to propagators: every propagator is a monotone function on a lattice.
       \node[node] (q4) at (1,3.5) {$f(d)$};
       \draw[hasseedge] (q1)--(q3); \draw[hasseedge] (q3)--(q4);
       \node[gray,font=\scriptsize,right=0.15cm of q1,yshift=0.7cm]
-        {collapsing $a,b$ is fine \checkmark};
+        {collapsing $a,b$ is fine $\checkmark$};
     \end{scope}
     \draw[dashed,gray!50] (p1) -- (q1);
     \draw[dashed,gray!50] (p2) -- (q1);
@@ -1155,14 +1207,18 @@ def iterToFixpoint (f : Nat → Nat) (start : Nat) (limit : Nat) : List Nat :=
 def double12 (n : Nat) : Nat :=
   if D12.contains (n * 2) then n * 2 else n
 
-#eval iterToFixpoint double12 1 10   -- [1, 2, 4, 12] ascending chain!
+#eval iterToFixpoint double12 1 10   -- [1, 2, 4] ascending chain!
 #eval iterToFixpoint double12 3 10   -- [3, 6, 12]
 #eval iterToFixpoint double12 12 10  -- [12] already a fixed point
 \end{minted}
 
-The output directly illustrates the ascending chain theorem: starting from 1, each
-application of \lc{double12} moves strictly upward in the divisibility order until
-reaching the fixed point 12.
+The output directly illustrates the ascending chain idea: each application of
+\lc{double12} moves strictly upward in the divisibility order until it hits a
+fixed point. Note \emph{which} fixed point: starting from 1 the chain stops at
+4, because $8 \notin D_{12}$ makes 4 a fixed point of \lc{double12} --- a
+monotone map can have many fixed points, and iteration finds the one above
+where you started. Starting from 3 instead, the chain climbs all the way to
+the top element 12.
 
 % ============================================================
 \chapter{Lattices}
@@ -1313,17 +1369,22 @@ structure Dual (α : Type) where
 instance {α : Type} [LE α] : LE (Dual α) where
   le a b := LE.le (α := α) b.val a.val
 
--- Step 2: the dual partial order.
-instance {α : Type} [LE α] [PartialOrder α] : PartialOrder (Dual α) where
-  le_refl {a}       := PartialOrder.le_refl (α := α) a.val
-  le_antisymm {a b} := fun h1 h2 => by
+-- Step 2: the dual partial order. Our PartialOrder class carries its
+-- own `le` field, so the flipped order is stated again here (the LE
+-- instance above only supplies notation).
+open OrderBook in
+instance {α : Type} [PartialOrder α] : PartialOrder (Dual α) where
+  le a b := PartialOrder.le (α := α) b.val a.val
+  le_refl a := PartialOrder.le_refl (α := α) a.val
+  le_antisymm a b h1 h2 := by
     cases a; cases b; congr 1
-    exact PartialOrder.le_antisymm (α := α) h2 h1
-  le_trans {a b c}  := fun h1 h2 => by
+    exact PartialOrder.le_antisymm (α := α) _ _ h2 h1
+  le_trans a b c h1 h2 := by
     cases a; cases b; cases c
-    exact PartialOrder.le_trans (α := α) h2 h1
+    exact PartialOrder.le_trans (α := α) _ _ _ h2 h1
 
 -- Step 3: the dual lattice swaps inf and sup.
+open OrderBook in
 instance {α : Type} [Lattice α] : Lattice (Dual α) where
   inf          := fun a b => ⟨Lattice.sup (α := α) a.val b.val⟩
   sup          := fun a b => ⟨Lattice.inf (α := α) a.val b.val⟩
@@ -1370,12 +1431,15 @@ instance {α : Type} [Lattice α] : Lattice (Dual α) where
 \subsection{The Two-Element Lattice $\mathbf{2}$}
 
 \begin{minted}{lean4}
--- Bool as a lattice: false < true
+-- Bool as a lattice: false < true.
+-- Core's Bool.le_antisymm / Bool.le_trans take their element
+-- arguments implicitly, so we eta-expand them to match our class
+-- fields, which declare the elements explicitly.
 instance : OrderBook.Lattice Bool where
   le          := (· ≤ ·)   -- Bool has a built-in LE in core Lean 4
   le_refl     := Bool.le_refl
-  le_antisymm := Bool.le_antisymm
-  le_trans    := Bool.le_trans
+  le_antisymm := fun a b => Bool.le_antisymm
+  le_trans    := fun a b c => Bool.le_trans
   inf         := (· && ·)
   sup         := (· || ·)
   inf_le_left  := by decide
@@ -1560,13 +1624,17 @@ Figure~\ref{fig:m3n5} shows the two smallest non-distributive lattices.
 
 \section{Exercises}
 
-\begin{exercisebox}[Lattice of intervals]
+\begin{exercisebox}[Ordering intervals by information]
   Define the type \lc{Interval} of pairs $[l, h]$ with $l, h : \mathbb{Z}$ and
-  $l \leq h$. Define an order where $[l_1, h_1] \leq [l_2, h_2]$ iff
-  $l_2 \leq l_1$ and $h_1 \leq h_2$ (i.e.\ ``containment by a smaller interval'',
-  the \emph{precision} or \emph{information} order).
+  $l \leq h$. Define the \emph{information order}: $[l_1, h_1] \leq [l_2, h_2]$
+  iff $l_1 \leq l_2$ and $h_2 \leq h_1$ --- that is, the second interval is
+  \emph{contained} in the first, so narrower $=$ more informative $=$ higher.
   Prove that this is a partial order in Lean~4.
-  What are the meet and join in this order?
+  Then investigate: which pairs of intervals have a meet? A join?
+  (\emph{Careful}: the meet --- the smallest interval containing both --- always
+  exists, but two \emph{disjoint} intervals have no join in this type, because
+  there is no ``empty interval'' to represent the contradiction. Chapter~7
+  completes the picture by adding one, together with unbounded ends.)
 \end{exercisebox}
 
 \begin{exercisebox}[Absorb, then join]
@@ -1578,6 +1646,7 @@ Figure~\ref{fig:m3n5} shows the two smallest non-distributive lattices.
   Prove the equivalence $a \leq b \iff a \sqcup b = b$ in Lean~4, using only
   the lattice axioms.
   \begin{minted}{lean4}
+open OrderBook in
 theorem le_iff_sup_eq {α : Type} [OrderBook.Lattice α] (a b : α) :
     a ≤ b ↔ a ⊔ b = b := by
   constructor
@@ -1641,8 +1710,8 @@ namespace OrderBook
 abbrev Pred (α : Type) := α → Prop
 
 class CompleteLattice (α : Type) extends Lattice α where
-  sSup : Pred α → α    -- supremum of a set  (⨆)
-  sInf : Pred α → α    -- infimum of a set   (⨅)
+  sSup : Pred α → α    -- supremum of a set  (a "big ⊔")
+  sInf : Pred α → α    -- infimum of a set   (a "big ⊓")
   le_sSup : ∀ (s : Pred α) (a : α), s a → a ≤ sSup s
   sSup_le : ∀ (s : Pred α) (u : α), (∀ a, s a → a ≤ u) → sSup s ≤ u
   sInf_le : ∀ (s : Pred α) (a : α), s a → sInf s ≤ a
@@ -1752,20 +1821,22 @@ theorem knaster_tarski {α : Type} [CompleteLattice α]
   have step1 : f m ≤ m := by
     apply le_sInf
     intro x hx
-    -- m ≤ x, so f(m) ≤ f(x) ≤ x
-    exact le_trans (hf.map_le m x (sInf_le P x hx)) hx
+    -- m ≤ x, so f(m) ≤ f(x) ≤ x.  (The class states le_trans with
+    -- explicit element arguments, hence the placeholders `_ _ _`.)
+    exact le_trans _ _ _ (hf.map_le m x (sInf_le P x hx)) hx
   -- Step 2: m ≤ f(m)  (f(m) ∈ P since f(f(m)) ≤ f(m))
   have step2 : m ≤ f m := by
     apply sInf_le
     exact hf.map_le _ _ step1
   -- Conclude m is a fixed point
-  have fixed : f m = m := le_antisymm step1 step2
+  have fixed : f m = m := le_antisymm _ _ step1 step2
   refine ⟨m, fixed, ?_⟩
-  -- Minimality
+  -- Minimality: every fixed point is a pre-fixed point, so m ≤ x.
   intro x hx
   apply sInf_le
   show f x ≤ x
-  exact le_of_eq hx
+  rw [hx]
+  exact le_refl x
 end OrderBook
 \end{minted}
 
@@ -1847,15 +1918,20 @@ must eventually stabilise at some $f^n(\bot) = f^{n+1}(\bot)$, giving a fixed
 point in finite iterations.
 
 \begin{exbox}[ACC in practice]
-  \lc{FlatNat} satisfies the ACC: the only strictly ascending chains are
-  $\bot < \mathrm{known}(n)$, which have length 2. So any propagator network
-  using \lc{FlatNat} cells terminates after at most two updates per cell.
+  The flat lattice \lc{FlatNat} that we will build in Chapter~6
+  ($\bot = $ unknown, exact values in the middle, $\top = $ contradiction)
+  satisfies the ACC: the longest strictly ascending chains are
+  $\bot < \mathrm{known}(n) < \mathrm{conflict}$, of length 3. So any
+  propagator network using \lc{FlatNat} cells terminates after at most two
+  updates per cell.
 
-  The interval lattice does \emph{not} satisfy the ACC in general: you can have
-  $[0,10] < [0,9] < [0,8] < \cdots$ (an infinite strictly descending chain in
-  the information order, equivalently an infinite strictly ascending chain in
-  the reverse order). This is why interval propagators can require a widening
-  operator to force termination.
+  The interval lattice of Chapter~7 (where narrower intervals sit
+  \emph{higher}, and the ends may be unbounded) does \emph{not} satisfy the
+  ACC: $(-\infty,+\infty) < [0,+\infty) < [1,+\infty) < [2,+\infty) < \cdots$
+  is an infinite strictly ascending chain. This is why interval propagators
+  in general need a \emph{widening} operator to force termination ---
+  although, as we will see, well-behaved constraint systems often reach a
+  fixed point on their own.
 \end{exbox}
 
 \subsection*{$\bot$ is the starting point, not the limit}
@@ -2099,8 +2175,11 @@ are propagators. Execution proceeds as follows:
 This is immediate: each cell value is non-decreasing and the chain condition
 guarantees it cannot increase indefinitely.
 
-For our capstone projects, the domain lattice is always finite, so convergence
-is guaranteed.
+For the Sudoku capstone the domain lattice is finite, so convergence is
+guaranteed outright; for the type-inference capstone each program generates
+finitely many constraints whose refinements stabilise. The interval lattice
+of Chapter~7 is the cautionary tale: it fails the ACC, and we will be
+careful to say why its example nevertheless terminates.
 
 \section{The Fundamental Role of the Lattice}
 
@@ -2138,6 +2217,48 @@ cell domain for a propagator network. The lattice structure is not a convenience
 
 Theory in hand, we now build a complete, runnable propagator network in Lean~4,
 starting from our typeclass definitions and ending with a working scheduler.
+
+\section{Interlude: Imperative Lean in Half a Page}
+
+Everything so far has been pure functions and proofs. Propagator networks,
+however, are stateful machines --- cells get updated in place --- so from here
+on the code looks imperative. Lean makes this look like any mainstream
+language via \lc{do}-notation:
+
+\begin{minted}{lean4}
+def imperativeTour : IO Unit := do
+  let r ← IO.mkRef 0            -- a mutable reference holding a Nat
+  let mut best := 0             -- a local mutable variable
+  for i in [0:5] do             -- i runs over 0, 1, 2, 3, 4
+    r.modify (· + i)            -- add i to the reference's contents
+    if i > best then best := i
+  let total ← r.get             -- read the reference back
+  IO.println s!"total = {total}, best = {best}"
+
+#eval imperativeTour   -- total = 10, best = 4
+\end{minted}
+
+Four things to know, in decreasing order of importance:
+\begin{itemize}
+  \item \textbf{\lc{do} sequences effects.} A \lc{do} block runs in a
+    \emph{monad} --- here \lc{IO}, the type of actions that may touch the
+    outside world. \lc{let x ← action} \emph{runs} the action and binds its
+    result; plain \lc{let x := e} is an ordinary pure binding.
+  \item \textbf{\lc{IO.Ref α} is a mutable memory cell} holding an \lc{α},
+    with \lc{IO.mkRef}, \lc{.get}, \lc{.set}, and \lc{.modify}. Our
+    propagator cells wrap exactly one of these.
+  \item \textbf{\lc{mut}, \lc{for}, \lc{while}, \lc{if} inside \lc{do} are
+    sugar.} The compiler rewrites them into folds and recursive calls with
+    the mutable variables threaded through as accumulators --- no actual
+    mutation of \lc{best} ever happens. The full desugaring story is in the
+    primer of Appendix~\ref{app:quickref}.
+  \item \textbf{\lc{Id.run} lets pure code use the same sugar.} Running a
+    \lc{do} block in the do-nothing monad \lc{Id} and unwrapping it with
+    \lc{Id.run} gives imperative-looking code with a pure result. The Sudoku
+    solver in Chapter~8 uses this heavily.
+\end{itemize}
+
+That is all the imperative Lean this book needs.
 
 \section{Mutable Cells}
 
@@ -2227,24 +2348,32 @@ inductive FlatNat where
   | known (n : Nat) : FlatNat      -- exactly n
   | conflict     : FlatNat         -- ⊤: contradiction
 
-instance : OrderBook.PartialOrder FlatNat where
-  le a b := match a, b with
+-- We give the order a NAME rather than an anonymous match inside the
+-- instance: later proofs can then unfold it with `simp [FlatNat.le]`,
+-- and the rfl-lemma `le_def` below lets simp see through `≤`.
+def FlatNat.le (a b : FlatNat) : Prop :=
+  match a, b with
     | .unknown, _      => True     -- unknown ≤ everything
     | _, .conflict     => True     -- everything ≤ conflict
     | .known m, .known n => m = n  -- known values only ≤ themselves
     | .conflict, .unknown => False
     | .conflict, .known _ => False
     | .known _, .unknown  => False
-  le_refl  := by intro a; cases a <;> simp
+
+instance : OrderBook.PartialOrder FlatNat where
+  le := FlatNat.le
+  le_refl  := by intro a; cases a <;> simp [FlatNat.le]
   le_antisymm := by
     intro a b hab hba
-    cases a <;> cases b <;> simp_all
+    cases a <;> cases b <;> simp_all [FlatNat.le]
   le_trans := by
     intro a b c hab hbc
-    cases a <;> cases b <;> cases c <;> simp_all
+    cases a <;> cases b <;> cases c <;> simp_all [FlatNat.le]
+
+theorem FlatNat.le_def (a b : FlatNat) : (a ≤ b) = FlatNat.le a b := rfl
 
 instance : BoundedJoinSemilattice FlatNat where
-  le          := OrderBook.PartialOrder.le
+  le          := FlatNat.le
   le_refl     := OrderBook.PartialOrder.le_refl
   le_antisymm := OrderBook.PartialOrder.le_antisymm
   le_trans    := OrderBook.PartialOrder.le_trans
@@ -2254,20 +2383,23 @@ instance : BoundedJoinSemilattice FlatNat where
     | x, .unknown      => x
     | .known m, .known n => if m = n then .known m else .conflict
     | _, _             => .conflict
-  bot_le      := by intro a; cases a <;> simp [OrderBook.PartialOrder.le]
+  bot_le      := by intro a; cases a <;> simp [FlatNat.le_def, FlatNat.le]
   le_sup_left  := by
     intro a b
-    cases a <;> cases b <;> simp_all [OrderBook.PartialOrder.le]
+    cases a <;> cases b <;> simp_all [FlatNat.le_def, FlatNat.le]
     rename_i m n
-    by_cases h : m = n <;> simp [OrderBook.PartialOrder.le, h]
+    by_cases h : m = n <;> simp [FlatNat.le_def, FlatNat.le, h]
   le_sup_right := by
     intro a b
-    cases a <;> cases b <;> simp_all [OrderBook.PartialOrder.le]
+    cases a <;> cases b <;> simp_all [FlatNat.le_def, FlatNat.le]
     rename_i m n
-    by_cases h : m = n <;> simp [OrderBook.PartialOrder.le, h]
+    by_cases h : m = n <;> simp [FlatNat.le_def, FlatNat.le, h]
+  -- The known/known case needs its own `if m = n` split at the end.
   sup_le       := by
     intro a b c hac hbc
-    cases a <;> cases b <;> cases c <;> simp_all [OrderBook.PartialOrder.le]
+    cases a <;> cases b <;> cases c <;> simp_all [FlatNat.le_def, FlatNat.le]
+    rename_i m n
+    by_cases h : m = n <;> simp [FlatNat.le, h]
 
 deriving instance DecidableEq for FlatNat
 
@@ -2284,10 +2416,11 @@ on \lc{FlatNat}. We can extract those functions and prove they satisfy the
 \textbf{Why conflict propagates.}
 There is a subtlety: the pure function must return \lc{conflict} (not \lc{unknown})
 when an input is \lc{conflict}, otherwise monotonicity fails.
-If we returned \lc{unknown} for conflicted inputs, then
-\lc{known 3 ≤ conflict} would hold in \lc{FlatNat} but
-\lc{addFn (known 3) (known 2) = known 5 \not\leq unknown = addFn conflict x},
-violating monotonicity.
+Suppose we returned \lc{unknown} for conflicted inputs. We have
+\lc{known 3 ≤ conflict} in \lc{FlatNat}, so monotonicity would demand
+\lc{addFn (known 3) (known 2) ≤ addFn conflict (known 2)} --- but the left
+side is \lc{known 5}, the right side would be \lc{unknown}, and
+\lc{known 5} $\not\leq$ \lc{unknown}.
 Returning \lc{conflict} fixes this: \lc{known 5 ≤ conflict} always holds.
 
 \begin{minted}{lean4}
@@ -2316,32 +2449,31 @@ def FlatNat.subFn (s x : FlatNat) : FlatNat :=
 --   • unknown ≤ anything  →  addFn unknown ... = unknown ≤ anything.
 --   • anything ≤ conflict  →  addFn ... conflict = conflict, and anything ≤ conflict.
 --   • known m ≤ unknown is False  →  hypothesis contradiction closes the goal.
--- The only non-trivial case is known m / known n where ha : m = n forces m = n,
--- and known p / known q where hb : p = q forces p = q, so both sides are equal.
+-- The only non-trivial case is known/known on both sides, where the
+-- hypotheses force the arguments (and hence both sides) to be equal.
+-- simp_all with the unfolded order closes every case.
 def addPropagator : Propagator2 FlatNat FlatNat FlatNat where
   fn       := FlatNat.addFn
   monotone := by
     intro a1 a2 b1 b2 ha hb
     cases a1 <;> cases a2 <;> cases b1 <;> cases b2
-      <;> simp_all [FlatNat.addFn, OrderBook.PartialOrder.le]
+      <;> simp_all [FlatNat.addFn, FlatNat.le_def, FlatNat.le]
 
 -- Proof: subFn is monotone.
--- Same strategy. The known/known/known/known case reduces to
--- (if m ≥ p ...) ≤ (if m ≥ p ...) since ha : m = m' and hb : p = p'
--- force both sides to be identical, which is le_refl.
+-- Same strategy. After the case split, the remaining goals are stuck
+-- on the `if total ≥ a` scrutinees; `split <;> simp_all` finishes them.
 def subPropagator : Propagator2 FlatNat FlatNat FlatNat where
   fn       := FlatNat.subFn
   monotone := by
     intro a1 a2 b1 b2 ha hb
     cases a1 <;> cases a2 <;> cases b1 <;> cases b2
-      <;> simp_all [FlatNat.subFn, OrderBook.PartialOrder.le]
-    rename_i m n
-    by_cases h : m ≥ n <;> simp [OrderBook.PartialOrder.le, h]
+      <;> simp_all [FlatNat.subFn, FlatNat.le_def, FlatNat.le]
+      <;> split <;> simp_all
 
 -- Connection to PropStep actions:
--- addProp cx cy csum is addPropagator.fn wrapped in IO:
---   it reads cx and cy, computes addFn, and writes to csum.
--- subProp csum cx cy implements subPropagator.fn similarly.
+-- addProp cx cy csum (§6.6) is addPropagator.fn wrapped in IO:
+--   it reads cx and cy, computes addFn, and merges into csum.
+-- subProp csum cx cy wraps subPropagator.fn similarly.
 -- The Propagator2 instances certify that these IO actions are sound.
 
 end Propagators
@@ -2358,24 +2490,21 @@ namespace Propagators
 
 open FlatNat
 
--- Addition propagator: given x and y cells, write x+y to sum cell
+-- Addition propagator: addFn wrapped in IO — read the inputs, apply
+-- the pure monotone function, merge the result into the output cell.
+-- When either input is unknown, addFn returns unknown = ⊥, and
+-- merging ⊥ changes nothing (write returns false). When an input is
+-- conflict, addFn returns conflict — so contradictions propagate.
 def addProp (cx cy csum : Cell FlatNat) : PropStep := do
   let x ← cx.read
   let y ← cy.read
-  match x, y with
-  | .known a, .known b => csum.write (.known (a + b))
-  | _, _ => return false
+  csum.write (FlatNat.addFn x y)
 
--- Subtraction (used to deduce y = sum - x)
+-- Subtraction (used to deduce y = sum - x): subFn wrapped in IO.
 def subProp (csum cx cy : Cell FlatNat) : PropStep := do
   let s ← csum.read
   let x ← cx.read
-  match s, x with
-  | .known total, .known a =>
-    if total ≥ a
-    then cy.write (.known (total - a))
-    else cy.write .conflict
-  | _, _ => return false
+  cy.write (FlatNat.subFn s x)
 
 def exampleNetwork : IO Unit := do
   let cx   ← Cell.new (α := FlatNat)
@@ -2413,7 +2542,9 @@ Notice several things:
     without coordination. The join ensures the final value is consistent with
     all of them.
   \item Running \lc{addProp} when either input is \lc{unknown} correctly does
-    nothing (returns \lc{false}), waiting for more information.
+    nothing: \lc{addFn} returns $\bot$, merging $\bot$ into the target
+    changes nothing, and \lc{write} returns \lc{false} --- the network
+    simply waits for more information.
   \item The \lc{conflict} element propagates correctly: if two propagators
     derive incompatible values, the join produces \lc{conflict}, which then
     propagates to any cell that depends on this one.
@@ -2448,20 +2579,42 @@ An interval $[l, h]$ says: ``the true value lies between $l$ and $h$''. The
 wider the interval, the less we know. The narrowest possible interval is a
 single point $[n, n]$, meaning we know the value exactly.
 
+Chapter~5's convention therefore dictates the order: more information $=$
+\emph{higher}, so narrower intervals must sit \emph{above} wider ones, and
+the join $\sqcup$ --- ``merge what two sources tell us'' --- must be the
+\emph{intersection}: if one source says $x \in [3, 7]$ and another says
+$x \in [5, 12]$, together they say $x \in [5, 7]$.
+
+Two boundary cases complete the picture, and both should look familiar from
+\lc{FlatNat}:
+\begin{itemize}
+  \item $\bot$ must mean ``no information at all''. For intervals that is
+    ``the value could be any integer'': the unbounded interval
+    $(-\infty, +\infty)$. This forces us to make $\pm\infty$ representable.
+  \item $\top$ must mean ``contradiction''. Intersect two disjoint intervals
+    --- $[0,1] \sqcup [5,6]$ --- and \emph{no} value remains: the
+    \emph{empty} interval plays exactly the role of \lc{conflict}.
+\end{itemize}
+
 \begin{defbox}[Interval Lattice]
-  Let the domain be extended integers $\mathbb{Z}_\infty = \mathbb{Z} \cup
-  \{-\infty, +\infty\}$. Define:
+  Let the domain be the extended integers $\mathbb{Z}_\infty = \mathbb{Z}
+  \cup \{-\infty, +\infty\}$. Define:
   \begin{itemize}[nosep]
-    \item An \emph{interval} is either $\bot$ (no values possible, contradiction) or
-          $[l, h]$ with $l \leq h$.
+    \item An \emph{interval} is either $[l, h]$ with $l \leq h$ (where $l$
+          may be $-\infty$ and $h$ may be $+\infty$), or the \emph{empty
+          interval} $\varnothing$.
     \item The \emph{information order}: $[l_1, h_1] \leq [l_2, h_2] \iff
-          l_2 \leq l_1 \wedge h_1 \leq h_2$
-          (a narrower interval contains more information).
-    \item $\bot \leq [l, h]$ for all intervals.
-    \item The \emph{join} (merge two pieces of information):
-          $[l_1, h_1] \sqcup [l_2, h_2] = [\min(l_1,l_2), \max(h_1,h_2)]$
-          (the smallest interval containing both).
-    \item $\bot$ is the identity for $\sqcup$.
+          l_1 \leq l_2 \wedge h_2 \leq h_1$ (the second interval is contained
+          in the first: narrower $=$ more informative $=$ higher), and
+          $I \leq \varnothing$ for every interval $I$.
+    \item $\bot = (-\infty, +\infty)$: no information.
+          $\top = \varnothing$: contradiction --- matching \lc{FlatNat},
+          where contradiction is also the \emph{top}.
+    \item The \emph{join} (merge two pieces of information) is
+          \emph{intersection}:
+          $[l_1, h_1] \sqcup [l_2, h_2] =
+          [\max(l_1,l_2),\, \min(h_1,h_2)]$, or $\varnothing$ if those
+          bounds cross.
   \end{itemize}
 \end{defbox}
 
@@ -2473,144 +2626,431 @@ single point $[n, n]$, meaning we know the value exactly.
     \foreach \x in {0,1,...,10}
       \draw[gray] (\x,7.85)--(\x,7.75)
         node[above,gray,font=\scriptsize]{\x};
-    % bot at BOTTOM
-    \node[red!70!black,font=\scriptsize] at (5, 0.3)
-      {$\bot$ (\texttt{empty}) --- contradiction / identity for $\sqcup$};
-    \filldraw[orange!80!black] (5,1.5) circle (3pt);
-    \node[right=0.3cm,font=\scriptsize,orange!70!black] at (10,1.5)
-      {$[5,5]$ --- most specific};
-    \draw[blue!90,line width=4pt] (5,2.7) -- (6,2.7);
-    \node[right=0.1cm,font=\scriptsize,blue!90!black] at (10,2.7) {$[5,6]$};
-    \draw[blue!75,line width=4pt] (4,3.9) -- (7,3.9);
-    \node[right=0.1cm,font=\scriptsize,blue!75!black] at (10,3.9) {$[4,7]$};
-    \draw[blue!55,line width=4pt] (2,5.1) -- (8,5.1);
-    \node[right=0.1cm,font=\scriptsize,blue!55!black] at (10,5.1) {$[2,8]$};
-    \draw[blue!30,line width=4pt] (0,6.3) -- (10,6.3);
-    \node[right=0.1cm,font=\scriptsize,blue!50!black] at (10,6.3)
-      {$[0,10]$ --- widest shown ($\top = [-\infty,+\infty]$)};
-    \draw[-{Stealth},gray!60,thick] (-0.3,1.5)--(-0.3,6.3)
+    % top = empty at the TOP of the order
+    \node[red!70!black,font=\scriptsize] at (5, 6.8)
+      {$\top = \varnothing$ --- contradiction (bounds crossed)};
+    \filldraw[orange!80!black] (5,5.9) circle (3pt);
+    \node[font=\scriptsize,orange!70!black,anchor=west] at (10.3,5.9)
+      {$[5,5]$ --- exact};
+    \draw[blue!90,line width=4pt] (5,4.8) -- (6,4.8);
+    \node[font=\scriptsize,blue!90!black,anchor=west] at (10.3,4.8) {$[5,6]$};
+    \draw[blue!75,line width=4pt] (4,3.7) -- (7,3.7);
+    \node[font=\scriptsize,blue!75!black,anchor=west] at (10.3,3.7) {$[4,7]$};
+    \draw[blue!55,line width=4pt] (2,2.6) -- (8,2.6);
+    \node[font=\scriptsize,blue!55!black,anchor=west] at (10.3,2.6) {$[2,8]$};
+    \draw[blue!35,line width=4pt] (0,1.5) -- (10,1.5);
+    \node[font=\scriptsize,blue!50!black,anchor=west] at (10.3,1.5) {$[0,10]$};
+    \draw[blue!20,line width=4pt,densely dashed] (-0.4,0.4) -- (10.4,0.4);
+    \node[font=\scriptsize,blue!40!black,anchor=west] at (10.5,0.4)
+      {$\bot = (-\infty,+\infty)$};
+    \draw[-{Stealth},gray!60,thick] (-1.0,0.4)--(-1.0,5.9)
       node[midway,left,gray,font=\scriptsize,rotate=90,yshift=4pt]
-        {widening (join $\sqcup$ goes upward)};
+        {narrowing (join $\sqcup$ goes upward)};
   \end{tikzpicture}
-  \caption{The interval lattice order. $\bot$ sits at the bottom as the
-           join identity. Going upward, intervals widen: the join
-           (\texttt{Interval.sup}) produces the hull (smallest interval
-           containing both), which is at least as wide as either input.
-           The meet (\texttt{Interval.intersect}) produces the intersection,
-           which is narrower and thus lower.}
+  \caption{The interval information order. $\bot = (-\infty,+\infty)$
+           (``the value could be anything'') sits at the bottom. Going
+           upward, intervals \emph{narrow}: the join $\sqcup$ merges two
+           constraints by intersecting them, which is at least as narrow as
+           either input. At the very top sits $\top = \varnothing$, the
+           empty interval: two constraints with no common value --- a
+           contradiction.}
 \end{figure}
+
+\section{Bounds: Option Int as the Extended Integers}
+
+How do we represent $\pm\infty$? The cheapest honest encoding in Lean is
+\lc{Option Int}: \lc{some n} is the finite bound $n$, and \lc{none} means
+``no bound at all'' --- read it as $-\infty$ when it appears as a lower
+bound and $+\infty$ when it appears as an upper bound. (\lc{Option} is
+Lean's ``maybe'' type; if you know Rust's \lc{Option} or Haskell's
+\lc{Maybe}, this is the same thing.)
+
+\begin{minted}{lean4}
+namespace Intervals
+
+-- A bound on an integer. `none` encodes "no bound at all":
+-- read it as -∞ when it is a lower bound and +∞ when it is an
+-- upper bound.
+abbrev Bound := Option Int
+
+-- Order on LOWER bounds: none = -∞ is the loosest lower bound.
+def loLe : Bound → Bound → Prop
+  | none,   _      => True
+  | some _, none   => False
+  | some a, some b => a ≤ b
+
+-- Order on UPPER bounds: none = +∞ is the loosest upper bound.
+def hiLe : Bound → Bound → Prop
+  | _,      none   => True
+  | none,   some _ => False
+  | some a, some b => a ≤ b
+
+-- A lower bound and an upper bound are consistent unless both are
+-- finite and crossed (lo > hi).
+def ordered : Bound → Bound → Prop
+  | some l, some h => l ≤ h
+  | _,      _      => True
+
+instance : (l h : Bound) → Decidable (ordered l h)
+  | none,   none   => isTrue True.intro
+  | none,   some _ => isTrue True.intro
+  | some _, none   => isTrue True.intro
+  | some l, some h => inferInstanceAs (Decidable (l ≤ h))
+
+-- The tighter of two lower bounds (their max, with none = -∞) …
+def loMax : Bound → Bound → Bound
+  | none, b => b
+  | a, none => a
+  | some a, some b => some (max a b)
+
+-- … and the tighter of two upper bounds (their min, with none = +∞).
+def hiMin : Bound → Bound → Bound
+  | none, b => b
+  | a, none => a
+  | some a, some b => some (min a b)
+
+end Intervals
+\end{minted}
+
+Note that we needed \emph{two} order relations: on lower bounds \lc{none}
+is the smallest thing there is; on upper bounds it is the largest. Keeping
+the two roles in separate definitions (\lc{loLe} vs.\ \lc{hiLe}, \lc{loMax}
+vs.\ \lc{hiMin}) keeps every later proof a brainless case split.
+
+Everything we need about bounds follows from a dozen tiny lemmas. Each is
+proved the same way: \lc{cases} on every bound in sight (an \lc{Option} has
+just two constructors), then \lc{simp} to unfold the definitions, then
+\lc{omega} for whatever integer arithmetic remains.
+
+\begin{minted}{lean4}
+namespace Intervals
+
+-- Small lemmas about bounds. Each is a mechanical case split.
+theorem loLe_refl (a : Bound) : loLe a a := by
+  cases a <;> simp [loLe]
+
+theorem hiLe_refl (a : Bound) : hiLe a a := by
+  cases a <;> simp [hiLe]
+
+theorem loLe_trans {a b c : Bound} : loLe a b → loLe b c → loLe a c := by
+  cases a <;> cases b <;> cases c <;> simp [loLe] <;> omega
+
+theorem hiLe_trans {a b c : Bound} : hiLe a b → hiLe b c → hiLe a c := by
+  cases a <;> cases b <;> cases c <;> simp [hiLe] <;> omega
+
+theorem loLe_antisymm {a b : Bound} : loLe a b → loLe b a → a = b := by
+  cases a <;> cases b <;> simp [loLe] <;> omega
+
+theorem hiLe_antisymm {a b : Bound} : hiLe a b → hiLe b a → a = b := by
+  cases a <;> cases b <;> simp [hiLe] <;> omega
+
+theorem loLe_max_left (a b : Bound) : loLe a (loMax a b) := by
+  cases a <;> cases b <;> simp [loLe, loMax] <;> omega
+
+theorem loLe_max_right (a b : Bound) : loLe b (loMax a b) := by
+  cases a <;> cases b <;> simp [loLe, loMax] <;> omega
+
+theorem loMax_le {a b c : Bound} :
+    loLe a c → loLe b c → loLe (loMax a b) c := by
+  cases a <;> cases b <;> cases c <;> simp [loLe, loMax] <;> omega
+
+theorem hiMin_le_left (a b : Bound) : hiLe (hiMin a b) a := by
+  cases a <;> cases b <;> simp [hiLe, hiMin] <;> omega
+
+theorem hiMin_le_right (a b : Bound) : hiLe (hiMin a b) b := by
+  cases a <;> cases b <;> simp [hiLe, hiMin] <;> omega
+
+theorem le_hiMin {a b c : Bound} :
+    hiLe c a → hiLe c b → hiLe c (hiMin a b) := by
+  cases a <;> cases b <;> cases c <;> simp [hiLe, hiMin] <;> omega
+
+-- If [l', h'] is a genuine interval squeezed between l and h,
+-- then l and h cannot be crossed either.
+theorem ordered_squeeze {l l' h' h : Bound} :
+    loLe l l' → ordered l' h' → hiLe h' h → ordered l h := by
+  cases l <;> cases l' <;> cases h' <;> cases h <;>
+    simp [loLe, hiLe, ordered] <;> omega
+
+end Intervals
+\end{minted}
+
+\section{The Interval Lattice in Lean}
+
+An interval is either a pair of bounds --- carrying a proof that they are
+not crossed --- or the distinguished contradiction \lc{empty}:
 
 \begin{minted}{lean4}
 namespace Intervals
 
 inductive Interval where
-  | empty              : Interval   -- ⊥
-  | range (lo hi : Int) (h : lo ≤ hi) : Interval
+  -- All integers between lo and hi (inclusive; none = unbounded).
+  -- The proof field rules out crossed bounds like [8, 2].
+  | range (lo hi : Bound) (ok : ordered lo hi) : Interval
+  -- ⊤: no value is possible — a contradiction.
+  | empty : Interval
 
--- Information order: narrower = more informative = higher
+-- ⊥: the interval (-∞, +∞) — "the value could be any integer".
+def Interval.unbounded : Interval := .range none none True.intro
+
+-- The interval [l, h] with finite ends.
+def Interval.between (l h : Int) (ok : l ≤ h := by omega) : Interval :=
+  .range (some l) (some h) ok
+
+-- Information order: narrower = more informative = HIGHER.
+-- b sits above a exactly when b's bounds are at least as tight.
 def Interval.le (a b : Interval) : Prop :=
   match a, b with
-  | .empty, _                => True
-  | .range _ _ _, .empty     => False
-  | .range l1 h1 _, .range l2 h2 _ => l2 ≤ l1 ∧ h1 ≤ h2
+  | _, .empty                      => True    -- ⊤ is above everything
+  | .empty, _                      => False
+  | .range l1 h1 _, .range l2 h2 _ => loLe l1 l2 ∧ hiLe h2 h1
 
--- Join: widen to contain both intervals
+-- Join = INTERSECTION: merge two constraints by keeping the tighter
+-- bound on each side. If the bounds cross, the constraints are
+-- contradictory and the join is ⊤ = empty.
 def Interval.sup (a b : Interval) : Interval :=
   match a, b with
-  | .empty, x => x
-  | x, .empty => x
+  | .empty, _ | _, .empty => .empty
   | .range l1 h1 _, .range l2 h2 _ =>
-    let l := min l1 l2
-    let h := max h1 h2
-    .range l h (by omega)
+    if ok : ordered (loMax l1 l2) (hiMin h1 h2)
+    then .range (loMax l1 l2) (hiMin h1 h2) ok
+    else .empty
+
+end Intervals
+\end{minted}
+
+Why does the \lc{range} constructor carry a proof? Without the invariant
+$l \leq h$, ``crossed'' pairs like $[8, 2]$ would be legal values distinct
+from \lc{empty} --- a swarm of extra contradiction elements. Worse, the
+join of two disjoint intervals would have to be one of those crossed pairs
+(not \lc{empty}!) to remain a \emph{least} upper bound, and the lattice
+laws would quietly break. The proof field makes the illegal states
+unrepresentable, and (as you will see in \lc{sup\_le\_thm}) is precisely
+the fact that rescues the ``bounds crossed'' case of the join laws. In
+\lc{Interval.between}, the proof is an \emph{autoparam}:
+\lc{(ok : l ≤ h := by omega)} tells Lean to run \lc{omega} to fill in the
+argument whenever the call site omits it, so numeric literals just work:
+\lc{Interval.between 2 8}.
+
+The partial-order laws are stated as standalone lemmas and then plugged
+into the instance (the \lc{\_thm} suffix avoids confusing a lemma with the
+instance field it fills):
+
+\begin{minted}{lean4}
+namespace Intervals
+
+theorem Interval.le_refl_thm : ∀ (a : Interval), Interval.le a a := by
+  intro a
+  cases a with
+  | empty => exact True.intro
+  | range l h ok => exact ⟨loLe_refl l, hiLe_refl h⟩
+
+theorem Interval.le_antisymm_thm :
+    ∀ (a b : Interval), Interval.le a b → Interval.le b a → a = b := by
+  intro a b hab hba
+  cases a with
+  | empty =>
+    cases b with
+    | empty => rfl
+    | range l h ok => exact absurd hab (fun h => h)
+  | range l1 h1 ok1 =>
+    cases b with
+    | empty => exact absurd hba (fun h => h)
+    | range l2 h2 ok2 =>
+      have hab' : loLe l1 l2 ∧ hiLe h2 h1 := hab
+      have hba' : loLe l2 l1 ∧ hiLe h1 h2 := hba
+      have hl : l1 = l2 := loLe_antisymm hab'.1 hba'.1
+      have hh : h1 = h2 := hiLe_antisymm hba'.2 hab'.2
+      subst hl; subst hh
+      rfl   -- the `ok` proofs agree by proof irrelevance
+
+theorem Interval.le_trans_thm :
+    ∀ (a b c : Interval), Interval.le a b → Interval.le b c → Interval.le a c := by
+  intro a b c hab hbc
+  cases c with
+  | empty => cases a <;> exact True.intro
+  | range l3 h3 ok3 =>
+    cases b with
+    | empty => exact absurd hbc (fun h => h)
+    | range l2 h2 ok2 =>
+      cases a with
+      | empty => exact absurd hab (fun h => h)
+      | range l1 h1 ok1 =>
+        have hab' : loLe l1 l2 ∧ hiLe h2 h1 := hab
+        have hbc' : loLe l2 l3 ∧ hiLe h3 h2 := hbc
+        exact ⟨loLe_trans hab'.1 hbc'.1, hiLe_trans hbc'.2 hab'.2⟩
 
 instance : OrderBook.PartialOrder Interval where
   le          := Interval.le
-  le_refl     := by intro a; cases a <;> simp [Interval.le]
-  le_antisymm := by
-    intro a b hab hba
-    cases a <;> cases b <;>
-      simp [Interval.le] at * <;> omega
-  le_trans    := by
-    intro a b c hab hbc
-    cases a <;> cases b <;> cases c <;>
-      simp [Interval.le] at * <;> omega
+  le_refl     := Interval.le_refl_thm
+  le_antisymm := Interval.le_antisymm_thm
+  le_trans    := Interval.le_trans_thm
 
--- BoundedJoinSemilattice: ⊥ = empty, join = hull (Interval.sup)
+end Intervals
+\end{minted}
+
+Three idioms are worth pausing on. First, lines like
+\lc{have hab' : loLe l1 l2 ∧ hiLe h2 h1 := hab} do no work at all: once
+both arguments are \lc{range}s, \lc{Interval.le a b} \emph{computes} to
+that conjunction, and the \lc{have} merely re-states the hypothesis at its
+unfolded type so that \lc{.1}/\lc{.2} projections apply. Second,
+\lc{exact absurd hab (fun h => h)} dispatches impossible cases: there
+\lc{hab}'s type computes to \lc{False}, so the identity function \emph{is}
+its refutation. Third, antisymmetry ends with plain \lc{rfl} even though
+the two \lc{ok} proof fields are different terms --- proofs of the same
+proposition are definitionally equal in Lean (\emph{proof irrelevance}).
+
+Now the join laws. The one interesting moment is the ``bounds crossed''
+branch of \lc{sup\_le\_thm}, which is impossible precisely because the
+upper bound \lc{c} is itself a well-formed interval squeezed between the
+merged bounds --- this is \lc{ordered\_squeeze} doing its job:
+
+\begin{minted}{lean4}
+namespace Intervals
+
+theorem Interval.bot_le_thm :
+    ∀ (a : Interval), Interval.le Interval.unbounded a := by
+  intro a
+  cases a with
+  | empty => exact True.intro
+  | range l h ok => exact ⟨True.intro, True.intro⟩
+
+theorem Interval.le_sup_left_thm :
+    ∀ (a b : Interval), Interval.le a (Interval.sup a b) := by
+  intro a b
+  cases a with
+  | empty => cases b <;> exact True.intro
+  | range l1 h1 ok1 =>
+    cases b with
+    | empty => exact True.intro
+    | range l2 h2 ok2 =>
+      simp only [Interval.sup]
+      split
+      · exact ⟨loLe_max_left l1 l2, hiMin_le_left h1 h2⟩
+      · exact True.intro
+
+theorem Interval.le_sup_right_thm :
+    ∀ (a b : Interval), Interval.le b (Interval.sup a b) := by
+  intro a b
+  cases a with
+  | empty => cases b <;> exact True.intro
+  | range l1 h1 ok1 =>
+    cases b with
+    | empty => exact True.intro
+    | range l2 h2 ok2 =>
+      simp only [Interval.sup]
+      split
+      · exact ⟨loLe_max_right l1 l2, hiMin_le_right h1 h2⟩
+      · exact True.intro
+
+theorem Interval.sup_le_thm :
+    ∀ (a b c : Interval),
+      Interval.le a c → Interval.le b c → Interval.le (Interval.sup a b) c := by
+  intro a b c hac hbc
+  cases a with
+  | empty => cases c <;> exact hac
+  | range l1 h1 ok1 =>
+    cases b with
+    | empty => cases c <;> exact hbc
+    | range l2 h2 ok2 =>
+      cases c with
+      | empty =>
+        simp only [Interval.sup]
+        split <;> exact True.intro
+      | range l3 h3 ok3 =>
+        have hac' : loLe l1 l3 ∧ hiLe h3 h1 := hac
+        have hbc' : loLe l2 l3 ∧ hiLe h3 h2 := hbc
+        have hlo : loLe (loMax l1 l2) l3 := loMax_le hac'.1 hbc'.1
+        have hhi : hiLe h3 (hiMin h1 h2) := le_hiMin hac'.2 hbc'.2
+        simp only [Interval.sup]
+        split
+        · exact ⟨hlo, hhi⟩
+        · -- the "crossed bounds" branch is impossible: c is a genuine
+          -- interval squeezed between the merged bounds.
+          rename_i hbad
+          exact absurd (ordered_squeeze hlo ok3 hhi) hbad
+
 instance : Propagators.BoundedJoinSemilattice Interval where
   le          := Interval.le
-  le_refl     := OrderBook.PartialOrder.le_refl
-  le_antisymm := OrderBook.PartialOrder.le_antisymm
-  le_trans    := OrderBook.PartialOrder.le_trans
-  bot         := .empty
+  le_refl     := Interval.le_refl_thm
+  le_antisymm := Interval.le_antisymm_thm
+  le_trans    := Interval.le_trans_thm
+  bot         := Interval.unbounded
   sup         := Interval.sup
-  bot_le      := by intro a; cases a <;> simp [Interval.le]
-  le_sup_left  := by
-    intro a b; cases a <;> cases b <;> simp [Interval.sup, Interval.le]
-    exact ⟨Int.min_le_left _ _, Int.le_max_left _ _⟩
-  le_sup_right := by
-    intro a b; cases a <;> cases b <;> simp [Interval.sup, Interval.le]
-    exact ⟨Int.min_le_right _ _, Int.le_max_right _ _⟩
-  sup_le       := by
-    intro a b c hac hbc
-    cases a <;> cases b <;> cases c <;>
-      simp [Interval.sup, Interval.le] at * <;> omega
+  bot_le      := Interval.bot_le_thm
+  le_sup_left  := Interval.le_sup_left_thm
+  le_sup_right := Interval.le_sup_right_thm
+  sup_le       := Interval.sup_le_thm
 
--- DecidableEq needed by Cell.write
-instance : DecidableEq Interval := by
-  intro a b
-  cases a <;> cases b
-  · exact isTrue rfl
-  · exact isFalse (by simp)
-  · exact isFalse (by simp)
-  · rename_i l1 h1 _ l2 h2 _
-    by_cases hl : l1 = l2
-    · by_cases hh : h1 = h2
-      · subst hl; subst hh; exact isTrue (by congr 1; exact Subsingleton.elim _ _)
-      · exact isFalse (by intro heq; cases heq; exact hh rfl)
-    · exact isFalse (by intro heq; cases heq; exact hl rfl)
+-- DecidableEq, needed by Cell.write. Two `range`s are equal iff their
+-- bounds are; the `ok` proofs never disagree (proof irrelevance).
+instance : DecidableEq Interval := fun a b =>
+  match a, b with
+  | .empty, .empty => isTrue rfl
+  | .empty, .range _ _ _ => isFalse (fun h => Interval.noConfusion h)
+  | .range _ _ _, .empty => isFalse (fun h => Interval.noConfusion h)
+  | .range l1 h1 _, .range l2 h2 _ =>
+    if h : l1 = l2 ∧ h1 = h2 then
+      isTrue (by obtain ⟨rfl, rfl⟩ := h; rfl)
+    else
+      isFalse (fun heq => by cases heq; exact h ⟨rfl, rfl⟩)
 
 end Intervals
 \end{minted}
 
 \section{Interval Arithmetic Propagators}
 
-To use \lc{Interval} with the \lc{Cell} infrastructure from Chapter~6, we need two
-instances: \lc{BoundedJoinSemilattice Interval} (so the scheduler can merge values
-with $\sqcup$ and initialise cells to $\bot$) and \lc{DecidableEq Interval}
-(so \lc{Cell.write} can detect whether the value actually changed).
-Both are provided above.
-
-With the interval lattice, we can implement real \emph{bound propagation}.
+To use \lc{Interval} with the \lc{Cell} infrastructure from Chapter~6 we
+needed exactly two instances --- \lc{BoundedJoinSemilattice Interval} (so
+the scheduler can merge values with $\sqcup$ and initialise cells to
+$\bot$) and \lc{DecidableEq Interval} (so \lc{Cell.write} can detect
+whether the value actually changed) --- and both are now in place. What
+remains is the arithmetic itself, which must handle unbounded ends: a
+finite number plus ``anything at all'' is again ``anything at all''.
 
 \begin{minted}{lean4}
 namespace Intervals
 
--- Add two intervals
-def Interval.add (a b : Interval) : Interval :=
-  match a, b with
-  | .empty, _ | _, .empty => .empty
-  | .range l1 h1 _, .range l2 h2 _ =>
-    .range (l1 + l2) (h1 + h2) (by omega)
+-- Adding bounds: if either end is unbounded, so is the sum.
+def addBound : Bound → Bound → Bound
+  | some a, some b => some (a + b)
+  | _,      _      => none
 
--- Subtract: a - b = [l1-h2, h1-l2]
-def Interval.sub (a b : Interval) : Interval :=
-  match a, b with
-  | .empty, _ | _, .empty => .empty
-  | .range l1 h1 _, .range l2 h2 _ =>
-    .range (l1 - h2) (h1 - l2) (by omega)
+def subBound : Bound → Bound → Bound
+  | some a, some b => some (a - b)
+  | _,      _      => none
 
--- Intersect (meet in the information order — more precise)
-def Interval.intersect (a b : Interval) : Interval :=
-  match a, b with
+theorem ordered_addBound {l1 h1 l2 h2 : Bound} :
+    ordered l1 h1 → ordered l2 h2 →
+    ordered (addBound l1 l2) (addBound h1 h2) := by
+  cases l1 <;> cases l2 <;> cases h1 <;> cases h2 <;>
+    simp [ordered, addBound] <;> omega
+
+theorem ordered_subBound {l1 h1 l2 h2 : Bound} :
+    ordered l1 h1 → ordered l2 h2 →
+    ordered (subBound l1 h2) (subBound h1 l2) := by
+  cases l1 <;> cases l2 <;> cases h1 <;> cases h2 <;>
+    simp [ordered, subBound] <;> omega
+
+-- [l1,h1] + [l2,h2] = [l1+l2, h1+h2]
+def Interval.add : Interval → Interval → Interval
   | .empty, _ | _, .empty => .empty
-  | .range l1 h1 _, .range l2 h2 _ =>
-    let l := max l1 l2
-    let h := min h1 h2
-    if h_le : l ≤ h then .range l h h_le else .empty
+  | .range l1 h1 ok1, .range l2 h2 ok2 =>
+    .range (addBound l1 l2) (addBound h1 h2) (ordered_addBound ok1 ok2)
+
+-- [l1,h1] - [l2,h2] = [l1-h2, h1-l2]
+def Interval.sub : Interval → Interval → Interval
+  | .empty, _ | _, .empty => .empty
+  | .range l1 h1 ok1, .range l2 h2 ok2 =>
+    .range (subBound l1 h2) (subBound h1 l2) (ordered_subBound ok1 ok2)
 
 end Intervals
 \end{minted}
+
+Note the asymmetry in subtraction: the smallest possible value of $x - y$
+pairs the smallest $x$ with the \emph{largest} $y$, hence
+$[l_1 - h_2,\; h_1 - l_2]$. The proof obligations on the results are
+discharged by the two \lc{ordered\_*} lemmas, whose hypotheses are exactly
+the \lc{ok} fields of the argument intervals.
 
 \section{A Worked Example: Bound Propagation}
 
@@ -2643,49 +3083,95 @@ def addConstraint
       cy.write (Interval.sub s x)
   ]
 
+def showLo : Bound → String
+  | none   => "-∞"
+  | some n => toString n
+
+def showHi : Bound → String
+  | none   => "+∞"
+  | some n => toString n
+
+def Interval.show : Interval → String
+  | .empty => "∅ (contradiction)"
+  | .range l h _ => s!"[{showLo l}, {showHi h}]"
+
 def intervalExample : IO Unit := do
   let cx   ← Propagators.Cell.new (α := Interval)
   let cy   ← Propagators.Cell.new (α := Interval)
   let csum ← Propagators.Cell.new (α := Interval)
 
-  -- x ∈ [2, 8], sum = 10
-  let _ ← cx.write (.range 2 8 (by omega))
-  let _ ← csum.write (.range 10 10 (by omega))
+  -- x ∈ [2, 8] and x + y = 10 (i.e. sum ∈ [10, 10])
+  let _ ← cx.write (Interval.between 2 8)
+  let _ ← csum.write (Interval.between 10 10)
 
-  let steps := addConstraint cx cy csum
-  Propagators.runToFixpoint steps
+  Propagators.runToFixpoint (addConstraint cx cy csum)
 
-  let yVal ← cy.read
-  match yVal with
-  | .empty        => IO.println "y: impossible"
-  | .range l h _  => IO.println s!"y ∈ [{l}, {h}]"   -- y ∈ [2, 8]
+  IO.println s!"x   ∈ {Interval.show (← cx.read)}"
+  IO.println s!"y   ∈ {Interval.show (← cy.read)}"
+  IO.println s!"sum ∈ {Interval.show (← csum.read)}"
+
+#eval intervalExample
 
 end Intervals
 \end{minted}
 
+Running it, the network --- forward \emph{and} backward propagators
+installed --- reaches quiescence and prints:
+
+\begin{minted}{text}
+x   ∈ [2, 8]
+y   ∈ [2, 8]
+sum ∈ [10, 10]
+\end{minted}
+
 \begin{notebox}
   \textbf{The join in action.}
-  When the backward propagator writes $[2,8]$ to $c_y$ and $c_y$ already holds
-  $\bot$, the join $\bot \sqcup [2,8] = [2,8]$ correctly updates the cell.
-  On the next pass, the forward propagator reads $x = [2,8]$ and $y = [2,8]$,
-  computes $\mathrm{add} = [4, 16]$, and writes to $c_\text{sum}$. Since
-  $[10,10] \sqcup [4,16] = [4,16]$ would \emph{widen} the constraint (lose
-  information), we could use \lc{intersect} here for a more powerful solver.
-  We leave this as Exercise~7.1.
+  Pass 1: the forward propagator reads $x = [2,8]$ and $y = \bot$, computes
+  $x + y = (-\infty, +\infty)$, and merges it into $c_\text{sum}$ --- no
+  change, since $[10,10] \sqcup \bot = [10,10]$. The backward propagator
+  for $y$ computes $\mathrm{sum} - x = [10-8,\, 10-2] = [2,8]$ and merges
+  it into $c_y$: $\bot \sqcup [2,8] = [2,8]$, so $c_y$ narrows.
+  Pass 2: the forward propagator now computes $x + y = [4,16]$ and merges:
+  $[10,10] \sqcup [4,16] = [\max(10,4), \min(10,16)] = [10,10]$. Nothing
+  widens and nothing is lost --- the join is intersection, so a looser
+  derived constraint disappears into a tighter stored one. The pass
+  changes nothing, the queue drains, and the network is quiescent. (With a
+  hull-shaped ``widening'' join instead, that same forward write would
+  smear $[10,10]$ out to $[4,16]$, the backward propagators would widen
+  $x$ and $y$ in response, and the network would never quiesce.)
+\end{notebox}
+
+\begin{notebox}
+  \textbf{Termination, honestly.}
+  Chapter~5's convergence theorem assumes the ascending chain condition,
+  and the interval lattice does \emph{not} satisfy it:
+  $(-\infty,+\infty) < [0,+\infty) < [1,+\infty) < \cdots$ climbs forever.
+  Quiescence above is therefore a property of \emph{this constraint
+  system}, not of the lattice: these propagators happen to hit their least
+  fixed point after two passes. A system like $y = x + 1,\ x = y + 1$
+  seeded with $x \in [0,+\infty)$ really would tighten forever; industrial
+  interval solvers add a \emph{widening} operator that jumps a bound
+  straight to $\pm\infty$ after a few rounds to force termination. The ACC
+  is sufficient for termination, never necessary.
 \end{notebox}
 
 \section{Exercises}
 
-\begin{exercisebox}[Intersection for tighter bounds]
-  Replace \lc{Interval.sup} (widening join) with \lc{Interval.intersect}
-  (narrowing meet) in the cell write operation for the sum constraint.
-  Explain why the information order must be \emph{reversed} when you switch from
-  widening to narrowing. What does this say about the dual lattice?
+\begin{exercisebox}[The hull is the meet]
+  The join of the interval lattice is intersection. Show that the lattice
+  also has all \emph{meets}: define \lc{Interval.inf}, the \emph{hull}
+  (smallest interval containing both arguments --- the looser bound on each
+  side, with \lc{Interval.inf .empty x = x}), and prove the analogue of
+  \lc{inf\_le\_left}. Why does the hull, which \emph{loses} information,
+  sit \emph{below} its arguments in the information order?
 \end{exercisebox}
 
 \begin{exercisebox}[Multiplication intervals]
-  Implement \lc{Interval.mul}. Be careful: multiplying negative intervals
-  requires considering all four corner products.
+  Implement \lc{Interval.mul}. Be careful on two fronts: multiplying
+  finite intervals with negative ends requires considering all four corner
+  products, and unbounded ends can flip sign --- e.g.\
+  $[-2,-1] \times [0,+\infty) = (-\infty, 0]$ --- so \lc{mulBound} needs
+  genuine sign analysis rather than a one-line match.
 \end{exercisebox}
 
 % ============================================================
@@ -2715,7 +3201,7 @@ is to fill in the rest.
     \foreach \row/\col/\val in {
       9/1/5, 9/2/3, 9/5/7,
       8/1/6, 8/4/1, 8/5/9, 8/6/5,
-      7/2/9, 7/3/8, 7/6/6,
+      7/2/9, 7/3/8, 7/8/6,
       6/1/8, 6/5/6, 6/9/3,
       5/1/4, 5/4/8, 5/6/3, 5/9/1,
       4/1/7, 4/5/2, 4/9/6,
@@ -2725,11 +3211,11 @@ is to fill in the rest.
     } {
       \node[font=\small\bfseries] at (\col-0.5, \row-0.5) {\val};
     }
-    % Solved digits (lighter)
+    % Solved digits (lighter) — from the puzzle's unique solution
     \foreach \row/\col/\val in {
-      9/3/1, 9/4/6, 9/6/8, 9/7/9, 9/8/4, 9/9/2,
-      8/2/7, 8/3/2, 8/7/4, 8/8/3, 8/9/8,
-      7/1/1, 7/4/9, 7/5/4, 7/7/6, 7/8/5, 7/9/7
+      9/3/4, 9/4/6, 9/6/8, 9/7/9, 9/8/1, 9/9/2,
+      8/2/7, 8/3/2, 8/7/3, 8/8/4, 8/9/8,
+      7/1/1, 7/4/3, 7/5/4, 7/6/2, 7/7/5, 7/9/7
     } {
       \node[font=\small, gray!70] at (\col-0.5, \row-0.5) {\val};
     }
@@ -2776,14 +3262,14 @@ cascading process is exactly what a propagator network formalises.
 \begin{exbox}[Elimination across constraints]
   Suppose a cell sits in row 3, column 5, box 5 (the centre box). Row 3 already
   contains $\{1,3,4,6,7\}$, column 5 contains $\{2,3,6,8\}$, and box 5 contains
-  $\{1,2,5,6,9\}$. The candidates for this cell are all digits \emph{not} ruled
+  $\{1,2,6,9\}$. The candidates for this cell are all digits \emph{not} ruled
   out by any of its three units:
-  $$\{1,\ldots,9\} \setminus \{1,3,4,6,7\} \setminus \{2,3,6,8\} \setminus
-    \{1,2,5,6,9\} = \{5\} \setminus \{5\} \cup \ldots$$
-  Working through it: combining the three sets of forbidden digits gives
-  $\{1,2,3,4,5,6,7,8,9\}$ minus what is already placed. The intersection of
-  three elimination sets can be computed with \lc{CandidateSet.inter}, which
-  is exactly the join in the information order.
+  $$\{1,\ldots,9\} \setminus \bigl(\{1,3,4,6,7\} \cup \{2,3,6,8\}
+    \cup \{1,2,6,9\}\bigr) = \{5\}.$$
+  One candidate remains, so this cell must be $5$. Each elimination step is
+  an intersection with the complement of a forbidden set --- computed with
+  \lc{CandidateSet.inter}, which is exactly the join of the information
+  order.
 \end{exbox}
 
 \textbf{Why propagator networks are a natural fit.}
@@ -2873,6 +3359,8 @@ def CandidateSet.union (s t : CandidateSet) : CandidateSet :=
 def CandidateSet.le (s t : CandidateSet) : Prop :=
   ∀ i : Digit, t.present i = true → s.present i = true
 
+-- Antisymmetry: compare the two indicator functions pointwise
+-- (rename_i names the functions exposed by `cases`).
 instance : OrderBook.PartialOrder CandidateSet where
   le          := CandidateSet.le
   le_refl     := fun s i h => h
@@ -2880,15 +3368,17 @@ instance : OrderBook.PartialOrder CandidateSet where
     show s = t from by
       cases s; cases t
       congr 1; funext i
-      cases hi : t.present i
-      · simp [CandidateSet.le] at h1
-        cases hs : s.present i
+      rename_i sp tp
+      cases hi : tp i
+      · cases hs : sp i
         · rfl
-        · exact absurd (h1 i hs) (by simp [hi])
-      · exact h2 i hi
+        · exact absurd (h2 i hs) (by simp [hi])
+      · exact h1 i hi
   le_trans    := fun s t u hst htu i hi => hst i (htu i hi)
 
--- Join = intersection (combines constraints)
+-- Join = intersection (combines constraints).
+-- `Bool.and_eq_true : ((a && b) = true) = (a = true ∧ b = true)` is
+-- an equality of propositions, so we rewrite with `▸`.
 instance : Propagators.BoundedJoinSemilattice CandidateSet where
   le          := CandidateSet.le
   le_refl     := fun s i h => h
@@ -2897,10 +3387,10 @@ instance : Propagators.BoundedJoinSemilattice CandidateSet where
   bot         := CandidateSet.full
   sup         := CandidateSet.inter    -- ⊔ = ∩ in information order!
   bot_le      := fun s i _ => rfl     -- full ≤ s since s ⊆ full
-  le_sup_left  := fun s t i h => (Bool.and_eq_true.mp h).1
-  le_sup_right := fun s t i h => (Bool.and_eq_true.mp h).2
+  le_sup_left  := fun s t i h => (Bool.and_eq_true _ _ ▸ h).1
+  le_sup_right := fun s t i h => (Bool.and_eq_true _ _ ▸ h).2
   sup_le       := fun s t u hsu htu i h =>
-    Bool.and_eq_true.mpr ⟨hsu i h, htu i h⟩
+    Bool.and_eq_true _ _ ▸ (⟨hsu i h, htu i h⟩ : _ ∧ _)
 
 instance : DecidableEq CandidateSet :=
   fun s t =>
@@ -2919,6 +3409,9 @@ namespace Sudoku
 -- 81 cells indexed by row and column (both Fin 9)
 abbrev Grid := Fin 9 → Fin 9 → Propagators.Cell CandidateSet
 
+-- The `[·]!` index operators need an `Inhabited` fallback value;
+-- `IO.Ref` provides none, so we allocate one dummy cell and bring a
+-- local `Inhabited` instance into scope.
 def makeGrid : IO Grid := do
   let mut rows : Array (Array (Propagators.Cell CandidateSet)) := #[]
   for _ in [:9] do
@@ -2927,7 +3420,8 @@ def makeGrid : IO Grid := do
       let c ← Propagators.Cell.new (α := CandidateSet)
       row := row.push c
     rows := rows.push row
-  -- Convert to function (safe because sizes match)
+  let dummy ← Propagators.Cell.new (α := CandidateSet)
+  have : Inhabited (Propagators.Cell CandidateSet) := ⟨dummy⟩
   return fun r c => rows[r.val]![c.val]!
 
 -- Seed a given digit into a cell
@@ -2946,6 +3440,10 @@ digit $d$, removes $d$ from all peers.
 \begin{minted}{lean4}
 namespace Sudoku
 
+-- Note the loop syntax: `for h : i in [:9]` binds, alongside i, a
+-- proof `h` that i lies in the range; `h.upper : i < 9` is exactly
+-- what the `Fin 9` constructor ⟨i, _⟩ needs.
+
 -- If cell (r,c) is determined to be d, remove d from all other cells in row r
 def rowPropagator (grid : Grid) (r c : Fin 9) : Propagators.PropStep := do
   let cands ← (grid r c).read
@@ -2953,8 +3451,8 @@ def rowPropagator (grid : Grid) (r c : Fin 9) : Propagators.PropStep := do
   let det : Option Digit := Id.run do
     let mut found : Option Digit := none
     let mut count := 0
-    for i in [:9] do
-      let i' : Digit := ⟨i, by omega⟩
+    for h : i in [:9] do
+      let i' : Digit := ⟨i, h.upper⟩
       if cands.present i' then
         found := some i'; count := count + 1
     if count = 1 then found else none
@@ -2962,10 +3460,9 @@ def rowPropagator (grid : Grid) (r c : Fin 9) : Propagators.PropStep := do
   | none   => return false
   | some d =>
     let mut changed := false
-    for j in [:9] do
-      let j' : Fin 9 := ⟨j, by omega⟩
+    for h : j in [:9] do
+      let j' : Fin 9 := ⟨j, h.upper⟩
       if j' ≠ c then
-        let removed := { present := fun i => (grid r j').read.present i && !(i == d) }
         -- We re-read and merge
         let old ← (grid r j').read
         let upd := CandidateSet.inter old { present := fun i => !(i == d) }
@@ -2979,16 +3476,16 @@ def colPropagator (grid : Grid) (r c : Fin 9) : Propagators.PropStep := do
   let det : Option Digit := Id.run do
     let mut found : Option Digit := none
     let mut count := 0
-    for i in [:9] do
-      let i' : Digit := ⟨i, by omega⟩
+    for h : i in [:9] do
+      let i' : Digit := ⟨i, h.upper⟩
       if cands.present i' then found := some i'; count := count + 1
     if count = 1 then found else none
   match det with
   | none => return false
   | some d =>
     let mut changed := false
-    for i in [:9] do
-      let i' : Fin 9 := ⟨i, by omega⟩
+    for h : i in [:9] do
+      let i' : Fin 9 := ⟨i, h.upper⟩
       if i' ≠ r then
         let old ← (grid i' c).read
         let upd := CandidateSet.inter old { present := fun k => !(k == d) }
@@ -3001,8 +3498,8 @@ def boxPropagator (grid : Grid) (r c : Fin 9) : Propagators.PropStep := do
   let cands ← (grid r c).read
   let det : Option Digit := Id.run do
     let mut found : Option Digit := none; let mut count := 0
-    for i in [:9] do
-      let i' : Digit := ⟨i, by omega⟩
+    for h : i in [:9] do
+      let i' : Digit := ⟨i, h.upper⟩
       if cands.present i' then found := some i'; count := count + 1
     if count = 1 then found else none
   match det with
@@ -3011,10 +3508,10 @@ def boxPropagator (grid : Grid) (r c : Fin 9) : Propagators.PropStep := do
     let boxR := r.val / 3 * 3
     let boxC := c.val / 3 * 3
     let mut changed := false
-    for dr in [:3] do
-      for dc in [:3] do
-        let r' : Fin 9 := ⟨boxR + dr, by omega⟩
-        let c' : Fin 9 := ⟨boxC + dc, by omega⟩
+    for hr : dr in [:3] do
+      for hc : dc in [:3] do
+        let r' : Fin 9 := ⟨boxR + dr, by have h1 : dr < 3 := hr.upper; have := r.isLt; omega⟩
+        let c' : Fin 9 := ⟨boxC + dc, by have h2 : dc < 3 := hc.upper; have := c.isLt; omega⟩
         if !(r' = r && c' = c) then
           let old ← (grid r' c').read
           let upd := CandidateSet.inter old { present := fun k => !(k == d) }
@@ -3032,10 +3529,10 @@ namespace Sudoku
 
 def buildNetwork (grid : Grid) : Array Propagators.PropStep := Id.run do
   let mut steps : Array Propagators.PropStep := #[]
-  for r in [:9] do
-    for c in [:9] do
-      let r' : Fin 9 := ⟨r, by omega⟩
-      let c' : Fin 9 := ⟨c, by omega⟩
+  for hr : r in [:9] do
+    for hc : c in [:9] do
+      let r' : Fin 9 := ⟨r, hr.upper⟩
+      let c' : Fin 9 := ⟨c, hc.upper⟩
       steps := steps.push (rowPropagator grid r' c')
       steps := steps.push (colPropagator grid r' c')
       steps := steps.push (boxPropagator grid r' c')
@@ -3043,16 +3540,16 @@ def buildNetwork (grid : Grid) : Array Propagators.PropStep := Id.run do
 
 -- Print the grid (showing the unique digit or '?' for unsolved cells)
 def printGrid (grid : Grid) : IO Unit := do
-  for r in [:9] do
+  for hr : r in [:9] do
     let mut row := ""
-    for c in [:9] do
-      let r' : Fin 9 := ⟨r, by omega⟩
-      let c' : Fin 9 := ⟨c, by omega⟩
+    for hc : c in [:9] do
+      let r' : Fin 9 := ⟨r, hr.upper⟩
+      let c' : Fin 9 := ⟨c, hc.upper⟩
       let cands ← (grid r' c').read
       let mut digit := '?'
       let mut count := 0
-      for i in [:9] do
-        let i' : Digit := ⟨i, by omega⟩
+      for h : i in [:9] do
+        let i' : Digit := ⟨i, h.upper⟩
         if cands.present i' then digit := Char.ofNat (i + 49); count := count + 1
       row := row ++ (if count = 1 then s!"{digit}" else "?")
       if c % 3 == 2 && c < 8 then row := row ++ "|"
@@ -3073,15 +3570,17 @@ def examplePuzzle : Array (Array Nat) := #[
   #[0, 0, 0, 0, 8, 0, 0, 7, 9]
 ]
 
+-- The dependent `if h : 1 ≤ d ∧ d ≤ 9` hands omega the bound it
+-- needs to build the `Fin 9` seed value `⟨d - 1, _⟩`.
 def solveSudoku : IO Unit := do
   let grid ← makeGrid
   -- Seed known digits
-  for r in [:9] do
-    for c in [:9] do
+  for hr : r in [:9] do
+    for hc : c in [:9] do
       let d := examplePuzzle[r]![c]!
-      if d ≠ 0 then
-        let r' : Fin 9 := ⟨r, by omega⟩
-        let c' : Fin 9 := ⟨c, by omega⟩
+      if h : 1 ≤ d ∧ d ≤ 9 then
+        let r' : Fin 9 := ⟨r, hr.upper⟩
+        let c' : Fin 9 := ⟨c, hc.upper⟩
         seedCell grid r' c' ⟨d - 1, by omega⟩
   -- Build and run the propagator network
   let steps := buildNetwork grid
@@ -3091,6 +3590,25 @@ def solveSudoku : IO Unit := do
   printGrid grid
 
 end Sudoku
+\end{minted}
+
+Running \lc{#eval solveSudoku}, propagation alone drives every cell to a
+singleton --- this puzzle needs no search --- and prints the grid's unique
+solution:
+
+\begin{minted}{text}
+Solution:
+534|678|912
+672|195|348
+198|342|567
+-----------
+859|761|423
+426|853|791
+713|924|856
+-----------
+961|537|284
+287|419|635
+345|286|179
 \end{minted}
 
 \section{Why This Works: The Lattice Perspective}
@@ -3202,50 +3720,100 @@ def Ty.le : Ty → Ty → Prop
   | .fun_ d1 c1, .fun_ d2 c2 => Ty.le d1 d2 ∧ Ty.le c1 c2
   | _, _                   => False
 
+-- The order laws are proved as standalone lemmas by structural
+-- induction on the first argument (the recursive `fun_` constructor
+-- needs genuine induction hypotheses), then plugged into the
+-- instances as terms.
+
+theorem Ty.le_refl_thm : ∀ (t : Ty), Ty.le t t := by
+  intro t
+  induction t <;> simp [Ty.le, *]
+
+theorem Ty.le_antisymm_thm : ∀ (a b : Ty), Ty.le a b → Ty.le b a → a = b := by
+  intro a
+  induction a with
+  | fun_ d c ihd ihc =>
+    intro b h1 h2
+    cases b <;> simp_all [Ty.le]
+    exact ⟨ihd _ h1.1 h2.1, ihc _ h1.2 h2.2⟩
+  | _ => intro b h1 h2; cases b <;> simp_all [Ty.le]
+
+theorem Ty.le_trans_thm : ∀ (a b c : Ty), Ty.le a b → Ty.le b c → Ty.le a c := by
+  intro a
+  induction a with
+  | fun_ d c ihd ihc =>
+    intro b c' h1 h2
+    cases b <;> cases c' <;> simp_all [Ty.le]
+    exact ⟨ihd _ _ h1.1 h2.1, ihc _ _ h1.2 h2.2⟩
+  | _ => intro b c' h1 h2; cases b <;> cases c' <;> simp_all [Ty.le]
+
+theorem Ty.le_sup_left_thm : ∀ (a b : Ty), Ty.le a (Ty.unify a b) := by
+  intro a
+  induction a with
+  | fun_ d c ihd ihc =>
+    intro b
+    cases b <;> simp [Ty.le, Ty.unify]
+    · exact ⟨Ty.le_refl_thm d, Ty.le_refl_thm c⟩
+    · exact ⟨ihd _, ihc _⟩
+  | _ => intro b; cases b <;> simp [Ty.le, Ty.unify]
+
+theorem Ty.le_sup_right_thm : ∀ (a b : Ty), Ty.le b (Ty.unify a b) := by
+  intro a
+  induction a with
+  | fun_ d c ihd ihc =>
+    intro b
+    cases b <;> simp [Ty.le, Ty.unify]
+    · exact ⟨ihd _, ihc _⟩
+  | _ => intro b; cases b <;> simp [Ty.le, Ty.unify, Ty.le_refl_thm]
+
+theorem Ty.sup_le_thm :
+    ∀ (a b c : Ty), Ty.le a c → Ty.le b c → Ty.le (Ty.unify a b) c := by
+  intro a
+  induction a with
+  | fun_ d c ihd ihc =>
+    intro b c' h1 h2
+    cases b <;> cases c' <;> simp_all [Ty.le, Ty.unify]
+  | _ => intro b c' h1 h2; cases b <;> cases c' <;> simp_all [Ty.le, Ty.unify]
+
 instance : OrderBook.PartialOrder Ty where
   le          := Ty.le
-  le_refl     := by intro t; induction t <;> simp [Ty.le, *]
-  le_antisymm := by
-    intro t1 t2 h12 h21
-    induction t1 <;> cases t2 <;> simp [Ty.le] at * <;>
-      try (first | rfl | exact absurd h12 id | exact absurd h21 id)
-    case fun_.fun_ d1 c1 ih_d ih_c d2 c2 =>
-      have := ih_d h12.1 h21.1; have := ih_c h12.2 h21.2; simp_all
-  le_trans    := by
-    intro t1 t2 t3 h12 h23
-    induction t1 <;> cases t2 <;> cases t3 <;>
-      simp [Ty.le] at * <;> try tauto
-    case fun_.fun_.fun_ => exact ⟨by tauto, by tauto⟩
+  le_refl     := Ty.le_refl_thm
+  le_antisymm := Ty.le_antisymm_thm
+  le_trans    := Ty.le_trans_thm
 
 instance : Propagators.BoundedJoinSemilattice Ty where
   le          := Ty.le
-  le_refl     := OrderBook.PartialOrder.le_refl
-  le_antisymm := OrderBook.PartialOrder.le_antisymm
-  le_trans    := OrderBook.PartialOrder.le_trans
+  le_refl     := Ty.le_refl_thm
+  le_antisymm := Ty.le_antisymm_thm
+  le_trans    := Ty.le_trans_thm
   bot         := .unknown
   sup         := Ty.unify
   bot_le      := fun _ => trivial
-  le_sup_left  := by
-    intro a b; induction a <;> cases b <;>
-      simp [Ty.le, Ty.unify, *] <;> try exact ⟨by assumption, by assumption⟩
-  le_sup_right := by
-    intro a b; induction b <;> cases a <;>
-      simp [Ty.le, Ty.unify, *] <;> try exact ⟨by assumption, by assumption⟩
-  sup_le       := by
-    intro a b c hac hbc
-    induction a <;> cases b <;> cases c <;>
-      simp [Ty.le, Ty.unify] at * <;> tauto
+  le_sup_left  := Ty.le_sup_left_thm
+  le_sup_right := Ty.le_sup_right_thm
+  sup_le       := Ty.sup_le_thm
 
 deriving instance DecidableEq for Ty
 
 end TypeInfer
 \end{minted}
 
+Why lemmas instead of inline tactic blocks? \lc{Ty} is our first
+\emph{recursive} lattice: \lc{fun\_ dom cod} contains two smaller
+\lc{Ty}s, so every law needs genuine induction hypotheses about those
+components, and the tidiest way to manage them is \lc{induction a with}
+naming the hypotheses (\lc{ihd}, \lc{ihc}) explicitly. The wildcard arm
+\lc{| \_ =>} covers the four non-recursive constructors at once.
+
 \section{Type Constraint Generation}
 
 We generate constraints by walking the expression tree. Each sub-expression
 gets a fresh \emph{type cell}. Constraints are propagators that merge type
-information into these cells.
+information into these cells. (A syntactic trap to avoid: the propagators
+are appended with \lc{steps.modify (·.push ...)}, and the anonymous-function
+dot must \emph{not} be followed by a space --- \lc{(· .push ...)} parses as
+applying the placeholder to \lc{.push} and fails with ``function
+expected''.)
 
 \begin{minted}{lean4}
 namespace TypeInfer
@@ -3287,11 +3855,15 @@ partial def inferExpr
     let c1 ← inferExpr ctx e1 steps
     let c2 ← inferExpr ctx e2 steps
     let cOut ← Propagators.Cell.new (α := Ty)
-    -- Propagator: both inputs and output must be Int
-    steps.modify (· .push do
+    -- Propagator: both operands must be Int. We then re-read the
+    -- operand cells and merge their join into the output — so if an
+    -- operand has jumped to typeError (e.g. Bool ⊔ Int), the error
+    -- reaches the result cell too.
+    steps.modify (·.push do
       let _ ← c1.write .int
       let _ ← c2.write .int
-      cOut.write .int)
+      let t1 ← c1.read; let t2 ← c2.read
+      cOut.write (Ty.unify t1 t2))
     return cOut
 
   | .ifExpr cond t f =>
@@ -3300,7 +3872,7 @@ partial def inferExpr
     let cf    ← inferExpr ctx f    steps
     let cOut  ← Propagators.Cell.new (α := Ty)
     -- Propagator: cond must be Bool; t and f must agree; out = t
-    steps.modify (· .push do
+    steps.modify (·.push do
       let _ ← ccond.write .bool
       let tv ← ct.read; let fv ← cf.read
       let _ ← ct.write fv; let _ ← cf.write tv
@@ -3314,7 +3886,7 @@ partial def inferExpr
     let cBody ← inferExpr ctx' body steps
     let cOut  ← Propagators.Cell.new (α := Ty)
     -- Propagator: out = dom → body
-    steps.modify (· .push do
+    steps.modify (·.push do
       let d ← cDom.read; let b ← cBody.read
       cOut.write (.fun_ d b))
     return cOut
@@ -3324,7 +3896,7 @@ partial def inferExpr
     let cArg ← inferExpr ctx arg steps
     let cOut ← Propagators.Cell.new (α := Ty)
     -- Propagator: fn must be (arg → out)
-    steps.modify (· .push do
+    steps.modify (·.push do
       let fv ← cFn.read; let av ← cArg.read
       let ov ← cOut.read
       match fv with
@@ -3449,7 +4021,8 @@ true + 1 : TypeError
 
 % ============================================================
 \appendix
-\chapter{Lean~4 Quick Reference}
+\chapter{Lean~4 Quick Reference and Tactic Primer}
+\label{app:quickref}
 
 \section{Basic Types and Syntax}
 
@@ -3457,14 +4030,14 @@ true + 1 : TypeError
 -- Type universes
 #check Nat       -- Nat : Type
 #check Type      -- Type : Type 1
-#check Prop      -- Prop : Sort 0
+#check Prop      -- Prop : Type
 
 -- Function types
 def f : Nat → Nat → Nat := fun a b => a + b
 def g (a b : Nat) : Nat := a + b    -- same, different syntax
 
--- Dependent types
-def myList (α : Type) (n : Nat) : Type := ...
+-- Dependent types (e.g. fixed-length vectors as functions)
+def myList (α : Type) (n : Nat) : Type := Fin n → α
 
 -- Let bindings
 def h : Nat :=
@@ -3491,32 +4064,465 @@ def useMyClass [MyClass α] (a : α) : Nat :=
   MyClass.someMethod a
 \end{minted}
 
-\section{Tactics Reference}
+\section{Tactic Primer}
+\label{app:primer}
 
-\begin{table}[h]
+A theorem in Lean is a type; a proof is a term of that type. You can write
+that term directly, or enter \emph{tactic mode} with \lc{by} and build it
+interactively: at every point there is a \emph{goal} (hypotheses above the
+line, target below), and each tactic transforms the goal until none remain.
+Tactics are not magic --- each one \emph{elaborates to an ordinary term} in
+the end, and for the most important ones this primer shows both the tactic
+and the term it stands for. Every example below is compile-checked against
+the same zero-dependency toolchain as the rest of the book.
+
+\subsection*{\lc{intro} and \lc{exact}}
+
+\lc{intro h} moves the premise of an implication (or the bound variable of
+a $\forall$) into the hypotheses; \lc{exact e} closes the goal with the
+term \lc{e}, which must fit exactly.
+
+\begin{minted}{lean4}
+theorem imp_demo (p q : Prop) (hq : q) : p → q ∧ q := by
+  intro hp
+  exact ⟨hq, hq⟩
+\end{minted}
+
+The angle brackets \lc{⟨...⟩} build a value of any one-constructor type
+(here \lc{And.intro}); this proof is literally the term
+\lc{fun hp => ⟨hq, hq⟩}.
+
+\subsection*{\lc{apply}}
+
+\lc{apply f} matches the goal against the \emph{conclusion} of \lc{f} and
+turns \lc{f}'s remaining arguments into new goals --- backward reasoning.
+
+\begin{minted}{lean4}
+theorem apply_demo (a b : Nat) (h : a = b) : a ≤ b := by
+  apply Nat.le_of_eq   -- goal becomes: a = b
+  exact h
+\end{minted}
+
+\subsection*{\lc{rfl}}
+
+Closes goals of the form \lc{a = a} --- \emph{up to computation}. Lean
+evaluates both sides, so \lc{rfl} proves more than it looks like it should:
+
+\begin{minted}{lean4}
+example : 2 + 2 = 4 := rfl
+example : (fun n : Nat => n + 1) 3 = 4 := rfl
+\end{minted}
+
+Because proofs of the same proposition are definitionally equal
+(\emph{proof irrelevance}), \lc{rfl} also closes equalities between
+structures that differ only in proof fields --- Chapter~7's interval
+antisymmetry ends this way.
+
+\subsection*{\lc{constructor}}
+
+Applies the (unique) constructor of the goal's type: an \lc{And} goal
+splits into two goals, an \lc{Iff} into two implications, and so on. The
+bullets \lc{·} focus one subgoal each.
+
+\begin{minted}{lean4}
+example : 1 ≤ 2 ∧ 2 ≤ 3 := by
+  constructor
+  · omega
+  · omega
+\end{minted}
+
+\subsection*{\lc{cases} --- and what it desugars to}
+
+\lc{cases x} splits the proof into one branch per constructor of \lc{x}'s
+inductive type. This is not a primitive: every inductive type \lc{T} comes
+with a \emph{recursor} \lc{T.rec}, a function that says ``to define
+something for all \lc{T}, handle each constructor''. \lc{cases} (and
+\lc{induction}) are sugar for applying it.
+
+\begin{minted}{lean4}
+theorem bool_or_not (b : Bool) : (b || !b) = true := by
+  cases b with
+  | false => rfl
+  | true  => rfl
+
+-- the same proof written directly against the recursor
+theorem bool_or_not' (b : Bool) : (b || !b) = true :=
+  Bool.rec (motive := fun x => (x || !x) = true) rfl rfl b
+\end{minted}
+
+The \lc{motive} is the family of statements being proved --- ``what does
+the goal look like as a function of \lc{x}?'' --- and the two \lc{rfl}s are
+the \lc{false} and \lc{true} branches.
+
+\subsection*{\lc{induction} --- and what it desugars to}
+
+Same recursor, but for recursive types the branch for a recursive
+constructor receives an \emph{induction hypothesis}. Note how precisely
+the term mirrors the tactic script:
+
+\begin{minted}{lean4}
+theorem zero_add_tac (n : Nat) : 0 + n = n := by
+  induction n with
+  | zero => rfl
+  | succ k ih => rw [Nat.add_succ, ih]
+
+-- the same proof as an explicit Nat.rec term
+theorem zero_add_term (n : Nat) : 0 + n = n :=
+  Nat.rec (motive := fun m => 0 + m = m)
+    rfl
+    (fun k ih => congrArg Nat.succ ih)
+    n
+\end{minted}
+
+\lc{Nat.rec} takes the base case (a proof for \lc{0}), the step case (a
+function from \lc{k} and the induction hypothesis \lc{ih} to a proof for
+\lc{k + 1}), and the number to recurse on. \emph{Induction is just
+recursion over proofs.}
+
+\subsection*{\lc{obtain} / \lc{rcases} --- and what they desugar to}
+
+Both destructure a hypothesis by pattern: \lc{obtain ⟨k, hk⟩ := h} takes
+\lc{h : ∃ k, P k} apart into a witness \lc{k} and a proof \lc{hk : P k}.
+(\lc{rcases h with ⟨k, hk⟩} is the same with recursive patterns like
+\lc{⟨a, ⟨b, c⟩⟩}.) Underneath it is the eliminator of \lc{Exists} --- or,
+equivalently, a \lc{match}:
+
+\begin{minted}{lean4}
+theorem pos_of_succ {n : Nat} (h : ∃ k, n = k + 1) : 0 < n := by
+  obtain ⟨k, hk⟩ := h
+  subst hk
+  exact Nat.succ_pos k
+
+-- as an application of the eliminator …
+theorem pos_of_succ' {n : Nat} (h : ∃ k, n = k + 1) : 0 < n :=
+  Exists.elim h (fun k hk => hk ▸ Nat.succ_pos k)
+
+-- … or as a match
+theorem pos_of_succ'' {n : Nat} (h : ∃ k, n = k + 1) : 0 < n :=
+  match h with
+  | ⟨k, hk⟩ => hk ▸ Nat.succ_pos k
+\end{minted}
+
+(\lc{h ▸ e} rewrites the goal with the equation \lc{h} and then supplies
+\lc{e}; it is the term-level cousin of \lc{rw}.)
+
+\subsection*{\lc{rename\_i}}
+
+Tactics like \lc{cases} sometimes introduce hypotheses with inaccessible
+machine-generated names (shown with a dagger, e.g.\ \lc{a✝}).
+\lc{rename\_i x} gives the most recent such hypothesis the name \lc{x} so
+you can refer to it.
+
+\begin{minted}{lean4}
+theorem rename_demo (o : Option Nat) (h : o ≠ none) : ∃ n, o = some n := by
+  cases o
+  · exact absurd rfl h
+  · rename_i n     -- name the anonymous value introduced by `cases`
+    exact ⟨n, rfl⟩
+\end{minted}
+
+\subsection*{\lc{by\_cases} --- and the \lc{Decidable} \lc{if} underneath}
+
+\lc{by\_cases h : p} splits the proof into a branch where \lc{h : p} and
+one where \lc{h : ¬p}. In this book's zero-dependency setting it needs
+\lc{p} to be \emph{decidable} --- there must be an algorithm answering
+\lc{p} --- because it is sugar for a dependent \lc{if}:
+
+\begin{minted}{lean4}
+theorem em_nat (n : Nat) : n = 0 ∨ n ≠ 0 := by
+  by_cases h : n = 0
+  · exact Or.inl h
+  · exact Or.inr h
+
+theorem em_nat' (n : Nat) : n = 0 ∨ n ≠ 0 :=
+  if h : n = 0 then Or.inl h else Or.inr h
+\end{minted}
+
+\subsection*{\lc{exfalso}}
+
+Replaces any goal with \lc{False}. Useful when the hypotheses are
+contradictory and the goal itself is irrelevant:
+
+\begin{minted}{lean4}
+theorem from_absurd_bounds (n : Nat) (h1 : n < 2) (h2 : 2 < n) :
+    n = 42 := by
+  exfalso
+  omega
+\end{minted}
+
+\subsection*{\lc{subst}}
+
+Given \lc{hab : a = b} where one side is a local variable, \lc{subst hab}
+eliminates the variable, rewriting it away everywhere:
+
+\begin{minted}{lean4}
+theorem subst_demo (a b : Nat) (hab : a = b) (ha : a ≤ 5) : b ≤ 5 := by
+  subst hab
+  exact ha
+\end{minted}
+
+\subsection*{\lc{calc} --- and the \lc{Trans} instances underneath}
+
+\lc{calc} writes a chain of (in)equalities the way you would on paper.
+Each step is glued to the previous one by \lc{Trans.trans}, a typeclass
+method --- which is why Chapter~1's chain had to be stated with \lc{≤}
+(core Lean ships a \lc{Trans} instance for \lc{≤} but not for \lc{≥}):
+
+\begin{minted}{lean4}
+theorem calc_demo (a b c d : Nat)
+    (h1 : a ≤ b) (h2 : b ≤ c) (h3 : c ≤ d) : a ≤ d :=
+  calc a ≤ b := h1
+    _ ≤ c := h2
+    _ ≤ d := h3
+
+theorem calc_demo' (a b c d : Nat)
+    (h1 : a ≤ b) (h2 : b ≤ c) (h3 : c ≤ d) : a ≤ d :=
+  Trans.trans (Trans.trans h1 h2) h3
+\end{minted}
+
+\subsection*{\lc{split}}
+
+Where \lc{cases} splits on a \emph{value}, \lc{split} splits on the
+control flow of the \emph{goal}: an \lc{if} (or \lc{match}) in the target
+becomes one goal per branch, with the branch condition as a hypothesis.
+
+\begin{minted}{lean4}
+def absDiff (a b : Int) : Int := if a ≤ b then b - a else a - b
+
+theorem absDiff_nonneg (a b : Int) : 0 ≤ absDiff a b := by
+  simp only [absDiff]
+  split <;> omega
+\end{minted}
+
+The combinator \lc{t1 <;> t2} runs \lc{t1}, then runs \lc{t2} on
+\emph{every} goal it produced --- the workhorse of this book's
+``case-split everything, then \lc{simp}/\lc{omega}'' proofs.
+
+\subsection*{\lc{change}}
+
+Replaces the goal by a \emph{definitionally equal} one --- nothing is
+proved, the goal is merely re-displayed in a shape other tactics can
+match:
+
+\begin{minted}{lean4}
+example : (fun n : Nat => n + 2) 3 = 5 := by
+  change 3 + 2 = 5
+  rfl
+\end{minted}
+
+\subsection*{\lc{simp} and \lc{simp\_all}}
+
+\lc{simp} rewrites the goal to normal form with a database of equations
+(extendable per call: \lc{simp [FlatNat.le]} also unfolds that
+definition). \lc{simp\_all} does the same to the hypotheses \emph{and}
+uses them as rewrite rules --- the closer for most of this book's
+case-bash proofs.
+
+\begin{minted}{lean4}
+theorem simp_demo (xs : List Nat) : (xs ++ []).length = xs.length := by
+  simp
+
+theorem simp_all_demo (xs : List Nat) (h : xs = [1, 2]) :
+    xs.length = 2 := by
+  simp_all
+\end{minted}
+
+\lc{simp only [f]} restricts to the given lemmas --- predictable, no
+database.
+
+\subsection*{\lc{omega} and \lc{decide}}
+
+\lc{omega} is a decision procedure for linear arithmetic over \lc{Int} and
+\lc{Nat} (with \lc{+}, \lc{-}, \lc{≤}, \lc{<}, \lc{=}, \lc{min}/\lc{max},
+multiplication by constants). \lc{decide} evaluates any \emph{decidable}
+proposition to \lc{true} --- it works whenever there is a finite
+computation to run, e.g.\ statements about all \lc{Bool}s.
+
+\begin{minted}{lean4}
+example (a b : Nat) (h : a + 2 * b = 10) (hb : 3 ≤ b) : a ≤ 4 := by
+  omega
+
+example : (15 % 4 = 3) ∧ (2 ^ 10 = 1024) := by decide
+example : ∀ b : Bool, (b && !b) = false := by decide
+\end{minted}
+
+\subsection*{\lc{have} and \lc{show}}
+
+\lc{have h : P := proof} adds an intermediate fact; \lc{show P} restates
+the current goal (up to definitional equality --- a gentler \lc{change},
+often used purely for readability):
+
+\begin{minted}{lean4}
+theorem have_demo (a : Nat) (h : a ≤ 3) : a ≤ 10 := by
+  have h' : (3 : Nat) ≤ 10 := by omega
+  show a ≤ 10
+  exact Nat.le_trans h h'
+\end{minted}
+
+A \lc{have} with no proof term, like Chapter~7's
+\lc{have hab' : loLe l1 l2 ∧ hiLe h2 h1 := hab}, re-types an existing
+hypothesis at a definitionally equal type --- no work, just unfolding.
+
+\subsection*{\lc{funext} and \lc{congr}}
+
+\lc{funext} reduces \lc{f = g} to \lc{∀ x, f x = g x} (functions are equal
+when they agree everywhere). \lc{congr 1} goes the other way for
+constructors: it reduces \lc{⟨a₁, b₁⟩ = ⟨a₂, b₂⟩} to \lc{a₁ = a₂} and
+\lc{b₁ = b₂}, closing proof fields automatically by proof irrelevance:
+
+\begin{minted}{lean4}
+theorem funext_demo : (fun n : Nat => n + 0) = (fun n : Nat => n) := by
+  funext n
+  rfl
+
+structure Point where
+  x : Int
+  y : Int
+
+theorem congr_demo (p q : Point) (hx : p.x = q.x) (hy : p.y = q.y) :
+    p = q := by
+  cases p; cases q
+  congr 1   -- splits ⟨x₁,y₁⟩ = ⟨x₂,y₂⟩ into x₁ = x₂ and y₁ = y₂
+\end{minted}
+
+(Here \lc{congr 1} leaves the two component goals, which \lc{hx} and
+\lc{hy} close --- after \lc{cases}, they already \emph{are} those goals,
+so Lean finds them by assumption.)
+
+\section{Programming Constructs}
+\label{app:programming}
+
+\subsection*{\lc{do}-notation, \lc{mut}, \lc{for}, \lc{while}, and \lc{Id.run}}
+
+A \lc{do} block sequences actions in a monad. Inside it, \lc{let x ← a}
+runs the action \lc{a} and binds its result; \lc{let mut} declares a
+variable that later statements may reassign; \lc{for} and \lc{while} loop.
+None of this is primitive --- the compiler \emph{desugars} it: statements
+become nested calls of the monad's bind operator, and every \lc{mut}
+variable becomes an accumulator threaded through a fold. Purely
+functional code wearing an imperative costume:
+
+\begin{minted}{lean4}
+def sumTo (n : Nat) : Nat := Id.run do
+  let mut acc := 0
+  for i in [0:n+1] do
+    acc := acc + i
+  return acc
+
+#eval sumTo 10   -- 55
+
+-- what the mut/for pair compiles down to (morally): a fold
+def sumTo' (n : Nat) : Nat :=
+  (List.range (n + 1)).foldl (fun acc i => acc + i) 0
+
+#eval sumTo' 10  -- 55
+\end{minted}
+
+\lc{Id} is the do-nothing monad (\lc{Id α = α}), and \lc{Id.run} just
+unwraps it, so \lc{sumTo} is an ordinary pure function --- this is how the
+Sudoku solver's \lc{Id.run do} blocks work. \lc{while} loops need a monad
+that permits possible non-termination, such as \lc{IO}:
+
+\begin{minted}{lean4}
+def firstPowerAbove (bound : Nat) : IO Nat := do
+  let mut p := 1
+  while p ≤ bound do
+    p := p * 2
+  return p
+
+#eval firstPowerAbove 100   -- 128
+\end{minted}
+
+\subsection*{\lc{IO.Ref}}
+
+Genuine mutable state --- the heart of a propagator \lc{Cell} --- lives in
+\lc{IO.Ref α}, a mutable reference allocated with \lc{IO.mkRef}:
+
+\begin{minted}{lean4}
+def counterDemo : IO Nat := do
+  let r ← IO.mkRef 0     -- allocate a mutable reference holding 0
+  r.set 5                -- overwrite the contents
+  r.modify (· + 1)       -- apply a function to the contents
+  r.get                  -- read it back
+
+#eval counterDemo        -- 6
+\end{minted}
+
+\subsection*{\lc{partial def}}
+
+Lean normally insists every function provably terminates. \lc{partial def}
+opts a definition out of that check: it can still be compiled and run, but
+Lean treats its body as opaque for proofs. We used it for \lc{inferExpr}
+in Chapter~9, whose recursion structure is obvious to a human and tedious
+for a termination checker:
+
+\begin{minted}{lean4}
+partial def collatzSteps (n : Nat) : Nat :=
+  if n ≤ 1 then 0
+  else if n % 2 == 0 then 1 + collatzSteps (n / 2)
+  else 1 + collatzSteps (3 * n + 1)
+
+#eval collatzSteps 6     -- 8
+\end{minted}
+
+Whether \emph{this} function terminates for all inputs is a famous open
+problem --- exactly the kind of definition \lc{partial} exists for.
+
+\subsection*{Structures, typeclasses, and \lc{deriving}}
+
+A \lc{structure} bundles named fields (possibly including \emph{proof}
+fields, like \lc{Interval.range}'s \lc{ok}); \lc{cases}/\lc{rcases} take
+values apart and \lc{⟨...⟩} builds them. A \lc{class} is a structure whose
+instances Lean finds automatically for square-bracket parameters like
+\lc{[PartialOrder α]}; \lc{class B extends A} embeds one class in another
+(our \lc{Lattice extends PartialOrder}). Finally,
+\lc{deriving instance DecidableEq for FlatNat} asks Lean to generate an
+instance mechanically --- available for simple inductives without proof
+fields; Chapter~7's \lc{Interval} needed a hand-written one.
+
+\section{Tactics at a Glance}
+
+Every tactic used in this book, in one table. Sections above give worked
+examples of each.
+
+\begin{table}[H]
   \centering
+  \small
   \begin{tabular}{ll}
     \toprule
     Tactic & Usage \\
     \midrule
-    \lc{rfl}          & Prove $a = a$ by reflexivity \\
-    \lc{exact h}      & Close goal with proof term \lc{h} \\
-    \lc{apply f}      & Apply function/lemma \lc{f} \\
-    \lc{intro h}      & Introduce a hypothesis \\
-    \lc{cases h}      & Case split on \lc{h} \\
-    \lc{induction n}  & Induction on \lc{n} \\
-    \lc{simp}         & Simplify using simp lemmas \\
-    \lc{simp\_all}    & Simplify using all hypotheses \\
-    \lc{omega}        & Linear arithmetic over $\mathbb{Z}$ \\
-    \lc{decide}       & Decide propositions by computation \\
-    \lc{constructor}  & Introduce an And/Iff/... \\
-    \lc{have h := ...}& Introduce a local lemma \\
-    \lc{tauto}        & Tautology checker \\
-    \lc{funext}       & Function extensionality \\
-    \lc{congr}        & Congruence \\
+    \lc{rfl}          & Prove \lc{a = a}, up to computation \\
+    \lc{exact e}      & Close the goal with term \lc{e} \\
+    \lc{apply f}      & Match goal against \lc{f}'s conclusion; args become goals \\
+    \lc{intro h}      & Move premise / $\forall$-variable into hypotheses \\
+    \lc{have h : P := e} & Add an intermediate fact \\
+    \lc{show P}       & Restate the goal (definitional equality) \\
+    \lc{cases x}      & One goal per constructor of \lc{x} (sugar for \lc{T.rec}) \\
+    \lc{rcases h with ⟨a, b⟩} & \lc{cases} with nested destructuring patterns \\
+    \lc{obtain ⟨a, b⟩ := h}   & Same as \lc{rcases}, different spelling \\
+    \lc{rename\_i x}  & Name the last inaccessible hypothesis \\
+    \lc{induction n}  & \lc{cases} + induction hypotheses (sugar for \lc{T.rec}) \\
+    \lc{constructor}  & Apply the goal type's constructor (\lc{And}, \lc{Iff}, …) \\
+    \lc{by\_cases h : p} & Split on decidable \lc{p} (sugar for dependent \lc{if}) \\
+    \lc{exfalso}      & Replace the goal with \lc{False} \\
+    \lc{subst h}      & Eliminate a variable using \lc{h : x = e} \\
+    \lc{calc}         & Chain of steps glued by \lc{Trans.trans} \\
+    \lc{rw [h]}       & Rewrite the goal with equation \lc{h} \\
+    \lc{simp}         & Normalise with the simp-lemma database \\
+    \lc{simp only [f]}& Simp restricted to the given lemmas \\
+    \lc{simp\_all}    & Simp goal and hypotheses, using hypotheses \\
+    \lc{split}        & One goal per branch of an \lc{if}/\lc{match} in the goal \\
+    \lc{change P}     & Replace goal by definitionally equal \lc{P} \\
+    \lc{omega}        & Decide linear arithmetic over \lc{Int}/\lc{Nat} \\
+    \lc{decide}       & Evaluate a decidable proposition \\
+    \lc{funext}       & \lc{f = g} from \lc{∀ x, f x = g x} \\
+    \lc{congr n}      & Split constructor equality into field equalities \\
+    \lc{t1 <;> t2}    & Run \lc{t2} on every goal produced by \lc{t1} \\
+    \lc{·}~(bullet)   & Focus the first remaining goal \\
     \bottomrule
   \end{tabular}
-  \caption{Commonly used Lean~4 tactics in this book.}
+  \caption{The complete tactic vocabulary of this book.}
 \end{table}
 
 \section{Unicode Input}
@@ -3556,7 +4562,10 @@ def useMyClass [MyClass α] (a : α) : Nat :=
 \addcontentsline{toc}{chapter}{Selected Solutions}
 
 This appendix contains solutions to exercises with a single definitive
-Lean~4 answer. Open-ended exercises are left to the reader.
+Lean~4 answer. Open-ended exercises are left to the reader. All solutions
+assume the book's definitions are in scope --- \lc{open OrderBook} for
+Part~I, and additionally \lc{namespace Propagators} for the Chapter~6
+solutions.
 
 % ── Chapter 1 ────────────────────────────────────────────────
 \section*{Chapter 1}
@@ -3580,8 +4589,8 @@ instance [OrderBook.PartialOrder α] [OrderBook.PartialOrder β] :
   le_refl := fun ⟨a, b⟩ =>
     ⟨PartialOrder.le_refl a, PartialOrder.le_refl b⟩
   le_antisymm := fun ⟨a1,b1⟩ ⟨a2,b2⟩ ⟨h1,h2⟩ ⟨h3,h4⟩ => by
-    have ha := PartialOrder.le_antisymm _ _ h1 h3
-    have hb := PartialOrder.le_antisymm _ _ h2 h4
+    have := PartialOrder.le_antisymm _ _ h1 h3
+    have := PartialOrder.le_antisymm _ _ h2 h4
     simp_all
   le_trans := fun ⟨a1,b1⟩ ⟨a2,b2⟩ ⟨a3,b3⟩ ⟨h1,h2⟩ ⟨h3,h4⟩ =>
     ⟨PartialOrder.le_trans _ _ _ h1 h3,
@@ -3594,8 +4603,10 @@ instance [OrderBook.PartialOrder α] [OrderBook.PartialOrder β] :
 \textbf{Exercise 2.1} (Monotone composition)
 
 \begin{minted}{lean4}
+-- NB: no [LE _] binders — our PartialOrder already provides the ≤
+-- notation; a second LE instance would introduce an unrelated order
+-- and the hypotheses would no longer match Monotone's.
 theorem antitone_comp_antitone {α β γ : Type}
-    [LE α] [LE β] [LE γ]
     [PartialOrder α] [PartialOrder β] [PartialOrder γ]
     {f : α → β} {g : β → γ}
     (hf : ∀ a b : α, a ≤ b → f b ≤ f a)
@@ -3611,7 +4622,7 @@ def iter {α : Type} (f : α → α) : Nat → α → α
   | 0,     x => x
   | n + 1, x => f (iter f n x)
 
-theorem iter_chain {α : Type} [LE α] [PartialOrder α]
+theorem iter_chain {α : Type} [PartialOrder α]
     {f : α → α} (hf : Monotone f)
     {a : α} (ha : a ≤ f a) :
     ∀ n : Nat, iter f n a ≤ iter f (n + 1) a := by
@@ -3624,7 +4635,7 @@ theorem iter_chain {α : Type} [LE α] [PartialOrder α]
 \textbf{Exercise 2.3} (Identity is monotone)
 
 \begin{minted}{lean4}
-theorem Monotone.id {α : Type} [LE α] [PartialOrder α] :
+theorem Monotone.id {α : Type} [PartialOrder α] :
     Monotone (id : α → α) where
   map_le := fun _ _ h => h
 \end{minted}
@@ -3632,7 +4643,7 @@ theorem Monotone.id {α : Type} [LE α] [PartialOrder α] :
 % ── Chapter 3 ────────────────────────────────────────────────
 \section*{Chapter 3}
 
-\textbf{Exercise 3.1} (Interval partial order)
+\textbf{Exercise 3.1} (Interval information order)
 
 \begin{minted}{lean4}
 structure Interval where
@@ -3640,28 +4651,34 @@ structure Interval where
   h      : Int
   l_le_h : l ≤ h
 
-instance : LE Interval where
-  le := fun i j => j.l ≤ i.l ∧ i.h ≤ j.h
-
 instance : PartialOrder Interval where
+  -- Information order: i ≤ j iff j is contained in i
+  -- (narrower = more informative = higher).
+  le := fun i j => i.l ≤ j.l ∧ j.h ≤ i.h
   le_refl := fun a => ⟨Int.le_refl a.l, Int.le_refl a.h⟩
-  le_antisymm {a b} := fun hyp₁ hyp₂ => by
+  le_antisymm := fun a b hyp₁ hyp₂ => by
     cases a; cases b
     rename_i l₁ h₁ l₁_le_h₁ l₂ h₂ l₂_le_h₂
     congr 1
-    · exact Int.le_antisymm hyp₂.left hyp₁.left
-    · exact Int.le_antisymm hyp₁.right hyp₂.right
-    -- l_le_h closed by proof irrelevance
-  le_trans {a b c} := fun hyp₁ hyp₂ => by
+    · exact Int.le_antisymm hyp₁.left hyp₂.left
+    · exact Int.le_antisymm hyp₂.right hyp₁.right
+    -- the l_le_h field is closed by proof irrelevance
+  le_trans := fun a b c hyp₁ hyp₂ => by
     rcases a with ⟨a_l, a_h, a_le⟩
     rcases b with ⟨b_l, b_h, b_le⟩
     rcases c with ⟨c_l, c_h, c_le⟩
-    have hl_ba : b_l ≤ a_l := hyp₁.left
-    have hl_cb : c_l ≤ b_l := hyp₂.left
-    have hh_ab : a_h ≤ b_h := hyp₁.right
-    have hh_bc : b_h ≤ c_h := hyp₂.right
-    exact ⟨Int.le_trans hl_cb hl_ba, Int.le_trans hh_ab hh_bc⟩
+    have hl_ab : a_l ≤ b_l := hyp₁.left
+    have hl_bc : b_l ≤ c_l := hyp₂.left
+    have hh_ba : b_h ≤ a_h := hyp₁.right
+    have hh_cb : c_h ≤ b_h := hyp₂.right
+    exact ⟨Int.le_trans hl_ab hl_bc, Int.le_trans hh_cb hh_ba⟩
 \end{minted}
+
+Meets always exist: the hull $[\min(l_1,l_2), \max(h_1,h_2)]$ is the
+greatest lower bound. Joins exist exactly when the intervals overlap ---
+for disjoint intervals every candidate join would have to be an ``empty
+interval'', which this type cannot represent. Chapter~7's lattice adds it
+(as $\top$), plus unbounded ends (as $\bot$).
 
 \textbf{Exercise 3.3} (Characterising the order)
 
@@ -3691,12 +4708,12 @@ instance {α β : Type} [Lattice α] [Lattice β] : Lattice (α × β) where
     · apply PartialOrder.le_refl
   le_antisymm {a b} := fun hyp₁ hyp₂ => by
     rcases a with ⟨l₁, r₁⟩; rcases b with ⟨l₂, r₂⟩; congr 1
-    · exact PartialOrder.le_antisymm hyp₁.left hyp₂.left
-    · exact PartialOrder.le_antisymm hyp₁.right hyp₂.right
+    · exact PartialOrder.le_antisymm _ _ hyp₁.left hyp₂.left
+    · exact PartialOrder.le_antisymm _ _ hyp₁.right hyp₂.right
   le_trans {a b c} := fun hyp₁ hyp₂ => by
     apply And.intro
-    · exact PartialOrder.le_trans hyp₁.left hyp₂.left
-    · exact PartialOrder.le_trans hyp₁.right hyp₂.right
+    · exact PartialOrder.le_trans _ _ _ hyp₁.left hyp₂.left
+    · exact PartialOrder.le_trans _ _ _ hyp₁.right hyp₂.right
   inf           := fun a b =>
     ⟨Lattice.inf a.fst b.fst, Lattice.inf a.snd b.snd⟩
   sup           := fun a b =>
@@ -3734,7 +4751,7 @@ def mulProp (cx cy cz : Cell FlatNat) : PropStep := do
     | .known a, .known b => cz.write (.known (a * b))
     | _,        _        => return false
 
--- z / x → y  (or conflict if x ∤ z)
+-- z / x → y  (or conflict if x does not divide z)
 def divProp (cz cx cy : Cell FlatNat) : PropStep := do
   let z ← cz.read
   let x ← cx.read

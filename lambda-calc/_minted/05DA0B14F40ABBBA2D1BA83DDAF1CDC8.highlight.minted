@@ -1,0 +1,12 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+LambdaCalc/
+├── lakefile.lean
+├── LambdaCalc.lean
+└── LambdaCalc/
+    ├── Named.lean       \PYGZhy{}\PYGZhy{} Named terms, FV, substitution, eval
+    ├── DeBruijn.lean    \PYGZhy{}\PYGZhy{} De Bruijn terms, shift, subst, eval
+    ├── Parser.lean      \PYGZhy{}\PYGZhy{} Recursive descent parser
+    ├── Defs.lean        \PYGZhy{}\PYGZhy{} Church encoding definitions + expandDefs
+    ├── Typed.lean       \PYGZhy{}\PYGZhy{} STLC type checker
+    └── Main.lean        \PYGZhy{}\PYGZhy{} REPL
+\end{MintedVerbatim}

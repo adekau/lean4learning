@@ -1,0 +1,7 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{firstSome}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}|\PYGZgt{}}\PYG{+w}{ }\PYG{n}{b}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} desugared:}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{orElseManual}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{k}{with}\PYG{+w}{ }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{ }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{b}
+\end{MintedVerbatim}

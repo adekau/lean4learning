@@ -1,0 +1,233 @@
+\contentsline {part}{I\hspace {1em}Foundations}{6}{part.1}%
+\contentsline {section}{\numberline {1}What Is Lambda Calculus?}{6}{section.1}%
+\contentsline {subsection}{\numberline {1.1}The Big Picture}{6}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Why Should a Programmer Care?}{6}{subsection.1.2}%
+\contentsline {section}{\numberline {2}Reading the Notation}{7}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Set Notation}{7}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Arrows and Relations}{7}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Functions and Substitution}{8}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Logic and Typing (used from Section~\ref {sec:stlc} onward)}{8}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Reading Inference Rules}{9}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}Grammar Notation}{9}{subsection.2.6}%
+\contentsline {subsection}{\numberline {2.7}Reading an Equation Step by Step}{10}{subsection.2.7}%
+\contentsline {section}{\numberline {3}Lean\,4 in 60 Seconds}{10}{section.3}%
+\contentsline {section}{\numberline {4}The Syntax of Lambda Terms}{11}{section.4}%
+\contentsline {subsection}{\numberline {4.1}The Three Building Blocks}{11}{subsection.4.1}%
+\contentsline {paragraph}{Variables.}{11}{section*.2}%
+\contentsline {paragraph}{Abstraction (function definition).}{11}{section*.3}%
+\contentsline {paragraph}{Application (function call).}{12}{section*.4}%
+\contentsline {subsection}{\numberline {4.2}Parenthesization Conventions}{12}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Multi-argument Functions and Currying}{13}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Let Bindings Are Just Application}{13}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Implementing It: Representing Terms}{14}{subsection.4.5}%
+\contentsline {subsubsection}{\numberline {4.5.1}Think About It}{14}{subsubsection.4.5.1}%
+\contentsline {subsubsection}{\numberline {4.5.2}The Answer: An Algebraic Data Type}{14}{subsubsection.4.5.2}%
+\contentsline {section}{\numberline {5}Free and Bound Variables}{15}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Scope in Lambda Calculus}{15}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Formal Definition}{15}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Closed Terms (Combinators)}{16}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}The Danger: Variable Capture}{17}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Implementing It: Free Variables in Lean}{17}{subsection.5.5}%
+\contentsline {subsubsection}{\numberline {5.5.1}Free Variables}{17}{subsubsection.5.5.1}%
+\contentsline {section}{\numberline {6}Alpha Conversion ($\alpha $)}{18}{section.6}%
+\contentsline {subsection}{\numberline {6.1}The Core Idea: Names Don't Matter}{18}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Why Alpha Conversion Matters}{18}{subsection.6.2}%
+\contentsline {section}{\numberline {7}Beta Reduction ($\beta $)}{19}{section.7}%
+\contentsline {subsection}{\numberline {7.1}The Heart of Computation}{19}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Why Is This ``Computation''?}{19}{subsection.7.2}%
+\contentsline {paragraph}{Step 1: You can encode data as behavior.}{20}{section*.5}%
+\contentsline {paragraph}{Step 2: You can express recursion.}{20}{section*.6}%
+\contentsline {paragraph}{Step 3: This is \emph {all} of computation.}{20}{section*.7}%
+\contentsline {paragraph}{The philosophical punchline.}{20}{section*.8}%
+\contentsline {subsection}{\numberline {7.3}Visualizing Reduction as Tree Surgery}{21}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Substitution: The Engine Behind Beta Reduction}{22}{subsection.7.4}%
+\contentsline {subsubsection}{\numberline {7.4.1}Why Not Just Find-and-Replace?}{22}{subsubsection.7.4.1}%
+\contentsline {paragraph}{Problem 1: Don't replace bound variables.}{22}{section*.9}%
+\contentsline {paragraph}{Problem 2: Do substitute into other binders.}{22}{section*.10}%
+\contentsline {paragraph}{Problem 3: Variable capture---the real danger.}{22}{section*.11}%
+\contentsline {subsubsection}{\numberline {7.4.2}The Complete Rules}{23}{subsubsection.7.4.2}%
+\contentsline {subsubsection}{\numberline {7.4.3}Rule by Rule, in Depth}{23}{subsubsection.7.4.3}%
+\contentsline {paragraph}{Rule 1: $x[x := a] = a$.}{23}{section*.12}%
+\contentsline {paragraph}{Rule 2: $y[x := a] = y$ when $y \neq x$.}{23}{section*.13}%
+\contentsline {paragraph}{Rule 3: $(\lambda x.\, e)[x := a] = \lambda x.\, e$ (shadowing).}{23}{section*.14}%
+\contentsline {paragraph}{Rule 4: $(\lambda y.\, e)[x := a] = \lambda y.\, (e[x := a])$ (safe descent).}{23}{section*.15}%
+\contentsline {paragraph}{Rule 5: $(\lambda y.\, e)[x := a] = \lambda z.\, (e[y := z][x := a])$ (capture avoidance).}{23}{section*.16}%
+\contentsline {paragraph}{Rule 6: $(e_1\tmspace +\thickmuskip {.2777em}e_2)[x := a] = (e_1[x := a])\tmspace +\thickmuskip {.2777em}(e_2[x := a])$ (application).}{24}{section*.17}%
+\contentsline {subsubsection}{\numberline {7.4.4}Worked Example: Capture Avoidance in Action}{24}{subsubsection.7.4.4}%
+\contentsline {subsubsection}{\numberline {7.4.5}A Flowchart for Substitution}{25}{subsubsection.7.4.5}%
+\contentsline {subsection}{\numberline {7.5}Worked Reductions}{25}{subsection.7.5}%
+\contentsline {subsection}{\numberline {7.6}Normal Forms: When Computation Is ``Done''}{26}{subsection.7.6}%
+\contentsline {subsection}{\numberline {7.7}Implementing It: Substitution and Evaluation}{27}{subsection.7.7}%
+\contentsline {subsubsection}{\numberline {7.7.1}Substitution: Where It Gets Interesting}{27}{subsubsection.7.7.1}%
+\contentsline {subsection}{\numberline {7.8}Evaluation}{28}{subsection.7.8}%
+\contentsline {subsubsection}{\numberline {7.8.1}Single-Step Reduction}{28}{subsubsection.7.8.1}%
+\contentsline {subsubsection}{\numberline {7.8.2}Multi-Step with Fuel}{29}{subsubsection.7.8.2}%
+\contentsline {section}{\numberline {8}Evaluation Strategies}{30}{section.8}%
+\contentsline {subsection}{\numberline {8.1}The Problem: Which Redex First?}{30}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}The Main Strategies}{30}{subsection.8.2}%
+\contentsline {paragraph}{Normal order (reduce the leftmost outermost redex first).}{30}{section*.18}%
+\contentsline {paragraph}{Applicative order (reduce the leftmost innermost redex first).}{30}{section*.19}%
+\contentsline {paragraph}{Call-by-need (normal order with sharing).}{31}{section*.20}%
+\contentsline {subsection}{\numberline {8.3}Why It Matters: A Life-or-Death Example}{31}{subsection.8.3}%
+\contentsline {section}{\numberline {9}Eta Conversion ($\eta $)}{32}{section.9}%
+\contentsline {subsection}{\numberline {9.1}The Core Idea: Pointless Wrappers}{32}{subsection.9.1}%
+\contentsline {section}{\numberline {10}Church Encodings}{33}{section.10}%
+\contentsline {subsection}{\numberline {10.1}The Big Idea: Everything Is a Function}{33}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}Church Booleans}{33}{subsection.10.2}%
+\contentsline {subsection}{\numberline {10.3}Church Numerals}{34}{subsection.10.3}%
+\contentsline {subsection}{\numberline {10.4}Church Pairs}{35}{subsection.10.4}%
+\contentsline {subsection}{\numberline {10.5}IsZero and Predecessor}{36}{subsection.10.5}%
+\contentsline {subsection}{\numberline {10.6}Church-Encoded Lists}{37}{subsection.10.6}%
+\contentsline {subsection}{\numberline {10.7}The Solution: Fixed-Point Combinators}{38}{subsection.10.7}%
+\contentsline {subsection}{\numberline {10.8}The Y Combinator}{38}{subsection.10.8}%
+\contentsline {subsection}{\numberline {10.9}The Z Combinator (Call-by-Value)}{39}{subsection.10.9}%
+\contentsline {subsection}{\numberline {10.10}Factorial: Putting It All Together}{39}{subsection.10.10}%
+\contentsline {part}{II\hspace {1em}Going Deeper}{40}{part.2}%
+\contentsline {section}{\numberline {11}De Bruijn Indices}{40}{section.11}%
+\contentsline {paragraph}{The most common misconception.}{41}{section*.21}%
+\contentsline {subsection}{\numberline {11.1}Shifting and Substitution}{41}{subsection.11.1}%
+\contentsline {subsection}{\numberline {11.2}Implementing It: De Bruijn in Lean}{43}{subsection.11.2}%
+\contentsline {subsubsection}{\numberline {11.2.1}When Names Fight Back}{43}{subsubsection.11.2.1}%
+\contentsline {subsubsection}{\numberline {11.2.2}The Insight: Count, Don't Name}{43}{subsubsection.11.2.2}%
+\contentsline {subsubsection}{\numberline {11.2.3}The New Challenge: Shifting}{44}{subsubsection.11.2.3}%
+\contentsline {paragraph}{Substitution is not beta reduction.}{44}{section*.22}%
+\contentsline {paragraph}{What substitution means, concretely.}{46}{section*.23}%
+\contentsline {paragraph}{Stage 1: the na\"ive attempt.}{46}{section*.24}%
+\contentsline {paragraph}{Stage 2: fix the target index.}{46}{section*.25}%
+\contentsline {paragraph}{Stage 3: fix the replacement term.}{47}{section*.26}%
+\contentsline {paragraph}{But wait---why does 1 become 2?}{48}{section*.27}%
+\contentsline {paragraph}{The coordinate system analogy.}{48}{section*.28}%
+\contentsline {paragraph}{Why shifting is separate from substitution.}{49}{section*.29}%
+\contentsline {paragraph}{Beta reduction: the full dance.}{50}{section*.30}%
+\contentsline {paragraph}{Why all three steps are needed.}{50}{section*.31}%
+\contentsline {paragraph}{The building analogy.}{51}{section*.32}%
+\contentsline {paragraph}{The three steps, visualized.}{52}{section*.33}%
+\contentsline {subsubsection}{\numberline {11.2.4}Different Strategies}{53}{subsubsection.11.2.4}%
+\contentsline {section}{\numberline {12}The Simply Typed Lambda Calculus}{54}{section.12}%
+\contentsline {subsection}{\numberline {12.1}Types}{54}{subsection.12.1}%
+\contentsline {subsection}{\numberline {12.2}Turnstile Notation and Typing Judgments}{54}{subsection.12.2}%
+\contentsline {subsection}{\numberline {12.3}Typing Rules as Inference Rules}{55}{subsection.12.3}%
+\contentsline {subsection}{\numberline {12.4}Building a Proof Tree: The Detective Method}{55}{subsection.12.4}%
+\contentsline {paragraph}{The goal.}{55}{section*.34}%
+\contentsline {paragraph}{Step 1: What shape is the outermost term?}{55}{section*.35}%
+\contentsline {paragraph}{Step 2: The body is another lambda.}{55}{section*.36}%
+\contentsline {paragraph}{Step 3: Now we have an application $f\tmspace +\thickmuskip {.2777em}x$.}{56}{section*.37}%
+\contentsline {paragraph}{Step 4: Both are variables---use \textsc {Var}.}{56}{section*.38}%
+\contentsline {paragraph}{Assembling the tree.}{56}{section*.39}%
+\contentsline {subsection}{\numberline {12.5}More Worked Examples}{56}{subsection.12.5}%
+\contentsline {subsection}{\numberline {12.6}Notational Shorthand in Proof Trees}{57}{subsection.12.6}%
+\contentsline {paragraph}{The convention.}{57}{section*.40}%
+\contentsline {paragraph}{Why authors do this.}{57}{section*.41}%
+\contentsline {paragraph}{How to read the compressed form.}{57}{section*.42}%
+\contentsline {subsection}{\numberline {12.7}Key Theorems of the STLC}{58}{subsection.12.7}%
+\contentsline {subsection}{\numberline {12.8}Implementing It: A Type Checker in Lean}{58}{subsection.12.8}%
+\contentsline {subsubsection}{\numberline {12.8.1}The Motivation}{58}{subsubsection.12.8.1}%
+\contentsline {section}{\numberline {13}Scott Encodings}{60}{section.13}%
+\contentsline {subsection}{\numberline {13.1}An Alternative to Church}{60}{subsection.13.1}%
+\contentsline {subsection}{\numberline {13.2}Reading the Notation}{60}{subsection.13.2}%
+\contentsline {subsection}{\numberline {13.3}Scott Booleans}{61}{subsection.13.3}%
+\contentsline {subsection}{\numberline {13.4}Scott Numerals}{61}{subsection.13.4}%
+\contentsline {subsection}{\numberline {13.5}Scott-Encoded Lists}{62}{subsection.13.5}%
+\contentsline {section}{\numberline {14}The Curry--Howard Correspondence}{62}{section.14}%
+\contentsline {subsection}{\numberline {14.1}Types Are Propositions; Programs Are Proofs}{62}{subsection.14.1}%
+\contentsline {subsection}{\numberline {14.2}Examples}{63}{subsection.14.2}%
+\contentsline {paragraph}{The identity function proves $A \Rightarrow A$.}{63}{section*.43}%
+\contentsline {paragraph}{The K combinator proves $A \Rightarrow B \Rightarrow A$.}{63}{section*.44}%
+\contentsline {paragraph}{The S combinator proves $(A \Rightarrow B \Rightarrow C) \Rightarrow (A \Rightarrow B) \Rightarrow A \Rightarrow C$.}{63}{section*.45}%
+\contentsline {paragraph}{Modus ponens is function application.}{63}{section*.46}%
+\contentsline {section}{\numberline {15}Intuitionistic Logic}{64}{section.15}%
+\contentsline {subsection}{\numberline {15.1}The Classical View}{64}{subsection.15.1}%
+\contentsline {paragraph}{The constructivist objection.}{64}{section*.47}%
+\contentsline {paragraph}{What intuitionistic logic rejects.}{65}{section*.48}%
+\contentsline {paragraph}{The BHK interpretation.}{65}{section*.49}%
+\contentsline {paragraph}{Why AND is a product type (and multiplication).}{66}{section*.50}%
+\contentsline {paragraph}{Why OR is a sum type (and addition).}{66}{section*.51}%
+\contentsline {paragraph}{Why implication is a function type (and exponentiation).}{66}{section*.52}%
+\contentsline {paragraph}{Why programmers should care.}{67}{section*.53}%
+\contentsline {paragraph}{Why ``intuitionistic''?}{67}{section*.54}%
+\contentsline {section}{\numberline {16}System F: Polymorphism}{68}{section.16}%
+\contentsline {subsection}{\numberline {16.1}The Problem of Repetition}{68}{subsection.16.1}%
+\contentsline {subsection}{\numberline {16.2}Two Independent Discoveries}{68}{subsection.16.2}%
+\contentsline {paragraph}{Girard (1972): from proof theory.}{68}{section*.55}%
+\contentsline {paragraph}{Reynolds (1974): from programming.}{68}{section*.56}%
+\contentsline {subsection}{\numberline {16.3}The Key Idea}{68}{subsection.16.3}%
+\contentsline {subsection}{\numberline {16.4}The Philosophical Significance}{69}{subsection.16.4}%
+\contentsline {subsection}{\numberline {16.5}Implementing System F}{69}{subsection.16.5}%
+\contentsline {section}{\numberline {17}System F$\omega $: Type Operators}{71}{section.17}%
+\contentsline {subsection}{\numberline {17.1}From Types to Kind Systems}{71}{subsection.17.1}%
+\contentsline {subsection}{\numberline {17.2}Type-Level Functions}{72}{subsection.17.2}%
+\contentsline {subsection}{\numberline {17.3}What System F$\omega $ Enables}{72}{subsection.17.3}%
+\contentsline {subsection}{\numberline {17.4}System F$\omega $ in Practice}{72}{subsection.17.4}%
+\contentsline {section}{\numberline {18}The Lambda Cube}{73}{section.18}%
+\contentsline {subsection}{\numberline {18.1}The Question: What Can Depend on What?}{73}{subsection.18.1}%
+\contentsline {subsection}{\numberline {18.2}Barendregt's Classification}{73}{subsection.18.2}%
+\contentsline {subsection}{\numberline {18.3}Why a Cube?}{74}{subsection.18.3}%
+\contentsline {subsection}{\numberline {18.4}Types $\to $ Types in Practice}{74}{subsection.18.4}%
+\contentsline {paragraph}{What System F gives you: type application.}{74}{section*.57}%
+\contentsline {paragraph}{What System F does \emph {not} give you: abstracting over the constructor.}{74}{section*.58}%
+\contentsline {paragraph}{Why it matters: the Functor example.}{74}{section*.59}%
+\contentsline {paragraph}{What it would look like with higher-kinded types.}{75}{section*.60}%
+\contentsline {subsection}{\numberline {18.5}Simulation Is Not the Same as Native Support}{76}{subsection.18.5}%
+\contentsline {paragraph}{The analogy with the untyped calculus.}{76}{section*.61}%
+\contentsline {section}{\numberline {19}Dependent Types: Types That Compute}{77}{section.19}%
+\contentsline {subsection}{\numberline {19.1}Martin-L\"of's Type Theory}{77}{subsection.19.1}%
+\contentsline {subsection}{\numberline {19.2}From Philosophy to Software}{78}{subsection.19.2}%
+\contentsline {subsection}{\numberline {19.3}How Dependent Types Work}{78}{subsection.19.3}%
+\contentsline {subsection}{\numberline {19.4}The Unification: Types Are Terms}{78}{subsection.19.4}%
+\contentsline {subsection}{\numberline {19.5}The Price of Power: Undecidability and Type : Type}{79}{subsection.19.5}%
+\contentsline {subsection}{\numberline {19.6}Implementing a Dependent Type Checker}{79}{subsection.19.6}%
+\contentsline {paragraph}{Why $\lambda $ and $\Pi $ look so similar (but aren't).}{82}{section*.62}%
+\contentsline {paragraph}{Why the de Bruijn indices differ.}{82}{section*.63}%
+\contentsline {section}{\numberline {20}Type Checking Is Proof Checking}{82}{section.20}%
+\contentsline {section}{\numberline {21}Parsing Lambda Calculus}{83}{section.21}%
+\contentsline {subsection}{\numberline {21.1}What Parsing Is}{83}{subsection.21.1}%
+\contentsline {paragraph}{Context-free grammars.}{84}{section*.64}%
+\contentsline {subsection}{\numberline {21.2}The Grammar}{84}{subsection.21.2}%
+\contentsline {subsection}{\numberline {21.3}Approach 1: Recursive Descent}{84}{subsection.21.3}%
+\contentsline {subsection}{\numberline {21.4}Approach 2: Parser Combinators (The Parsec Idea)}{85}{subsection.21.4}%
+\contentsline {subsubsection}{\numberline {21.4.1}The Core Abstraction}{86}{subsubsection.21.4.1}%
+\contentsline {subsubsection}{\numberline {21.4.2}Primitive Combinators}{86}{subsubsection.21.4.2}%
+\contentsline {subsubsection}{\numberline {21.4.3}Sequential Composition: Bind}{86}{subsubsection.21.4.3}%
+\contentsline {subsubsection}{\numberline {21.4.4}Choice: Or-Else}{87}{subsubsection.21.4.4}%
+\contentsline {subsubsection}{\numberline {21.4.5}Repetition}{87}{subsubsection.21.4.5}%
+\contentsline {subsubsection}{\numberline {21.4.6}Whitespace and Tokens}{87}{subsubsection.21.4.6}%
+\contentsline {subsubsection}{\numberline {21.4.7}Parsers as Functor, Applicative, and Monad}{88}{subsubsection.21.4.7}%
+\contentsline {subsubsection}{\numberline {21.4.8}Building Our Lambda Parser}{90}{subsubsection.21.4.8}%
+\contentsline {subsubsection}{\numberline {21.4.9}Backtracking and Committed Choice}{91}{subsubsection.21.4.9}%
+\contentsline {subsubsection}{\numberline {21.4.10}From Wadler to Parsec: The History}{91}{subsubsection.21.4.10}%
+\contentsline {subsection}{\numberline {21.5}Named-to-De-Bruijn Conversion}{91}{subsection.21.5}%
+\contentsline {subsection}{\numberline {21.6}A Definitions Environment}{92}{subsection.21.6}%
+\contentsline {section}{\numberline {22}Putting It All Together: The REPL}{92}{section.22}%
+\contentsline {subsection}{\numberline {22.1}What a REPL Is}{92}{subsection.22.1}%
+\contentsline {subsection}{\numberline {22.2}The Pipeline}{92}{subsection.22.2}%
+\contentsline {subsection}{\numberline {22.3}State and Commands}{93}{subsection.22.3}%
+\contentsline {subsection}{\numberline {22.4}Example Session}{94}{subsection.22.4}%
+\contentsline {subsection}{\numberline {22.5}Extending to a Typed REPL}{95}{subsection.22.5}%
+\contentsline {subsubsection}{\numberline {22.5.1}Adding Type Checking}{95}{subsubsection.22.5.1}%
+\contentsline {subsubsection}{\numberline {22.5.2}Adding Type Annotations}{95}{subsubsection.22.5.2}%
+\contentsline {paragraph}{Extending the AST.}{95}{section*.65}%
+\contentsline {paragraph}{Parsing types.}{95}{section*.66}%
+\contentsline {paragraph}{Parsing typed lambdas.}{96}{section*.67}%
+\contentsline {paragraph}{Example.}{96}{section*.68}%
+\contentsline {subsubsection}{\numberline {22.5.3}Adding Commands}{97}{subsubsection.22.5.3}%
+\contentsline {section}{\numberline {23}The Landscape: From STLC to Lean}{97}{section.23}%
+\contentsline {subsection}{\numberline {23.1}The Historical Arc}{97}{subsection.23.1}%
+\contentsline {subsection}{\numberline {23.2}What Each Extension Costs}{98}{subsection.23.2}%
+\contentsline {subsection}{\numberline {23.3}The Philosophical Thread}{98}{subsection.23.3}%
+\contentsline {section}{\numberline {24}Common Mistakes and FAQ}{99}{section.24}%
+\contentsline {subsection}{\numberline {24.1}``Can I write $\lambda (x, y).\, e$ for a function of two arguments?''}{99}{subsection.24.1}%
+\contentsline {subsection}{\numberline {24.2}``What's the difference between $=$ and $\equiv _\alpha $?''}{99}{subsection.24.2}%
+\contentsline {subsection}{\numberline {24.3}``Why does my reduction seem to go in circles?''}{99}{subsection.24.3}%
+\contentsline {subsection}{\numberline {24.4}``Is $\lambda x.\, x\tmspace +\thickmuskip {.2777em} x$ typeable?''}{100}{subsection.24.4}%
+\contentsline {subsection}{\numberline {24.5}``What's the difference between $\DOTSB \relbar \joinrel \rightarrow _\beta $ and $\twoheadrightarrow _\beta $?''}{100}{subsection.24.5}%
+\contentsline {subsection}{\numberline {24.6}``$\overline {0}$ and $\textsc {False}$ are the same term. Isn't that a problem?''}{100}{subsection.24.6}%
+\contentsline {subsection}{\numberline {24.7}``Why do I need de Bruijn indices? Named variables seem fine.''}{100}{subsection.24.7}%
+\contentsline {subsection}{\numberline {24.8}``Can I use lambda calculus as an actual programming language?''}{100}{subsection.24.8}%
+\contentsline {subsection}{\numberline {24.9}``Why is it called `lambda'? What does the $\lambda $ symbol mean?''}{101}{subsection.24.9}%
+\contentsline {part}{III\hspace {1em}Building a Lambda Calculus Interpreter}{101}{part.3}%
+\contentsline {section}{\numberline {25}Where to Go from Here}{101}{section.25}%
+\contentsline {section}{\numberline {A}A Lean\,4 Primer}{102}{section.A}%
+\contentsline {section}{\numberline {B}Quick Reference Card}{107}{section.B}%
+\contentsline {section}{\numberline {C}Glossary}{108}{section.C}%
+\contentsline {section}{\numberline {D}Exercise Solutions}{109}{section.D}%
+\contentsline {section}{\numberline {E}Complete Implementation}{112}{section.E}%

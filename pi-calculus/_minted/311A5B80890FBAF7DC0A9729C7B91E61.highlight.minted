@@ -1,0 +1,7 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{@[}\PYG{n}{simp}\PYG{k+kd}{]}\PYG{+w}{ }\PYG{k+kd}{theorem}\PYG{+w}{ }\PYG{n}{size\PYGZus{}node}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{l}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Tree}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{Tree.node}\PYG{+w}{ }\PYG{n}{l}\PYG{+w}{ }\PYG{n}{r}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{size}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{l.size}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{n}{r.size}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{rfl}
+
+\PYG{k+kd}{example}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{t}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Tree}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Tree.node}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{leaf}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{size}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{t.size}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k+kd}{by}
+\PYG{+w}{  }\PYG{n}{simp}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{Tree.size}\PYG{o}{]}
+\end{MintedVerbatim}

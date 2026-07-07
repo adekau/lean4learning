@@ -1,0 +1,15 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{// Shared state between event loop callbacks}
+\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n+nx}{balance}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mf}{100}\PYG{p}{;}
+
+\PYG{k}{async}\PYG{+w}{ }\PYG{k+kd}{function}\PYG{+w}{ }\PYG{n+nx}{withdraw}\PYG{p}{(}\PYG{n+nx}{amount}\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{number}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{  }\PYG{k}{if}\PYG{+w}{ }\PYG{p}{(}\PYG{n+nx}{balance}\PYG{+w}{ }\PYG{o}{\PYGZgt{}=}\PYG{+w}{ }\PYG{n+nx}{amount}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{        }\PYG{c+c1}{// Check}
+\PYG{+w}{    }\PYG{k}{await}\PYG{+w}{ }\PYG{n+nx}{delay}\PYG{p}{(}\PYG{l+m+mf}{10}\PYG{p}{);}\PYG{+w}{              }\PYG{c+c1}{// Simulate async work}
+\PYG{+w}{    }\PYG{n+nx}{balance}\PYG{+w}{ }\PYG{o}{\PYGZhy{}=}\PYG{+w}{ }\PYG{n+nx}{amount}\PYG{p}{;}\PYG{+w}{            }\PYG{c+c1}{// Act \PYGZhy{}\PYGZhy{}\PYGZhy{} but balance may have changed!}
+\PYG{+w}{  }\PYG{p}{\PYGZcb{}}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{c+c1}{// Two concurrent withdrawals: both see balance = 100}
+\PYG{k}{await}\PYG{+w}{ }\PYG{n+nb}{Promise}\PYG{p}{.}\PYG{n+nx}{all}\PYG{p}{([}\PYG{n+nx}{withdraw}\PYG{p}{(}\PYG{l+m+mf}{80}\PYG{p}{),}\PYG{+w}{ }\PYG{n+nx}{withdraw}\PYG{p}{(}\PYG{l+m+mf}{80}\PYG{p}{)]);}
+\PYG{c+c1}{// balance is now \PYGZhy{}60, not 20!}
+\end{MintedVerbatim}

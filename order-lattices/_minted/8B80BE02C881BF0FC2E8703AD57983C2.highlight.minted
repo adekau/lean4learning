@@ -1,0 +1,21 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Check all comparable pairs to see if f preserves the order}
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{isMonotone}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{f}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Bool}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n}{D12}\PYG{n+nb+bp}{.}\PYG{n}{all}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{  }\PYG{n}{D12}\PYG{n+nb+bp}{.}\PYG{n}{all}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} if a | b then f(a) | f(b)}
+\PYG{+w}{    }\PYG{n+nb+bp}{!}\PYG{n}{dvd12}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{||}\PYG{+w}{ }\PYG{n}{dvd12}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{f}\PYG{+w}{ }\PYG{n}{a}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{f}\PYG{+w}{ }\PYG{n}{b}\PYG{o}{)))}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} The identity is monotone}
+\PYG{n+nb+bp}{\PYGZsh{}}\PYG{n}{eval}\PYG{+w}{ }\PYG{n}{isMonotone}\PYG{+w}{ }\PYG{n}{id}\PYG{+w}{                         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} true}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Multiplying by 2: if a | b then 2a | 2b}
+\PYG{n+nb+bp}{\PYGZsh{}}\PYG{n}{eval}\PYG{+w}{ }\PYG{n}{isMonotone}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n+nb+bp}{*}\PYG{+w}{ }\PYG{l+m+mi}{2}\PYG{o}{)}\PYG{+w}{                   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} true}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} A non\PYGZhy{}monotone map: send every element to its \PYGZdq{}complement\PYGZdq{} 12/n}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} 1↦12, 2↦6, 3↦4, 4↦3, 6↦2, 12↦1 — this reverses the order}
+\PYG{n+nb+bp}{\PYGZsh{}}\PYG{n}{eval}\PYG{+w}{ }\PYG{n}{isMonotone}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{l+m+mi}{12}\PYG{+w}{ }\PYG{n+nb+bp}{/}\PYG{+w}{ }\PYG{n}{n}\PYG{o}{)}\PYG{+w}{         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} false (it\PYGZsq{}s antitone)}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} But composing it with itself gives monotone again}
+\PYG{n+nb+bp}{\PYGZsh{}}\PYG{n}{eval}\PYG{+w}{ }\PYG{n}{isMonotone}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{l+m+mi}{12}\PYG{+w}{ }\PYG{n+nb+bp}{/}\PYG{+w}{ }\PYG{o}{(}\PYG{l+m+mi}{12}\PYG{+w}{ }\PYG{n+nb+bp}{/}\PYG{+w}{ }\PYG{n}{n}\PYG{o}{))}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} true}
+\end{MintedVerbatim}

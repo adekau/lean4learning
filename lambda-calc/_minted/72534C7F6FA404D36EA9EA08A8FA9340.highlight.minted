@@ -1,0 +1,8 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{inductive}\PYG{+w}{ }\PYG{n}{Color}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{red}\PYG{+w}{ }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{green}\PYG{+w}{ }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{blue}
+\PYG{+w}{  }\PYG{n}{deriving}\PYG{+w}{ }\PYG{n}{Repr}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{DecidableEq}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{Inhabited}
+
+\PYG{k}{\PYGZsh{}eval}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Color.red}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{n}{Color.red}\PYG{o}{)}\PYG{+w}{      }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} true   (DecidableEq → BEq gives ==)}
+\PYG{k}{\PYGZsh{}eval}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{default}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Color}\PYG{o}{)}\PYG{+w}{             }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Color.red  (Inhabited: first constructor)}
+\end{MintedVerbatim}

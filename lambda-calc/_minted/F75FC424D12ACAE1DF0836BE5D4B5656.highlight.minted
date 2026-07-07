@@ -1,0 +1,34 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Functor: transform the result of a parser}
+\PYG{k+kd}{instance}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Functor}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n}{map}\PYG{+w}{ }\PYG{n}{f}\PYG{+w}{ }\PYG{n}{p}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{p}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pos\PYGZsq{}}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{f}\PYG{+w}{ }\PYG{n}{a}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pos\PYGZsq{}}\PYG{o}{)}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{           }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{none}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Applicative: run two parsers, combine their results}
+\PYG{k+kd}{instance}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Applicative}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n}{pure}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pos}\PYG{o}{)}
+\PYG{+w}{  }\PYG{n}{seq}\PYG{+w}{ }\PYG{n}{pf}\PYG{+w}{ }\PYG{n}{pa}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{pf}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{f}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pos\PYGZsq{}}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{      }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{pa}\PYG{+w}{ }\PYG{o}{()}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos\PYGZsq{}}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{      }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pos\PYGZsq{}\PYGZsq{}}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{f}\PYG{+w}{ }\PYG{n}{a}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pos\PYGZsq{}\PYGZsq{}}\PYG{o}{)}
+\PYG{+w}{      }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{            }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{none}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{none}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Monad: sequence parsers where the second depends on the first\PYGZsq{}s result}
+\PYG{k+kd}{instance}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Monad}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n}{bind}\PYG{+w}{ }\PYG{n}{p}\PYG{+w}{ }\PYG{n}{f}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{p}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pos\PYGZsq{}}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{f}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos\PYGZsq{}}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{           }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{none}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Alternative: choice between parsers}
+\PYG{k+kd}{instance}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Alternative}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n}{failure}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{none}
+\PYG{+w}{  }\PYG{n}{orElse}\PYG{+w}{ }\PYG{n}{p}\PYG{+w}{ }\PYG{n}{q}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{p}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{r}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{q}\PYG{+w}{ }\PYG{o}{()}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}
+\end{MintedVerbatim}

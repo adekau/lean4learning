@@ -1,0 +1,26 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} Generate the Pareto frontier by sweeping scalarisation weights,}
+\PYG{l+s+sd}{    using the `wMissPerStat` field of GearProblem (Chapter 2). \PYGZhy{}/}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{paretoFrontierMode}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{problem}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{GearProblem}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{statA}\PYG{+w}{ }\PYG{n}{statB}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatType}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{nPoints}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{l+m+mi}{20}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Build}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{o}{(}\PYG{n}{List.range}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{nPoints}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{))}\PYG{n+nb+bp}{.}\PYG{n}{filterMap}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{w}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{i.toFloat}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{/}\PYG{+w}{ }\PYG{n}{nPoints.toFloat}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} weight for statA miss}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{weightedProblem}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{+w}{ }\PYG{n}{problem}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{      }\PYG{n}{wMissPerStat}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{        }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} `Float.toNat` does not exist in v4.31; go via UInt64.}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{n}{statA}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{w}\PYG{+w}{ }\PYG{n+nb+bp}{*}\PYG{+w}{ }\PYG{l+m+mi}{100}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{toUInt64.toNat}
+\PYG{+w}{        }\PYG{k}{else}\PYG{+w}{ }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{n}{statB}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{o}{((}\PYG{l+m+mi}{1}\PYG{n+nb+bp}{.}\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZhy{}}\PYG{+w}{ }\PYG{n}{w}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{*}\PYG{+w}{ }\PYG{l+m+mi}{100}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{toUInt64.toNat}
+\PYG{+w}{        }\PYG{k}{else}\PYG{+w}{ }\PYG{l+m+mi}{50}\PYG{+w}{ }\PYG{o}{\PYGZcb{}}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} (the `\PYGZcb{}` used to sit INSIDE this comment!)}
+\PYG{+w}{    }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{solve}\PYG{+w}{ }\PYG{n}{weightedProblem}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{optimal}\PYG{+w}{ }\PYG{n}{build}\PYG{+w}{ }\PYG{n}{pen}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{      }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{build}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{statTotal}\PYG{+w}{ }\PYG{n}{build}\PYG{+w}{ }\PYG{n}{statA}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{statTotal}\PYG{+w}{ }\PYG{n}{build}\PYG{+w}{ }\PYG{n}{statB}\PYG{o}{)}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{infeasible}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{none}
+
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} Filter to non\PYGZhy{}dominated solutions. \PYGZhy{}/}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{filterDominated}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{results}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Build}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{))}
+\PYG{+w}{    }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Build}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n}{results.filter}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{\PYGZus{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{a1}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{b1}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{n+nb+bp}{¬}\PYG{+w}{ }\PYG{n}{results.any}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{\PYGZus{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{a2}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{b2}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{      }\PYG{o}{(}\PYG{n}{a2}\PYG{+w}{ }\PYG{n+nb+bp}{≥}\PYG{+w}{ }\PYG{n}{a1}\PYG{+w}{ }\PYG{n+nb+bp}{∧}\PYG{+w}{ }\PYG{n}{b2}\PYG{+w}{ }\PYG{n+nb+bp}{≥}\PYG{+w}{ }\PYG{n}{b1}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{∧}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a2}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{a1}\PYG{+w}{ }\PYG{n+nb+bp}{∨}\PYG{+w}{ }\PYG{n}{b2}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{b1}\PYG{o}{)}
+\end{MintedVerbatim}

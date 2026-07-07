@@ -4,7 +4,13 @@
 \usepackage{fontspec}
 \setmainfont{Latin Modern Roman}
 \setsansfont{Latin Modern Sans}
-\setmonofont{DejaVu Sans Mono}[Scale=0.85]
+% Pin the full system DejaVu (v2.37) by path: TeX-trimmed copies drop
+% some math glyphs used in the Lean listings (e.g. the divisibility
+% bar U+2223, ⟨ ⟩, ≤).
+\setmonofont{DejaVuSansMono.ttf}[
+  Path=/usr/share/fonts/truetype/dejavu/,
+  BoldFont=DejaVuSansMono-Bold.ttf,
+  Scale=0.85]
 
 % ── Core packages ────────────────────────────────────────────────────────────
 \usepackage[margin=2.5cm]{geometry}
@@ -142,6 +148,10 @@
 \newcommand{\Aut}{\operatorname{Aut}}
 \newcommand{\Fix}{\operatorname{Fix}}
 \newcommand{\Inv}{\operatorname{Inv}}
+% Standard-terminology maps, matching the Lean names fixingGroup /
+% fixedField (field->group and group->field respectively).
+\newcommand{\fixgrp}{\operatorname{fixingGroup}}
+\newcommand{\fixfld}{\operatorname{fixedField}}
 \newcommand{\Stab}{\operatorname{Stab}}
 \newcommand{\Orb}{\operatorname{Orb}}
 \newcommand{\ord}{\operatorname{ord}}
@@ -267,14 +277,26 @@ abstract elegance when the two conflict. The goal is understanding, not
 maximal generality.
 
 \paragraph{Prerequisites.}
-Comfort with Lean\,4 syntax: defining inductive types, writing functions,
-using tactics (\lc{intro}, \lc{rfl}, \lc{simp}, \lc{omega}, \lc{cases},
-\lc{induction}). No prior abstract algebra.
+A little comfort with Lean\,4 syntax helps, but is not assumed: every keyword,
+tactic, and construct this book uses---\lc{inductive}, \lc{def}, \lc{structure},
+\lc{class}/\lc{instance}, \lc{theorem}, \lc{intro}, \lc{rfl}, \lc{simp},
+\lc{rw}, \lc{decide}, \lc{native\_decide}, \lc{omega}, \lc{cases},
+\lc{induction}, \lc{obtain}, \lc{calc}, \lc{termination\_by}, and the rest---is
+explained from scratch in Appendix~\ref{app:primer}, \emph{A Lean 4 Primer},
+each with a small machine-checked example. Dip into it whenever a new construct
+appears. No prior abstract algebra.
 
 \paragraph{Lean\,4 setup.}
-All code in this book is written for vanilla Lean\,4 (no Mathlib dependency).
-We build every algebraic structure from scratch so you see exactly what's
-happening inside the typeclasses.
+All code in this book is written for \textbf{vanilla Lean\,4, core library only,
+no Mathlib dependency}, and was type-checked against toolchain
+\texttt{leanprover/lean4:v4.31.0}. To reproduce it you need nothing more than a
+\texttt{lean-toolchain} file containing that one line---no \texttt{lakefile}, no
+external packages. We build every algebraic structure from scratch so you see
+exactly what is happening inside the typeclasses; where core Lean lacks a
+convenience that Mathlib would supply (for instance a \lc{Set} type), we define
+our own in a few lines rather than reaching for a library. Every listing in the
+book has a compiling counterpart in the companion file
+\texttt{GaloisVerification.lean}.
 
 \mainmatter
 \color{black}  % Ensure body text starts black
@@ -370,7 +392,8 @@ before a letter arrived offering him a prestigious professorship in Berlin.
 \subsection{Lean\,4 Formalization}
 
 We define groups as a typeclass, just as Lean's standard library defines
-\lc{Add} or \lc{Mul}:
+\lc{Add} or \lc{Mul}. (If any Lean keyword or tactic below is unfamiliar,
+Appendix~\ref{app:primer} explains each one with a worked example.)
 
 \begin{leanbox}
 \begin{minted}{lean}
@@ -414,8 +437,8 @@ instance : Group Int where
   mul_assoc := Int.add_assoc
   one_mul   := Int.zero_add
   mul_one   := Int.add_zero
-  inv_mul   := Int.neg_add_cancel
-  mul_inv   := Int.add_neg_cancel
+  inv_mul   := Int.add_left_neg
+  mul_inv   := Int.add_right_neg
 \end{minted}
 \end{leanbox}
 
@@ -446,7 +469,10 @@ addition modulo $n$. In Lean, this is naturally \lc{Fin n}:
 -- Addition is modular: (a + b) mod n
 
 def Fin.addMod (a b : Fin n) : Fin n :=
-  ⟨(a.val + b.val) % n, Nat.mod_lt _ (by omega)⟩
+  -- `Nat.mod_lt` needs 0 < n; we recover it from `a : Fin n`, whose
+  -- proof `a.isLt : a.val < n` forces n to be positive.
+  ⟨(a.val + b.val) % n,
+    Nat.mod_lt _ (Nat.lt_of_le_of_lt (Nat.zero_le a.val) a.isLt)⟩
 
 def Fin.negMod (a : Fin n) (h : n > 0) : Fin n :=
   ⟨(n - a.val) % n, Nat.mod_lt _ h⟩
@@ -509,7 +535,8 @@ inductive S3 where
 
 namespace S3
 
--- Multiplication table (composition of symmetries)
+-- Multiplication table (composition of symmetries: apply the right
+-- factor first). This table is associative -- Exercise 1.2 verifies it.
 def mul : S3 → S3 → S3
   | e,   x   => x
   | x,   e   => x
@@ -524,14 +551,14 @@ def mul : S3 → S3 → S3
   | r2,  s   => sr2
   | sr,  sr  => e
   | sr2, sr2 => e
-  | s,   sr  => r
-  | s,   sr2 => r2
-  | sr,  s   => r2
-  | sr2, s   => r
-  | r,   sr  => s
-  | r,   sr2 => sr
-  | r2,  sr  => sr2
-  | r2,  sr2 => s
+  | s,   sr  => r2
+  | s,   sr2 => r
+  | sr,  s   => r
+  | sr2, s   => r2
+  | r,   sr  => sr2
+  | r,   sr2 => s
+  | r2,  sr  => s
+  | r2,  sr2 => sr
   | sr,  r   => s
   | sr,  r2  => sr2
   | sr2, r   => sr
@@ -636,9 +663,10 @@ structure GroupHom (G H : Type) [Group G] [Group H] where
 theorem GroupHom.map_one [Group G] [Group H] (φ : GroupHom G H) :
     φ.toFun 1 = 1 := by
   have h := φ.map_mul 1 1
-  simp [mul_one] at h  -- Uses 1 * 1 = 1 on the left
-  -- Now h : φ.toFun 1 = φ.toFun 1 * φ.toFun 1
-  -- Multiplying both sides by (φ.toFun 1)⁻¹ gives the result
+  -- h : φ.toFun (1 * 1) = φ.toFun 1 * φ.toFun 1.
+  -- Since 1 * 1 = 1 (Group.mul_one), this says
+  --   φ.toFun 1 = φ.toFun 1 * φ.toFun 1;
+  -- multiplying both sides on the right by (φ.toFun 1)⁻¹ finishes.
   sorry -- Exercise for the reader
 
 -- A homomorphism preserves inverses
@@ -689,15 +717,22 @@ $H \leq G$) if:
 
 \begin{leanbox}
 \begin{minted}{lean}
+-- Core Lean has no `Set` type (that lives in Mathlib), so we define
+-- our own: a set is just a membership predicate.
+abbrev Set (α : Type) := α → Prop
+instance : Membership α (Set α) where
+  mem s a := s a          -- (a ∈ s) unfolds to (s a)
+
 structure Subgroup (G : Type) [Group G] where
   carrier : Set G
   one_mem : (1 : G) ∈ carrier
   mul_mem : ∀ {a b : G}, a ∈ carrier → b ∈ carrier → a * b ∈ carrier
   inv_mem : ∀ {a : G}, a ∈ carrier → a⁻¹ ∈ carrier
 
--- Membership notation
+-- Membership notation (collection first, element second, matching
+-- core Lean's `Membership.mem`)
 instance [Group G] : Membership G (Subgroup G) where
-  mem a H := a ∈ H.carrier
+  mem H a := a ∈ H.carrier
 \end{minted}
 \end{leanbox}
 
@@ -978,8 +1013,8 @@ class Lattice (L : Type) extends PartialOrder L where
   le_join_right : ∀ a b : L, le b (join a b)
   join_le : ∀ a b c : L, le a c → le b c → le (join a b) c
 
-instance [Lattice L] : Inf L where inf := Lattice.meet
-instance [Lattice L] : Sup L where sup := Lattice.join
+-- (Core Lean has no `Inf`/`Sup` typeclass -- those are Mathlib. We use
+-- `Lattice.meet` and `Lattice.join` directly, or add ⊓/⊔ notation.)
 \end{minted}
 \end{leanbox}
 
@@ -1015,15 +1050,17 @@ their union contains $2$ and $3$ but not $2 + 3 = 5$). The join is the
 This is the key concept that will unlock the fundamental theorem of Galois
 theory. The definition is abstract, but the payoff is enormous.
 
-\begin{defn}{Galois Connection}{galois-connection}
-Let $(P, \leq_P)$ and $(Q, \leq_Q)$ be posets. A \textbf{Galois connection}
-between $P$ and $Q$ is a pair of maps
+\begin{defn}{Galois Connection (antitone)}{galois-connection}
+Let $(P, \leq_P)$ and $(Q, \leq_Q)$ be posets. An \textbf{(antitone) Galois
+connection} between $P$ and $Q$ is a pair of maps
 $\ell : P \to Q$ and $u : Q \to P$ such that:
 \[
-  \ell(p) \leq_Q q \quad \iff \quad p \leq_P u(q)
+  q \leq_Q \ell(p) \quad \iff \quad p \leq_P u(q)
   \qquad \text{for all } p \in P, \; q \in Q.
 \]
-We call $\ell$ the \textbf{lower adjoint} and $u$ the \textbf{upper adjoint}.
+Both $\ell$ and $u$ turn out to be \emph{order-reversing}
+(Proposition~\ref{prop:gc-properties}). This is the variant Galois theory
+needs: bigger fields $\leftrightarrow$ smaller groups.
 \end{defn}
 
 \begin{leanbox}
@@ -1032,7 +1069,7 @@ structure GaloisConnection
     (P Q : Type) [PartialOrder P] [PartialOrder Q] where
   l : P → Q
   u : Q → P
-  adjoint : ∀ (p : P) (q : Q), l p ≤ q ↔ p ≤ u q
+  adjoint : ∀ (p : P) (q : Q), q ≤ l p ↔ p ≤ u q
 \end{minted}
 \end{leanbox}
 
@@ -1051,32 +1088,40 @@ that inspired it.
 Every Galois connection automatically satisfies:
 
 \begin{prop}{}{gc-properties}
-Let $(\ell, u)$ be a Galois connection between $P$ and $Q$. Then:
+Let $(\ell, u)$ be an antitone Galois connection between $P$ and $Q$. Then:
 \begin{enumerate}[nosep, label=(\roman*)]
 \item Both $\ell$ and $u$ are \textbf{order-reversing}:
-  if $p_1 \leq p_2$ then $\ell(p_2) \leq \ell(p_1)$, and similarly for $u$.
-\item \textbf{Unit:} $p \leq u(\ell(p))$ for all $p \in P$.
-\item \textbf{Counit:} $\ell(u(q)) \leq q$ for all $q \in Q$.
+  if $p_1 \leq_P p_2$ then $\ell(p_2) \leq_Q \ell(p_1)$, and if
+  $q_1 \leq_Q q_2$ then $u(q_2) \leq_P u(q_1)$.
+\item \textbf{Extensive on $P$:} $p \leq_P u(\ell(p))$ for all $p \in P$.
+\item \textbf{Extensive on $Q$:} $q \leq_Q \ell(u(q))$ for all $q \in Q$.
 \item \textbf{Idempotence:} $\ell \circ u \circ \ell = \ell$ and
   $u \circ \ell \circ u = u$.
 \end{enumerate}
 \end{prop}
 
 \begin{proof}
-All follow from the adjunction condition.
-(i)~If $p_1 \leq p_2$, then $p_2 \leq u(\ell(p_2))$ by (ii), so
-$p_1 \leq u(\ell(p_2))$, so $\ell(p_2) \leq \ell(p_1)$ by adjunction.
-(Wait---this proves $\ell$ is order-\emph{reversing} only if the Galois
-connection is \emph{antitone}. For the standard definition with an antitone
-connection, both maps reverse order.)
+All follow from the adjunction $q \leq_Q \ell(p) \iff p \leq_P u(q)$.
+(ii)~Take $q := \ell(p)$: the adjunction reads
+$\ell(p) \leq_Q \ell(p) \iff p \leq_P u(\ell(p))$, and the left side holds by
+reflexivity. (iii)~Symmetrically, take $p := u(q)$: the adjunction reads
+$q \leq_Q \ell(u(q)) \iff u(q) \leq_P u(q)$, and the right side holds by
+reflexivity. (i)~If $p_1 \leq_P p_2$, then by (ii) and transitivity
+$p_1 \leq_P p_2 \leq_P u(\ell(p_2))$, so $p_1 \leq_P u(\ell(p_2))$; applying the
+adjunction with $p := p_1,\ q := \ell(p_2)$ gives $\ell(p_2) \leq_Q \ell(p_1)$.
+The argument for $u$ is the mirror image, using (iii). (iv)~follows by combining
+(i)--(iii): e.g.\ $\ell$ applied to the unit $p \leq u(\ell(p))$ reverses it to
+$\ell(u(\ell(p))) \leq \ell(p)$, while (iii) at $q := \ell(p)$ gives the reverse
+inequality; antisymmetry yields $\ell \circ u \circ \ell = \ell$.
 \end{proof}
 
 \begin{warning}
 There are two conventions in the literature: some authors define Galois
 connections with \emph{both maps order-preserving} (the ``monotone'' variant),
-and others with \emph{both maps order-reversing} (the ``antitone'' variant).
-The Galois correspondence in algebra uses the antitone variant: bigger fields
-$\leftrightarrow$ smaller groups. We follow the antitone convention.
+and others with \emph{both maps order-reversing} (the ``antitone'' variant, the
+one defined above). The Galois correspondence in algebra uses the antitone
+variant: bigger fields $\leftrightarrow$ smaller groups. We follow the antitone
+convention throughout this book.
 \end{warning}
 
 \subsection{Closure Operators}
@@ -1196,6 +1241,14 @@ $a \cdot a^{-1} = 1$.
 
 \begin{leanbox}
 \begin{minted}{lean}
+-- Notation instances (just like the Group notation of Chapter 1),
+-- so that `a + b`, `a * b`, `0`, `1`, `-a` work on any Ring or Field.
+instance [Ring R] : Add R  where add  := Ring.add
+instance [Ring R] : Mul R  where mul  := Ring.mul
+instance [Ring R] : Zero R where zero := Ring.zero
+instance [Ring R] : One R  where one  := Ring.one
+instance [Ring R] : Neg R  where neg  := Ring.neg
+
 class Field (F : Type) extends Ring F where
   mul_comm : ∀ a b : F, mul a b = mul b a
   inv : F → F
@@ -1487,12 +1540,12 @@ $F$ is a bijection $\sigma : E \to E$ such that:
 structure FieldAut (E F : Type) [Field E] [Field F] where
   toFun  : E → E
   invFun : E → E
+  embed  : F → E            -- the inclusion map F ↪ E
   left_inv  : ∀ x, invFun (toFun x) = x
   right_inv : ∀ x, toFun (invFun x) = x
   map_add : ∀ a b, toFun (a + b) = toFun a + toFun b
   map_mul : ∀ a b, toFun (a * b) = toFun a * toFun b
   fixes_base : ∀ a : F, toFun (embed a) = embed a
-  -- where embed : F → E is the inclusion map
 \end{minted}
 \end{leanbox}
 
@@ -1523,21 +1576,30 @@ Thus $\Gal(\Q(\sqrt{2})/\Q) = \{\id, \sigma\} \iso \Z/2\Z$.
 def conjugate : QSqrt2 → QSqrt2
   | ⟨a, b⟩ => ⟨a, -b⟩
 
--- Verify: conjugate preserves multiplication
+-- Verify: conjugate preserves multiplication.
+-- (Mathlib's `ring` tactic would close this in one line; in core Lean
+--  we discharge the two ℚ-components with the ring lemmas by hand.)
 theorem conjugate_mul (x y : QSqrt2) :
     conjugate (QSqrt2.mul x y) = QSqrt2.mul (conjugate x) (conjugate y) := by
-  simp [conjugate, QSqrt2.mul]
-  ring  -- or explicit computation
+  simp only [conjugate, QSqrt2.mul, QSqrt2.mk.injEq]
+  refine ⟨?_, ?_⟩
+  · show x.a * y.a + 2 * x.b * y.b = x.a * y.a + 2 * -x.b * -y.b
+    have h1 : (2 : Rat) * -x.b = -(2 * x.b) := by rw [Rat.mul_neg]
+    have h2 : -(2 * x.b) * -y.b = 2 * x.b * y.b := by
+      rw [Rat.neg_mul, Rat.mul_neg, Rat.neg_neg]
+    rw [h1, h2]
+  · show -(x.a * y.b + y.a * x.b) = x.a * -y.b + y.a * -x.b
+    rw [Rat.mul_neg, Rat.mul_neg, Rat.neg_add]
 
 -- Verify: conjugate is an involution (applying it twice gives identity)
 theorem conjugate_conjugate (x : QSqrt2) :
     conjugate (conjugate x) = x := by
-  simp [conjugate]; ring
+  simp [conjugate]
 
 -- Verify: conjugate fixes ℚ (elements with b = 0)
 theorem conjugate_fixes_rat (a : Rat) :
     conjugate ⟨a, 0⟩ = ⟨a, 0⟩ := by
-  simp [conjugate]; ring
+  simp [conjugate]
 \end{minted}
 \end{leanbox}
 
@@ -1552,6 +1614,17 @@ at least one root in $E$ splits completely in $E$.
 $E/F$ is \textbf{separable} if every element of $E$ is a root of a
 \emph{separable} polynomial over $F$ (one with no repeated roots).
 \end{defn}
+
+\begin{intuition}
+\textbf{Why haven't we worried about separability before?} Because every field
+in this book so far is $\Q$ or a subfield of $\C$, and \emph{over any field of
+characteristic $0$ separability is automatic}: an irreducible polynomial and its
+formal derivative can never share a root there, so repeated roots are
+impossible. The hypothesis only starts to bite in characteristic $p$---which is
+exactly why it reappears in the finite-field chapter (Chapter~11), where
+$\GF(p^n)$ lives in characteristic $p$. For our number-field examples you may
+read ``Galois'' as simply ``normal.''
+\end{intuition}
 
 \begin{defn}{Galois Extension}{galois-ext}
 $E/F$ is a \textbf{Galois extension} if it is both normal and separable.
@@ -1606,29 +1679,41 @@ $G = \Gal(E/F)$. There is an order-reversing bijection
 \[
 \begin{tikzcd}[row sep=0.5cm]
   \{\text{intermediate fields } K : F \subseteq K \subseteq E\}
-  \arrow[r, shift left, "\Fix"]
+  \arrow[r, shift left, "\fixgrp"]
   &
   \{\text{subgroups } H \leq G\}
-  \arrow[l, shift left, "\Inv"]
+  \arrow[l, shift left, "\fixfld"]
 \end{tikzcd}
 \]
-given by:
+given by the \textbf{fixing-group} map (field $\mapsto$ group) and the
+\textbf{fixed-field} map (group $\mapsto$ field):
 \begin{align*}
-  \Fix(K) &= \Gal(E/K) = \{\sigma \in G : \sigma(x) = x \text{ for all } x \in K\} \\
-  \Inv(H) &= E^H = \{x \in E : \sigma(x) = x \text{ for all } \sigma \in H\}
+  \fixgrp(K) &= \Gal(E/K) = \{\sigma \in G : \sigma(x) = x \text{ for all } x \in K\} \\
+  \fixfld(H) &= E^H = \{x \in E : \sigma(x) = x \text{ for all } \sigma \in H\}
 \end{align*}
-Moreover:
+(These are the standard names, and the ones the Lean code below uses:
+\lc{fixingGroup} and \lc{fixedField}.) Moreover:
 \begin{enumerate}[nosep, label=(\roman*)]
-\item $\Fix$ and $\Inv$ are mutual inverses: $\Inv(\Fix(K)) = K$ and
-  $\Fix(\Inv(H)) = H$.
+\item $\fixgrp$ and $\fixfld$ are mutual inverses: $\fixfld(\fixgrp(K)) = K$ and
+  $\fixgrp(\fixfld(H)) = H$.
 \item The correspondence \textbf{reverses order}: $K_1 \subseteq K_2$
-  iff $\Fix(K_2) \leq \Fix(K_1)$.
-\item \textbf{Degrees match indices:} $[E:K] = |\Fix(K)|$ and
-  $[K:F] = [G : \Fix(K)]$.
-\item $K/F$ is a normal (Galois) extension iff $\Fix(K) \normal G$.
-  In that case, $\Gal(K/F) \iso G / \Fix(K)$.
+  iff $\fixgrp(K_2) \leq \fixgrp(K_1)$.
+\item \textbf{Degrees match indices:} $[E:K] = |\fixgrp(K)|$ and
+  $[K:F] = [G : \fixgrp(K)]$.
+\item $K/F$ is a normal (Galois) extension iff $\fixgrp(K) \normal G$.
+  In that case, $\Gal(K/F) \iso G / \fixgrp(K)$.
 \end{enumerate}
 \end{thm}
+
+\begin{warning}
+This is the deepest theorem in the book, and---unlike everything up to
+Chapter~7---we \emph{state} it rather than prove it in Lean. A from-scratch,
+core-Lean proof (building intermediate fields, the Galois group, and Artin's
+linear-algebra argument) is a substantial project well beyond our scope; the
+Lean block below is an honest \emph{skeleton} with \lc{sorry} in place of the
+hard proofs. Take the theorem on faith; the worked example in Chapter~9 will
+make it concrete.
+\end{warning}
 
 \begin{intuition}
 The fundamental theorem says: \textbf{the structure of a field extension is
@@ -1643,23 +1728,26 @@ In fact, this \emph{is} the original Galois connection. The general concept
 
 \begin{leanbox}
 \begin{minted}{lean}
--- The Fixed Field map: subgroup H ↦ elements fixed by H
+-- ILLUSTRATIVE ONLY: this block sketches the shape of the theorem and
+-- does NOT type-check as printed. It references names we have not built
+-- from scratch (`Gal E F`, `IntermediateField`, set-builder `{ x | … }`),
+-- and every definition ends in `sorry`. Read it as pseudocode.
+
+-- The fixed-field map: subgroup H ↦ elements of E fixed by every σ ∈ H
 def fixedField (H : Subgroup (Gal E F)) : IntermediateField E F where
   carrier := { x : E | ∀ σ ∈ H.carrier, σ.toFun x = x }
-  -- proof obligations: show this is a subfield
-  sorry
+  sorry  -- proof obligation: this carrier is a subfield
 
--- The Fixing Group map: intermediate field K ↦ automorphisms fixing K
+-- The fixing-group map: intermediate field K ↦ automorphisms fixing K
 def fixingGroup (K : IntermediateField E F) : Subgroup (Gal E F) where
   carrier := { σ : Gal E F | ∀ x ∈ K.carrier, σ.toFun x = x }
-  -- proof obligations: show this is a subgroup
-  sorry
+  sorry  -- proof obligation: this carrier is a subgroup
 
--- The Galois connection: these maps form an antitone Galois connection
--- between the lattice of intermediate fields and the lattice of subgroups
+-- These maps form an ANTITONE Galois connection between the lattice of
+-- intermediate fields and the lattice of subgroups (Definition 3.x):
 theorem galois_connection :
-    ∀ K H, fixingGroup K ≤ H ↔ Inv H ≤ K := by
-  sorry  -- The core of the fundamental theorem
+    ∀ K H, H ≤ fixingGroup K ↔ K ≤ fixedField H := by
+  sorry  -- the core of the fundamental theorem
 \end{minted}
 \end{leanbox}
 
@@ -1687,7 +1775,7 @@ The fundamental theorem is a bijection between two lattices:
   \node[above=0.3cm of E, font=\bfseries\color{deepblue}] {Intermediate Fields};
 
   % Arrow
-  \draw[<->, very thick, accentpurple] (3.5, -1.5) -- node[above] {$\Fix / \Inv$} (5.5, -1.5);
+  \draw[<->, very thick, accentpurple] (3.5, -1.5) -- node[above, font=\scriptsize] {$\fixgrp / \fixfld$} (5.5, -1.5);
 
   % Groups side (REVERSED order!)
   \node[grp] at (9, 0) (trivial) {$\{e\}$};
@@ -1758,58 +1846,85 @@ $\tau\rho\tau = \rho^{-1}$. This is exactly the presentation of the
 
 \section{The Correspondence}
 
-$D_4$ has 10 subgroups. By the fundamental theorem, there are exactly 10
-intermediate fields. Here are the two lattices, side by side:
+$D_4$ has exactly 10 subgroups ($1$ trivial, $5$ of order~2, $3$ of order~4, and
+$D_4$ itself), so by the fundamental theorem there are exactly 10 intermediate
+fields. Here are the two lattices, side by side. The subgroup lattice is drawn
+\emph{upside down} (with $\{e\}$ at the top) so that corresponding nodes sit at
+the same height: the correspondence \emph{reverses} inclusion, so $E$ pairs with
+$\{e\}$ and $\Q$ pairs with $D_4$.
 
 \begin{center}
-\small
 \begin{tikzpicture}[
-    fld/.style={draw, rounded corners, fill=lightblue!80, font=\footnotesize,
-      minimum width=1.6cm, inner sep=2pt},
-    grp/.style={draw, rounded corners, fill=lightgreen!80, font=\footnotesize,
-      minimum width=1.6cm, inner sep=2pt},
-    scale=0.9,
+    fld/.style={draw, rounded corners, fill=lightblue!80, font=\scriptsize,
+      inner sep=2pt},
+    grp/.style={draw, rounded corners, fill=lightgreen!80, font=\scriptsize,
+      inner sep=2pt},
+    scale=0.82, transform shape,
   ]
-  % FIELDS
-  \node[fld] (E) at (0, 0) {$E$};
-  \node[fld] (Qi) at (-2.5, -1.5) {$\Q(\sqrt[4]{2},i)$};
-  \node[fld] (Q4) at (-0.8, -1.5) {$\Q(\sqrt[4]{2})$};
-  \node[fld] (Qi4) at (0.8, -1.5) {$\Q(i\sqrt[4]{2})$};
-  \node[fld] (Qsqrt2) at (-2, -3) {$\Q(\sqrt{2},i)$};
-  \node[fld] (Qsqrt2b) at (0, -3) {$\Q(\sqrt{2})$};
-  \node[fld] (Qisqrt2) at (2, -3) {$\Q(i\sqrt{2})$};
-  \node[fld] (Qi2) at (-1, -4.5) {$\Q(i)$};
-  \node[fld] (QQ) at (0, -6) {$\Q$};
+  % ── FIELDS: Q at bottom, E at top ──────────────────────────────
+  \node[fld] (QQ)  at (0,    0) {$\Q$};
+  % degree 2 over Q
+  \node[fld] (Qs2) at (-2,   2) {$\Q(\sqrt{2})$};
+  \node[fld] (Qi)  at (0,    2) {$\Q(i)$};
+  \node[fld] (Qis) at (2,    2) {$\Q(i\sqrt{2})$};
+  % degree 4 over Q
+  \node[fld] (Q4)  at (-3.4, 4) {$\Q(\sqrt[4]{2})$};
+  \node[fld] (Qi4) at (-1.7, 4) {$\Q(i\sqrt[4]{2})$};
+  \node[fld] (Qsi) at (0,    4) {$\Q(\sqrt{2},i)$};
+  \node[fld] (Qp)  at (1.7,  4) {$\Q((1{+}i)\sqrt[4]{2})$};
+  \node[fld] (Qm)  at (3.4,  4) {$\Q((1{-}i)\sqrt[4]{2})$};
+  % top
+  \node[fld] (E)   at (0,    6) {$E=\Q(\sqrt[4]{2},i)$};
 
-  \draw (E) -- (Qi) -- (Qsqrt2) -- (Qi2) -- (QQ);
-  \draw (E) -- (Q4) -- (Qsqrt2b) -- (QQ);
-  \draw (E) -- (Qi4) -- (Qisqrt2) -- (QQ);
-  \draw (Qsqrt2) -- (QQ);
+  \draw (QQ) -- (Qs2); \draw (QQ) -- (Qi); \draw (QQ) -- (Qis);
+  \draw (Qs2) -- (Q4); \draw (Qs2) -- (Qi4); \draw (Qs2) -- (Qsi);
+  \draw (Qi)  -- (Qsi);
+  \draw (Qis) -- (Qsi); \draw (Qis) -- (Qp); \draw (Qis) -- (Qm);
+  \draw (Q4) -- (E); \draw (Qi4) -- (E); \draw (Qsi) -- (E);
+  \draw (Qp) -- (E); \draw (Qm) -- (E);
+  \node[font=\scriptsize\bfseries\color{deepblue}] at (0,6.9) {Intermediate fields};
 
-  \node[above=0.2cm of E, font=\footnotesize\bfseries\color{deepblue}] {Fields};
+  % correspondence arrow
+  \node at (6.5, 3) {\large $\longleftrightarrow$};
 
-  % Arrow
-  \node at (4, -3) {\Large $\longleftrightarrow$};
+  % ── SUBGROUPS: D4 at bottom, {e} at top (upside down) ──────────
+  \begin{scope}[xshift=13cm]
+  \node[grp] (D4)  at (0,    0) {$D_4$};
+  % order 4  (pair with degree-2 fields)
+  \node[grp] (r2t) at (-2,   2) {$\langle\rho^2,\tau\rangle$};
+  \node[grp] (r)   at (0,    2) {$\langle\rho\rangle$};
+  \node[grp] (r2rt)at (2,    2) {$\langle\rho^2,\rho\tau\rangle$};
+  % order 2  (pair with degree-4 fields)
+  \node[grp] (t)   at (-3.4, 4) {$\langle\tau\rangle$};
+  \node[grp] (r2ta)at (-1.7, 4) {$\langle\rho^2\tau\rangle$};
+  \node[grp] (r2)  at (0,    4) {$\langle\rho^2\rangle$};
+  \node[grp] (rt)  at (1.7,  4) {$\langle\rho\tau\rangle$};
+  \node[grp] (r3t) at (3.4,  4) {$\langle\rho^3\tau\rangle$};
+  % top
+  \node[grp] (e1)  at (0,    6) {$\{e\}$};
 
-  % SUBGROUPS (reversed!)
-  \node[grp] (1) at (8, 0) {$\{e\}$};
-  \node[grp] (t) at (5.5, -1.5) {$\langle\tau\rangle$};
-  \node[grp] (r2) at (7.2, -1.5) {$\langle\rho^2\rangle$};
-  \node[grp] (rt) at (8.8, -1.5) {$\langle\rho^2\tau\rangle$};
-  \node[grp] (r2t) at (6, -3) {$\langle\rho^2,\tau\rangle$};
-  \node[grp] (r2b) at (8, -3) {$\langle\rho^2\rangle$};
-  \node[grp] (r2rt) at (10, -3) {$\langle\rho^2,\rho\tau\rangle$};
-  \node[grp] (r) at (9, -4.5) {$\langle\rho\rangle$};
-  \node[grp] (D4) at (8, -6) {$D_4$};
-
-  \draw (1) -- (t) -- (r2t) -- (r) -- (D4);
-  \draw (1) -- (r2) -- (r2b) -- (D4);
-  \draw (1) -- (rt) -- (r2rt) -- (D4);
-  \draw (r2t) -- (D4);
-
-  \node[above=0.2cm of 1, font=\footnotesize\bfseries\color{accentgreen}] {Subgroups};
+  \draw (D4) -- (r2t); \draw (D4) -- (r); \draw (D4) -- (r2rt);
+  \draw (r2t) -- (t); \draw (r2t) -- (r2ta); \draw (r2t) -- (r2);
+  \draw (r)   -- (r2);
+  \draw (r2rt) -- (r2); \draw (r2rt) -- (rt); \draw (r2rt) -- (r3t);
+  \draw (t) -- (e1); \draw (r2ta) -- (e1); \draw (r2) -- (e1);
+  \draw (rt) -- (e1); \draw (r3t) -- (e1);
+  \node[font=\scriptsize\bfseries\color{accentgreen}] at (0,6.9) {Subgroups of $D_4$};
+  \end{scope}
 \end{tikzpicture}
 \end{center}
+
+\noindent The vertically-aligned pairs are the correspondence:
+$E\leftrightarrow\{e\}$;
+$\Q(\sqrt[4]{2})\leftrightarrow\langle\tau\rangle$,
+$\Q(i\sqrt[4]{2})\leftrightarrow\langle\rho^2\tau\rangle$,
+$\Q(\sqrt{2},i)\leftrightarrow\langle\rho^2\rangle$,
+$\Q((1{+}i)\sqrt[4]{2})\leftrightarrow\langle\rho\tau\rangle$,
+$\Q((1{-}i)\sqrt[4]{2})\leftrightarrow\langle\rho^3\tau\rangle$;
+$\Q(\sqrt{2})\leftrightarrow\langle\rho^2,\tau\rangle$,
+$\Q(i)\leftrightarrow\langle\rho\rangle$,
+$\Q(i\sqrt{2})\leftrightarrow\langle\rho^2,\rho\tau\rangle$;
+$\Q\leftrightarrow D_4$.
 
 \begin{exercisebox}[title={Exercise 9.1}]
 \stepcounter{exercise}
@@ -1856,6 +1971,9 @@ where each quotient $G_{i+1}/G_i$ is abelian.
 
 \begin{leanbox}
 \begin{minted}{lean}
+-- ILLUSTRATIVE ONLY (does not type-check): `IsNormal`, `IsAbelian`,
+-- and a two-argument `Quotient` are not defined here -- this sketches
+-- the definition rather than building it from scratch.
 -- A composition series: chain of normal subgroups with abelian quotients
 def IsSolvable (G : Type) [Group G] : Prop :=
   ∃ (n : Nat) (chain : Fin (n + 1) → Subgroup G),
@@ -1874,6 +1992,14 @@ A polynomial $f \in F[x]$ is solvable by radicals if and only if its
 Galois group $\Gal(E/F)$ (where $E$ is the splitting field of $f$) is a
 solvable group.
 \end{thm}
+
+\begin{warning}
+Like the fundamental theorem (Chapter~8), Galois's criterion is a deep result
+we \emph{state and use} but do not formalize from scratch: its proof requires
+the full radical-extension theory. What we \emph{can} verify in Lean from first
+principles is the group-theoretic half of the argument---that $S_5$ is not
+solvable while $S_n$ ($n \le 4$) is---which is what the rest of this chapter does.
+\end{warning}
 
 Why? Adjoining an $n$th root corresponds to a cyclic (hence abelian) extension.
 Solving by radicals means building a tower of radical extensions, each with a
@@ -2057,7 +2183,9 @@ def mul (a b : GF256) : GF256 :=
   go a.val b.val 0
 where
   go (a b acc : UInt8) : GF256 :=
-    if b == 0 then ⟨acc⟩
+    -- use `if h : b == 0` so the else-branch has a proof `b ≠ 0`,
+    -- which the termination argument below needs
+    if h : b == 0 then ⟨acc⟩
     else
       let acc' := if b &&& 1 != 0 then acc ^^^ a else acc
       let a'   := if a &&& 0x80 != 0
@@ -2065,6 +2193,13 @@ where
                   else a <<< 1
       go a' (b >>> 1) acc'
   termination_by b.toNat
+  decreasing_by
+    have hb : b ≠ 0 := by simpa using h
+    have hbn : b.toNat ≠ 0 := fun hz => hb (by
+      have := congrArg UInt8.ofNat hz; simpa using this)
+    have hsr : (b >>> 1).toNat = b.toNat / 2 := by
+      rw [UInt8.toNat_shiftRight, Nat.shiftRight_eq_div_pow]; rfl
+    rw [hsr]; omega
 
 -- Multiplicative inverse via extended Euclidean algorithm
 -- (or: a⁻¹ = a^(254) since a^(255) = 1 in GF(2⁸)×)
@@ -2090,6 +2225,11 @@ where
     -- b' = Ab + c where A is a specific 8×8 matrix over F₂
     -- and c = 0x63
     sorry -- Matrix multiplication over F₂
+
+-- Sanity checks: the standard AES multiplication test vector, and that
+-- `inv` really inverts. Both pass by kernel computation.
+example : (mul ⟨0x57⟩ ⟨0x13⟩).val = 0xFE := by native_decide
+example : (mul ⟨0x53⟩ (inv ⟨0x53⟩)).val = 1 := by native_decide
 
 end GF256
 \end{minted}
@@ -2243,8 +2383,8 @@ $k$ bytes, produce $n$ evaluation points.
 \section{The Big Picture}
 
 We introduced Galois connections abstractly in Chapter~3. Now we've seen the
-original example: $\Fix$ and $\Inv$ form an antitone Galois connection between
-the lattice of intermediate fields and the lattice of subgroups.
+original example: $\fixgrp$ and $\fixfld$ form an antitone Galois connection
+between the lattice of intermediate fields and the lattice of subgroups.
 
 \begin{thm}{}{gc-everywhere}
 The following are all instances of Galois connections:
@@ -2354,11 +2494,290 @@ written in haste the night of May 29, 1832.
 \vfill
 
 % ══════════════════════════════════════════════════════════════════════════════
-\backmatter
+\appendix
 % ══════════════════════════════════════════════════════════════════════════════
 
-\chapter*{Appendix: Lean\,4 Typeclass Hierarchy}
-\addcontentsline{toc}{chapter}{Appendix: Lean 4 Typeclass Hierarchy}
+\chapter{A Lean 4 Primer}\label{app:primer}
+
+This appendix is the promised zero-prerequisites tour of every Lean~4 construct
+and tactic used in this book. Each entry says what the construct does, shows a
+small self-contained example (every example here is machine-checked against
+\texttt{leanprover/lean4:v4.31.0}, core Lean only), and---where it
+illuminates---shows the lower-level term the tactic is sugar for. That last part
+is worth your attention: Lean tactics are not magic, they are \emph{programs that
+build proof terms}, and seeing the term once demystifies them permanently.
+Everything here is core Lean; the one Mathlib-only tactic the book mentions
+(\lc{ring}) is flagged as such.
+
+\section{Declarations}
+
+\subsection*{\lc{inductive} --- defining new types}
+
+An \lc{inductive} declaration creates a brand-new type from a list of
+\emph{constructors}---the only ways to build values of the type. The kernel
+knows constructors are injective and disjoint, and it generates an induction
+principle automatically (see \lc{induction} below). \lc{S3} in Chapter~1 and
+\lc{GF256}'s wrapper are inductive/structure declarations.
+
+\begin{leanbox}
+\begin{minted}{lean}
+inductive Tree where
+  | leaf | node (l r : Tree)
+  deriving Repr        -- auto-generate a printer, so #eval can show Trees
+\end{minted}
+\end{leanbox}
+
+\lc{deriving Repr} asks Lean to synthesise a printer; \lc{deriving DecidableEq}
+(used by \lc{S3}) synthesises a decidable \lc{==}.
+
+\subsection*{\lc{def} and pattern matching}
+
+A \lc{def} introduces a function or value. Functions on inductive types are
+usually written by \emph{pattern matching}, one equation per constructor.
+Recursion is allowed as long as some argument structurally shrinks; when Lean
+cannot see why, you supply a \lc{termination\_by}/\lc{decreasing\_by} block (as
+\lc{GF256.mul} does).
+
+\begin{leanbox}
+\begin{minted}{lean}
+def Tree.size : Tree → Nat
+  | .leaf     => 1
+  | .node l r => l.size + r.size
+\end{minted}
+\end{leanbox}
+
+The leading dot in \lc{.leaf} means ``the constructor of the type being
+matched.'' Because the function is named \lc{Tree.size}, \emph{dot notation}
+\lc{t.size} works for any \lc{t : Tree}.
+
+\subsection*{\lc{structure}, \lc{class}, \lc{instance}, \lc{extends}}
+
+A \lc{structure} bundles fields into a record; a \lc{class} is a structure meant
+to be found by \emph{instance search} (an interface, like \lc{Group} or
+\lc{Field}); an \lc{instance} registers an implementation. \lc{extends} makes
+one class inherit another's fields (\lc{Field extends Ring}). The angle brackets
+\lc{⟨…⟩} are the \emph{anonymous constructor}: Lean infers which constructor to
+apply from the expected type. They also build proofs of $\exists$ and $\land$.
+
+\begin{leanbox}
+\begin{minted}{lean}
+structure Point where
+  x : Nat
+  y : Nat
+  deriving Repr
+
+instance : Add Point where add a b := ⟨a.x + b.x, a.y + b.y⟩
+
+example : (⟨1,2⟩ : Point) + ⟨3,4⟩ = ⟨4,6⟩ := rfl
+\end{minted}
+\end{leanbox}
+
+This is exactly how \lc{Group} gets \lc{*} (Chapter~1) and \lc{Ring} gets \lc{+}
+and \lc{*} (Chapter~4): we register \lc{Mul}/\lc{Add} instances that delegate to
+the class fields.
+
+\subsection*{\lc{theorem}, \lc{example}, and \lc{Prop}}
+
+In Lean, propositions are types (of sort \lc{Prop}) and proofs are programs: to
+prove $P$ is to build a term of type $P$. A \lc{theorem} is a named proof; an
+\lc{example} is an anonymous one (used throughout this appendix). The body is
+either a direct \emph{term} or a \emph{tactic block} introduced by \lc{by}.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (p q : Prop) (hp : p) (h : p → q) : q := h hp   -- term style
+
+example (p q : Prop) : p → (p → q) → q := by            -- tactic style
+  intro hp h
+  apply h
+  exact hp
+\end{minted}
+\end{leanbox}
+
+\section{Core Tactics}
+
+\subsection*{\lc{rfl} --- true by computation}
+
+Proves \lc{a = a} \emph{after both sides compute} to the same normal form.
+Definitional unfolding is free, so \lc{2 + 3 = 5} is \lc{rfl}.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example : 2 + 3 = 5 := rfl
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{intro}, \lc{exact}, \lc{apply}}
+
+If the goal is \lc{p → q} (or \lc{∀ x, P x}), \lc{intro hp} moves the antecedent
+into the context. \lc{exact h} closes the goal with the term \lc{h}; \lc{apply h}
+works \emph{backwards}: if \lc{h : p → q} and the goal is \lc{q}, it leaves goal
+\lc{p}. The three tactics in the example above assemble exactly the term-style
+proof \lc{h hp}.
+
+\subsection*{\lc{rw} --- rewrite with an equation}
+
+\lc{rw [h]}, for \lc{h : a = b}, replaces \lc{a} by \lc{b} in the goal
+(\lc{rw [← h]} goes the other way, \lc{rw [h] at h2} rewrites a hypothesis).
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (a b : Nat) (h : a = b) : a + 1 = b + 1 := by rw [h]
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{simp} --- the simplifier}
+
+\lc{simp} rewrites left-to-right with its rule set (lemmas tagged \lc{@[simp]},
+plus anything you pass in \lc{simp [f, h]}) until nothing applies. Conceptually
+it is \lc{rw} on autopilot; the \lc{conjugate\_*} lemmas of Chapter~7 are closed
+by \lc{simp [conjugate]}.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (n : Nat) : n + 0 = n := by simp
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{decide} and \lc{native\_decide}}
+
+For a \emph{decidable} proposition, \lc{decide} runs the decision procedure in
+the kernel and checks the answer is \lc{true}. \lc{native\_decide} does the same
+but \emph{compiles} the check to native code---much faster on big goals (the
+216-case $S_3$ associativity check, the AES vectors), at the cost of trusting the
+compiler as well as the kernel. \lc{decide} can be slow on such goals.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example : (7 : Nat) < 10 := by decide
+example : List.range 4 = [0,1,2,3] := by native_decide
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{omega} --- linear arithmetic}
+
+\lc{omega} discharges goals in linear arithmetic over \lc{Nat} and \lc{Int}
+(equalities and inequalities of $+$, $-$, constants, $<$, $\le$). It needs the
+relevant facts to be in scope---the failure mode in Chapter~1's \lc{Fin.addMod}
+is precisely \lc{omega} with no hypothesis proving \lc{0 < n}.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (n : Nat) (h : n + 2 ≤ 5) : n ≤ 3 := by omega
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{cases} --- and the recursor underneath}
+
+\lc{cases x} splits the goal into one branch per constructor of \lc{x}'s type.
+It is sugar for applying the type's auto-generated \emph{recursor}. The two
+proofs below are the same proof term:
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (b : Bool) : b = true ∨ b = false := by
+  cases b with
+  | true  => exact Or.inl rfl
+  | false => exact Or.inr rfl
+
+-- identical, written directly with the recursor Bool.rec:
+example (b : Bool) : b = true ∨ b = false :=
+  Bool.rec (Or.inr rfl) (Or.inl rfl) b
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{induction} --- recursion in proofs}
+
+\lc{induction n} is \lc{cases} plus an \emph{induction hypothesis} \lc{ih} in
+each recursive branch. It desugars to the recursor \lc{Nat.rec (motive := …)}
+applied to the base case and the step (which takes \lc{ih}).
+
+\begin{leanbox}
+\begin{minted}{lean}
+theorem zero_add (n : Nat) : 0 + n = n := by
+  induction n with
+  | zero => rfl
+  | succ k ih => rw [Nat.add_succ, ih]   -- uses the hypothesis ih
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{obtain} --- destructuring, and \lc{Exists.elim}}
+
+\lc{obtain ⟨w, hw⟩ := h} unpacks an existential or a conjunction, naming the
+witness \lc{w} and its property \lc{hw}. It is sugar for \lc{Exists.elim}
+(equivalently, a \lc{match}).
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (h : ∃ n : Nat, n = 3) : True := by
+  obtain ⟨n, hn⟩ := h; trivial
+
+example (h : ∃ n : Nat, n = 3) : True :=
+  Exists.elim h (fun _ _ => trivial)
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{calc} --- chained (in)equalities, and \lc{Trans.trans}}
+
+\lc{calc} writes a transitive chain step by step; each \lc{\_} is the previous
+right-hand side. Under the hood the steps are glued with \lc{Trans.trans}.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (a b c : Nat) (h1 : a = b) (h2 : b = c) : a = c := by
+  calc a = b := h1
+    _ = c := h2
+\end{minted}
+\end{leanbox}
+
+\subsection*{Proof by contradiction --- \lc{Classical.byContradiction}}
+
+\begin{sloppypar}
+Mathlib provides a \lc{by\_contra} tactic. In core Lean the same move is the
+term \lc{Classical.byContradiction}: it turns a proof of $\lnot\lnot p$ into a
+proof of $p$ (classical double-negation elimination).
+\end{sloppypar}
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (p : Prop) (h : ¬ ¬ p) : p :=
+  Classical.byContradiction (fun hn => h hn)
+\end{minted}
+\end{leanbox}
+
+\section{Termination and Other Constructs}
+
+\subsection*{\lc{where}}
+
+Attaches local auxiliary definitions to a \lc{def} (like \lc{go} inside
+\lc{modPow} and \lc{GF256.mul}). They can see the outer parameters and are the
+natural home for a recursive worker.
+
+\subsection*{\lc{termination\_by} / \lc{decreasing\_by}}
+
+When structural recursion is not obvious, \lc{termination\_by e} tells Lean which
+expression \lc{e} decreases, and \lc{decreasing\_by tac} proves it strictly
+decreases at each recursive call. \lc{GF256.mul} (Chapter~12) uses
+\lc{termination\_by b.toNat} and a \lc{decreasing\_by} block rewriting
+\lc{(b >>> 1).toNat} to \lc{b.toNat / 2} and closing with \lc{omega}.
+
+\subsection*{\lc{ring} (Mathlib) vs.\ core Lean}
+
+\lc{ring} proves any identity that holds in every commutative ring by
+normalising both sides. It is \textbf{not} a core tactic---it lives in
+Mathlib---so this book, which stays in core Lean, discharges such goals by hand
+with the relevant \lc{Rat}/\lc{Int} lemmas (see \lc{conjugate\_mul} in
+Chapter~7). If you \lc{import Mathlib}, a single \lc{ring} replaces that
+bookkeeping.
+
+\subsection*{\lc{sorry}}
+
+A placeholder that proves \emph{anything}, with a warning. We use it only for
+the handful of exercises left to the reader (e.g.\ \lc{GroupHom.map\_one}) and
+for the two deep theorems (Chapters~8 and~10) we state but do not build from
+scratch. A finished development has no \lc{sorry}.
+
+\chapter{Lean 4 Typeclass Hierarchy}
 
 The algebraic structures in this book form a hierarchy:
 

@@ -1,0 +1,24 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{namespace}\PYG{+w}{ }\PYG{n}{Propagators}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} A unary propagator: a pure function with a bundled monotonicity proof.}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} The condition fn a ≤ fn b is the standard order\PYGZhy{}theoretic definition.}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} (Equivalent to BoundedJoinSemilattice.sup (fn a) (fn b) = fn b,}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{}  but the ≤ form is cleaner to state and prove.)}
+\PYG{k+kn}{structure}\PYG{+w}{ }\PYG{n}{Propagator1}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{n}{β}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{[}\PYG{n}{BoundedJoinSemilattice}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{]}
+\PYG{+w}{    }\PYG{o}{[}\PYG{n}{BoundedJoinSemilattice}\PYG{+w}{ }\PYG{n}{β}\PYG{o}{]}\PYG{+w}{ }\PYG{k+kn}{where}
+\PYG{+w}{  }\PYG{n}{fn}\PYG{+w}{       }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{β}
+\PYG{+w}{  }\PYG{n}{monotone}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{),}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{fn}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{fn}\PYG{+w}{ }\PYG{n}{b}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} A binary propagator: monotone in both arguments.}
+\PYG{k+kn}{structure}\PYG{+w}{ }\PYG{n}{Propagator2}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{n}{β}\PYG{+w}{ }\PYG{n}{γ}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{[}\PYG{n}{BoundedJoinSemilattice}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{]}
+\PYG{+w}{    }\PYG{o}{[}\PYG{n}{BoundedJoinSemilattice}\PYG{+w}{ }\PYG{n}{β}\PYG{o}{]}
+\PYG{+w}{    }\PYG{o}{[}\PYG{n}{BoundedJoinSemilattice}\PYG{+w}{ }\PYG{n}{γ}\PYG{o}{]}\PYG{+w}{ }\PYG{k+kn}{where}
+\PYG{+w}{  }\PYG{n}{fn}\PYG{+w}{       }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{β}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{γ}
+\PYG{+w}{  }\PYG{n}{monotone}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a1}\PYG{+w}{ }\PYG{n}{a2}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{b1}\PYG{+w}{ }\PYG{n}{b2}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{β}\PYG{o}{),}
+\PYG{+w}{    }\PYG{n}{a1}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{a2}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{b1}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{b2}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{fn}\PYG{+w}{ }\PYG{n}{a1}\PYG{+w}{ }\PYG{n}{b1}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{fn}\PYG{+w}{ }\PYG{n}{a2}\PYG{+w}{ }\PYG{n}{b2}
+
+\PYG{k+kn}{end}\PYG{+w}{ }\PYG{n}{Propagators}
+\end{MintedVerbatim}

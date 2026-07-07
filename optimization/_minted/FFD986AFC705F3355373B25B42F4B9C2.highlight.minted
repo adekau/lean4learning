@@ -1,0 +1,25 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} Hill climbing: greedily move to the best neighbour. \PYGZhy{}/}
+\PYG{n}{partial}\PYG{+w}{ }\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{hillClimb}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{current}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Build}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{currentPen}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{targets}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatType}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Build}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{neighbours}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{allNeighbours}\PYG{+w}{ }\PYG{n}{current}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{bestNeigh}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{bestPen}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{neighbours.foldl}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{init}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{current}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{currentPen}\PYG{o}{))}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{best}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{bestPen}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{neigh}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{pen}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{totalPenalty}\PYG{+w}{ }\PYG{n}{neigh}\PYG{+w}{ }\PYG{n}{targets}\PYG{+w}{ }\PYG{n}{wMiss}\PYG{+w}{ }\PYG{n}{wOver}
+\PYG{+w}{      }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{pen}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{bestPen}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{neigh}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pen}\PYG{o}{)}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{best}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{bestPen}\PYG{o}{)}
+\PYG{+w}{  }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{bestPen}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{currentPen}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{hillClimb}\PYG{+w}{ }\PYG{n}{bestNeigh}\PYG{+w}{ }\PYG{n}{bestPen}\PYG{+w}{ }\PYG{n}{targets}
+\PYG{+w}{  }\PYG{k}{else}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{current}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{currentPen}\PYG{o}{)}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} local optimum}
+
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} Restart hill climbing multiple times, keep the best. \PYGZhy{}/}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{hillClimbRestarts}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{nRestarts}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{rng}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StdGen}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{targets}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatType}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Build}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{List.range}\PYG{+w}{ }\PYG{n}{nRestarts}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{foldl}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{init}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{defaultBuild}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{1000000000}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{rng}\PYG{o}{))}
+\PYG{+w}{    }\PYG{k}{fun}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{best}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{bestPen}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{rng}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{start}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{rng}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{randomBuild}\PYG{+w}{ }\PYG{n}{rng}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{initPen}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{totalPenalty}\PYG{+w}{ }\PYG{n}{start}\PYG{+w}{ }\PYG{n}{targets}\PYG{+w}{ }\PYG{n}{wMiss}\PYG{+w}{ }\PYG{n}{wOver}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{localBest}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{localPen}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{hillClimb}\PYG{+w}{ }\PYG{n}{start}\PYG{+w}{ }\PYG{n}{initPen}\PYG{+w}{ }\PYG{n}{targets}
+\PYG{+w}{      }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{localPen}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{bestPen}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{localBest}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{localPen}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{rng}\PYG{o}{)}
+\PYG{+w}{      }\PYG{k}{else}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{best}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{bestPen}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{rng}\PYG{o}{)}
+\PYG{+w}{  }\PYG{o}{(}\PYG{n}{r}\PYG{n+nb+bp}{.}\PYG{l+m+mi}{1}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{r}\PYG{n+nb+bp}{.}\PYG{l+m+mi}{2}\PYG{n+nb+bp}{.}\PYG{l+m+mi}{1}\PYG{o}{)}
+\end{MintedVerbatim}

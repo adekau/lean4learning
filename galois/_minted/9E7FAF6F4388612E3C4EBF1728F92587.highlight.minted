@@ -1,0 +1,54 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} S₃ as an explicit enumeration}
+\PYG{k+kd}{inductive}\PYG{+w}{ }\PYG{n}{S3}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{e}\PYG{+w}{                    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} identity}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{                    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} rotation 120°}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{r2}\PYG{+w}{                   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} rotation 240°}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{                    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} reflection (fixes vertex 1)}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{sr}\PYG{+w}{                   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} reflection (fixes vertex 3)}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{sr2}\PYG{+w}{                  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} reflection (fixes vertex 2)}
+\PYG{+w}{  }\PYG{n}{deriving}\PYG{+w}{ }\PYG{n}{DecidableEq}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{Repr}
+
+\PYG{k+kn}{namespace}\PYG{+w}{ }\PYG{n}{S3}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Multiplication table (composition of symmetries: apply the right}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} factor first). This table is associative \PYGZhy{}\PYGZhy{} Exercise 1.2 verifies it.}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{mul}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{S3}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{S3}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{S3}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{,}\PYG{+w}{   }\PYG{n}{x}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{x}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{x}\PYG{o}{,}\PYG{+w}{   }\PYG{n}{e}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{x}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{r}\PYG{o}{,}\PYG{+w}{   }\PYG{n}{r}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{r2}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{r}\PYG{o}{,}\PYG{+w}{   }\PYG{n}{r2}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{e}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{r2}\PYG{o}{,}\PYG{+w}{  }\PYG{n}{r}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{e}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{r2}\PYG{o}{,}\PYG{+w}{  }\PYG{n}{r2}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{r}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{s}\PYG{o}{,}\PYG{+w}{   }\PYG{n}{s}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{e}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{s}\PYG{o}{,}\PYG{+w}{   }\PYG{n}{r}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{sr2}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{s}\PYG{o}{,}\PYG{+w}{   }\PYG{n}{r2}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{sr}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{r}\PYG{o}{,}\PYG{+w}{   }\PYG{n}{s}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{sr}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{r2}\PYG{o}{,}\PYG{+w}{  }\PYG{n}{s}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{sr2}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{sr}\PYG{o}{,}\PYG{+w}{  }\PYG{n}{sr}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{e}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{sr2}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{sr2}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{e}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{s}\PYG{o}{,}\PYG{+w}{   }\PYG{n}{sr}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{r2}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{s}\PYG{o}{,}\PYG{+w}{   }\PYG{n}{sr2}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{r}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{sr}\PYG{o}{,}\PYG{+w}{  }\PYG{n}{s}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{r}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{sr2}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{r2}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{r}\PYG{o}{,}\PYG{+w}{   }\PYG{n}{sr}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{sr2}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{r}\PYG{o}{,}\PYG{+w}{   }\PYG{n}{sr2}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{s}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{r2}\PYG{o}{,}\PYG{+w}{  }\PYG{n}{sr}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{s}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{r2}\PYG{o}{,}\PYG{+w}{  }\PYG{n}{sr2}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{sr}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{sr}\PYG{o}{,}\PYG{+w}{  }\PYG{n}{r}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{s}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{sr}\PYG{o}{,}\PYG{+w}{  }\PYG{n}{r2}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{sr2}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{sr2}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{sr}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{sr2}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{r2}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{s}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{sr}\PYG{o}{,}\PYG{+w}{  }\PYG{n}{sr2}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{r2}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{sr2}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{sr}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{r}
+
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{inv}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{S3}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{S3}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{e}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{e}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{r2}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{r2}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{r}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{s}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{sr}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{sr}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{sr2}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{sr2}
+
+\PYG{k+kd}{end}\PYG{+w}{ }\PYG{n}{S3}
+\end{MintedVerbatim}

@@ -1,0 +1,12 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{imperativeTour}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{IO}\PYG{+w}{ }\PYG{n}{Unit}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{IO}\PYG{n+nb+bp}{.}\PYG{n}{mkRef}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{            }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} a mutable reference holding a Nat}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{mut}\PYG{+w}{ }\PYG{n}{best}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{             }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} a local mutable variable}
+\PYG{+w}{  }\PYG{n}{for}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{k}{in}\PYG{+w}{ }\PYG{o}{[}\PYG{l+m+mi}{0}\PYG{o}{:}\PYG{l+m+mi}{5}\PYG{o}{]}\PYG{+w}{ }\PYG{k}{do}\PYG{+w}{             }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} i runs over 0, 1, 2, 3, 4}
+\PYG{+w}{    }\PYG{n}{r}\PYG{n+nb+bp}{.}\PYG{n}{modify}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{n}{i}\PYG{o}{)}\PYG{+w}{            }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} add i to the reference\PYGZsq{}s contents}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZgt{}}\PYG{+w}{ }\PYG{n}{best}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{best}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{i}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{total}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{r}\PYG{n+nb+bp}{.}\PYG{n}{get}\PYG{+w}{             }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} read the reference back}
+\PYG{+w}{  }\PYG{n}{IO}\PYG{n+nb+bp}{.}\PYG{n}{println}\PYG{+w}{ }\PYG{n}{s!}\PYG{l+s+s2}{\PYGZdq{}total = \PYGZob{}total\PYGZcb{}, best = \PYGZob{}best\PYGZcb{}\PYGZdq{}}
+
+\PYG{n+nb+bp}{\PYGZsh{}}\PYG{n}{eval}\PYG{+w}{ }\PYG{n}{imperativeTour}\PYG{+w}{   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} total = 10, best = 4}
+\end{MintedVerbatim}

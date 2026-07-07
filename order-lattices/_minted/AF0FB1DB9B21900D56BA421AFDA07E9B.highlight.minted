@@ -1,0 +1,104 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{namespace}\PYG{+w}{ }\PYG{n}{TypeInfer}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} A typing context maps variable names to type cells}
+\PYG{k+kn}{abbrev}\PYG{+w}{ }\PYG{n}{Context}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{String}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{Cell}\PYG{+w}{ }\PYG{n}{Ty}\PYG{o}{)}
+
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{Context}\PYG{n+nb+bp}{.}\PYG{n}{lookup}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{ctx}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Context}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{x}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{String}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}
+\PYG{+w}{    }\PYG{n}{Option}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{Cell}\PYG{+w}{ }\PYG{n}{Ty}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n}{ctx}\PYG{n+nb+bp}{.}\PYG{n}{find?}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{p}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{p}\PYG{n+nb+bp}{.}\PYG{l+m}{1}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{n}{x}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{|\PYGZgt{}.}\PYG{n}{map}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{·.}\PYG{l+m}{2}\PYG{o}{)}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Generate type cells and propagators for an expression}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Returns the type cell for this expression.}
+\PYG{n}{partial}\PYG{+w}{ }\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{inferExpr}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{ctx}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Context}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{e}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Expr}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{steps}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{IO}\PYG{n+nb+bp}{.}\PYG{n}{Ref}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Array}\PYG{+w}{ }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{PropStep}\PYG{o}{))}\PYG{+w}{ }\PYG{o}{:}
+\PYG{+w}{    }\PYG{n}{IO}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{Cell}\PYG{+w}{ }\PYG{n}{Ty}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{e}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{intLit}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{Cell}\PYG{n+nb+bp}{.}\PYG{n}{new}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Ty}\PYG{o}{)}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{c}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{int}
+\PYG{+w}{    }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{c}
+
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{boolLit}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{Cell}\PYG{n+nb+bp}{.}\PYG{n}{new}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Ty}\PYG{o}{)}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{c}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{bool}
+\PYG{+w}{    }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{c}
+
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{var}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{ctx}\PYG{n+nb+bp}{.}\PYG{n}{lookup}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{c}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{Cell}\PYG{n+nb+bp}{.}\PYG{n}{new}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Ty}\PYG{o}{)}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{c}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{typeError}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} unbound variable}
+\PYG{+w}{      }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{c}
+
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{add}\PYG{+w}{ }\PYG{n}{e1}\PYG{+w}{ }\PYG{n}{e2}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{c1}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{inferExpr}\PYG{+w}{ }\PYG{n}{ctx}\PYG{+w}{ }\PYG{n}{e1}\PYG{+w}{ }\PYG{n}{steps}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{c2}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{inferExpr}\PYG{+w}{ }\PYG{n}{ctx}\PYG{+w}{ }\PYG{n}{e2}\PYG{+w}{ }\PYG{n}{steps}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{cOut}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{Cell}\PYG{n+nb+bp}{.}\PYG{n}{new}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Ty}\PYG{o}{)}
+\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Propagator: both operands must be Int. We then re\PYGZhy{}read the}
+\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} operand cells and merge their join into the output — so if an}
+\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} operand has jumped to typeError (e.g. Bool ⊔ Int), the error}
+\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} reaches the result cell too.}
+\PYG{+w}{    }\PYG{n}{steps}\PYG{n+nb+bp}{.}\PYG{n}{modify}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{·.}\PYG{n}{push}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{c1}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{int}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{c2}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{int}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{t1}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{c1}\PYG{n+nb+bp}{.}\PYG{n}{read}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{t2}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{c2}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{      }\PYG{n}{cOut}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Ty}\PYG{n+nb+bp}{.}\PYG{n}{unify}\PYG{+w}{ }\PYG{n}{t1}\PYG{+w}{ }\PYG{n}{t2}\PYG{o}{))}
+\PYG{+w}{    }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{cOut}
+
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{ifExpr}\PYG{+w}{ }\PYG{n}{cond}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{n}{f}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{ccond}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{inferExpr}\PYG{+w}{ }\PYG{n}{ctx}\PYG{+w}{ }\PYG{n}{cond}\PYG{+w}{ }\PYG{n}{steps}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{ct}\PYG{+w}{    }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{inferExpr}\PYG{+w}{ }\PYG{n}{ctx}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{    }\PYG{n}{steps}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{cf}\PYG{+w}{    }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{inferExpr}\PYG{+w}{ }\PYG{n}{ctx}\PYG{+w}{ }\PYG{n}{f}\PYG{+w}{    }\PYG{n}{steps}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{cOut}\PYG{+w}{  }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{Cell}\PYG{n+nb+bp}{.}\PYG{n}{new}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Ty}\PYG{o}{)}
+\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Propagator: cond must be Bool; t and f must agree; out = t}
+\PYG{+w}{    }\PYG{n}{steps}\PYG{n+nb+bp}{.}\PYG{n}{modify}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{·.}\PYG{n}{push}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{ccond}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{bool}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{tv}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{ct}\PYG{n+nb+bp}{.}\PYG{n}{read}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{fv}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cf}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{ct}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{n}{fv}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{k}{let}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cf}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{n}{tv}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{tv\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{ct}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{      }\PYG{n}{cOut}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{n}{tv\PYGZsq{}}\PYG{o}{)}
+\PYG{+w}{    }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{cOut}
+
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{ }\PYG{n}{body}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{cDom}\PYG{+w}{  }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{Cell}\PYG{n+nb+bp}{.}\PYG{n}{new}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Ty}\PYG{o}{)}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{ctx\PYGZsq{}}\PYG{+w}{  }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{x}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{cDom}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{::}\PYG{+w}{ }\PYG{n}{ctx}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{cBody}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{inferExpr}\PYG{+w}{ }\PYG{n}{ctx\PYGZsq{}}\PYG{+w}{ }\PYG{n}{body}\PYG{+w}{ }\PYG{n}{steps}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{cOut}\PYG{+w}{  }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{Cell}\PYG{n+nb+bp}{.}\PYG{n}{new}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Ty}\PYG{o}{)}
+\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Propagator: out = dom → body}
+\PYG{+w}{    }\PYG{n}{steps}\PYG{n+nb+bp}{.}\PYG{n}{modify}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{·.}\PYG{n}{push}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{d}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cDom}\PYG{n+nb+bp}{.}\PYG{n}{read}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cBody}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{      }\PYG{n}{cOut}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{fun\PYGZus{}}\PYG{+w}{ }\PYG{n}{d}\PYG{+w}{ }\PYG{n}{b}\PYG{o}{))}
+\PYG{+w}{    }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{cOut}
+
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{app}\PYG{+w}{ }\PYG{n}{fn}\PYG{+w}{ }\PYG{n}{arg}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{cFn}\PYG{+w}{  }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{inferExpr}\PYG{+w}{ }\PYG{n}{ctx}\PYG{+w}{ }\PYG{n}{fn}\PYG{+w}{  }\PYG{n}{steps}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{cArg}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{inferExpr}\PYG{+w}{ }\PYG{n}{ctx}\PYG{+w}{ }\PYG{n}{arg}\PYG{+w}{ }\PYG{n}{steps}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{cOut}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{Cell}\PYG{n+nb+bp}{.}\PYG{n}{new}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Ty}\PYG{o}{)}
+\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Propagator: fn must be (arg → out)}
+\PYG{+w}{    }\PYG{n}{steps}\PYG{n+nb+bp}{.}\PYG{n}{modify}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{·.}\PYG{n}{push}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{fv}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cFn}\PYG{n+nb+bp}{.}\PYG{n}{read}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{av}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cArg}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{ov}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cOut}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{      }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{fv}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{      }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{fun\PYGZus{}}\PYG{+w}{ }\PYG{n}{d}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{        }\PYG{k}{let}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cArg}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{n}{d}\PYG{+w}{   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} arg type must match domain}
+\PYG{+w}{        }\PYG{k}{let}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cOut}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} result type from codomain}
+\PYG{+w}{        }\PYG{k}{let}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cFn}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{fun\PYGZus{}}\PYG{+w}{ }\PYG{n}{av}\PYG{+w}{ }\PYG{n}{ov}\PYG{o}{)}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} refine fn type}
+\PYG{+w}{        }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{false}\PYG{+w}{            }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} (actual change tracked by writes)}
+\PYG{+w}{      }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{unknown}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{        }\PYG{k}{let}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cFn}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{fun\PYGZus{}}\PYG{+w}{ }\PYG{n}{av}\PYG{+w}{ }\PYG{n}{ov}\PYG{o}{)}
+\PYG{+w}{        }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{false}
+\PYG{+w}{      }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{        }\PYG{k}{let}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{cFn}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{typeError}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{false}\PYG{o}{)}
+\PYG{+w}{    }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{cOut}
+
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{letExpr}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{ }\PYG{n}{e}\PYG{+w}{ }\PYG{n}{body}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{ce}\PYG{+w}{   }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{inferExpr}\PYG{+w}{ }\PYG{n}{ctx}\PYG{+w}{  }\PYG{n}{e}\PYG{+w}{    }\PYG{n}{steps}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{ctx\PYGZsq{}}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{x}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{ce}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{::}\PYG{+w}{ }\PYG{n}{ctx}
+\PYG{+w}{    }\PYG{n}{inferExpr}\PYG{+w}{ }\PYG{n}{ctx\PYGZsq{}}\PYG{+w}{ }\PYG{n}{body}\PYG{+w}{ }\PYG{n}{steps}
+
+\PYG{k+kn}{end}\PYG{+w}{ }\PYG{n}{TypeInfer}
+\end{MintedVerbatim}

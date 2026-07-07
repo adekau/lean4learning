@@ -1,0 +1,40 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Parse an identifier: one or more alphanumeric/underscore characters}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{ident}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{String}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{token}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{chars}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{many1}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{satisfy}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{c.isAlphanum}\PYG{+w}{ }\PYG{n+nb+bp}{||}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{l+s+sc}{\PYGZsq{}\PYGZus{}\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{||}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{l+s+sc}{\PYGZsq{}\PYGZbs{}\PYGZsq{}\PYGZsq{}}\PYG{o}{)}
+\PYG{+w}{  }\PYG{n}{pure}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{String.mk}\PYG{+w}{ }\PYG{n}{chars}\PYG{o}{)}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Parse a keyword (an identifier matching a specific string)}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{keyword}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{s}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{String}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{Unit}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{name}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{ident}
+\PYG{+w}{  }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{name}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{pure}\PYG{+w}{ }\PYG{o}{()}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{n}{failure}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} These four parsers are MUTUALLY recursive (lamP calls exprP, exprP calls}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} appP, appP calls atomP, atomP calls exprP), so they must be wrapped in a}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} `mutual ... end` block; otherwise Lean reports \PYGZdq{}unknown identifier exprP\PYGZdq{}.}
+\PYG{k+kd}{mutual}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Parse a lambda: \PYGZsq{}\PYGZbs{}\PYGZsq{} ident+ \PYGZsq{}.\PYGZsq{} expr}
+\PYG{n}{partial}\PYG{+w}{ }\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{lamP}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{Term}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{symbol}\PYG{+w}{ }\PYG{l+s+sc}{\PYGZsq{}\PYGZbs{}\PYGZbs{}\PYGZsq{}}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{params}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{many1}\PYG{+w}{ }\PYG{n}{ident}\PYG{+w}{       }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} collect parameter names}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{symbol}\PYG{+w}{ }\PYG{l+s+sc}{\PYGZsq{}.\PYGZsq{}}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{body}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{exprP}\PYG{+w}{               }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} parse the body}
+\PYG{+w}{  }\PYG{n}{pure}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{params.foldr}\PYG{+w}{ }\PYG{n}{Term.lam}\PYG{+w}{ }\PYG{n}{body}\PYG{o}{)}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} desugar: [x,y] → lam x (lam y body)}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Parse an application: atom+, left\PYGZhy{}associative}
+\PYG{n}{partial}\PYG{+w}{ }\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{appP}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{Term}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{atoms}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{many1}\PYG{+w}{ }\PYG{n}{atomP}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} `many1` guarantees at least one atom, but Lean can\PYGZsq{}t see that, so}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} `atoms.head` would demand a nonemptiness proof. `head!` uses the}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} `Inhabited Term` instance for the (unreachable) empty case.}
+\PYG{+w}{  }\PYG{n}{pure}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{atoms.tail.foldl}\PYG{+w}{ }\PYG{n}{Term.app}\PYG{+w}{ }\PYG{n}{atoms.head}\PYG{n+nb+bp}{!}\PYG{o}{)}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Parse an atom: parenthesized expression or identifier}
+\PYG{n}{partial}\PYG{+w}{ }\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{atomP}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{Term}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{o}{(}\PYG{k}{do}\PYG{+w}{ }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{symbol}\PYG{+w}{ }\PYG{l+s+sc}{\PYGZsq{}(\PYGZsq{}}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{e}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{exprP}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{symbol}\PYG{+w}{ }\PYG{l+s+sc}{\PYGZsq{})\PYGZsq{}}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{pure}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{)}
+\PYG{+w}{  }\PYG{n+nb+bp}{\PYGZlt{}|\PYGZgt{}}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{do}\PYG{+w}{ }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{name}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{ident}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{pure}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Term.var}\PYG{+w}{ }\PYG{n}{name}\PYG{o}{))}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Parse an expression: lambda or application}
+\PYG{n}{partial}\PYG{+w}{ }\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{exprP}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{Term}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{lamP}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}|\PYGZgt{}}\PYG{+w}{ }\PYG{n}{appP}
+\PYG{k+kd}{end}
+\end{MintedVerbatim}

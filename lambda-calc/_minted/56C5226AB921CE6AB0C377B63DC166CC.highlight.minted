@@ -1,0 +1,15 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{// HKT.ts — a \PYGZdq{}lookup table\PYGZdq{} from string names to type constructors}
+\PYG{k+kd}{interface}\PYG{+w}{ }\PYG{n+nx}{URI2HKT}\PYG{o}{\PYGZlt{}}\PYG{n+nx}{A}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{p}{\PYGZob{}\PYGZcb{}}
+\PYG{k+kr}{type}\PYG{+w}{ }\PYG{n+nx}{Kind}\PYG{o}{\PYGZlt{}}\PYG{n+nx}{F}\PYG{+w}{ }\PYG{k}{extends}\PYG{+w}{ }\PYG{n+nx}{keyof}\PYG{+w}{ }\PYG{n+nx}{URI2HKT}\PYG{o}{\PYGZlt{}}\PYG{n+nx}{any}\PYG{o}{\PYGZgt{}}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nx}{A}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nx}{URI2HKT}\PYG{o}{\PYGZlt{}}\PYG{n+nx}{A}\PYG{o}{\PYGZgt{}}\PYG{p}{[}\PYG{n+nx}{F}\PYG{p}{];}
+
+\PYG{c+c1}{// Functor.ts — F is a string key, Kind resolves it}
+\PYG{k+kd}{interface}\PYG{+w}{ }\PYG{n+nx}{Functor1}\PYG{o}{\PYGZlt{}}\PYG{n+nx}{F}\PYG{+w}{ }\PYG{k}{extends}\PYG{+w}{ }\PYG{n+nx}{keyof}\PYG{+w}{ }\PYG{n+nx}{URI2HKT}\PYG{o}{\PYGZlt{}}\PYG{n+nx}{any}\PYG{o}{\PYGZgt{}\PYGZgt{}}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{  }\PYG{n+nx}{map}\PYG{o}{:}\PYG{+w}{ }\PYG{o}{\PYGZlt{}}\PYG{n+nx}{A}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nx}{B}\PYG{o}{\PYGZgt{}}\PYG{p}{(}\PYG{n+nx}{f}\PYG{o}{:}\PYG{+w}{ }\PYG{p}{(}\PYG{n+nx}{a}\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{A}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n+nx}{B}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nx}{fa}\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Kind}\PYG{o}{\PYGZlt{}}\PYG{n+nx}{F}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nx}{A}\PYG{o}{\PYGZgt{}}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n+nx}{Kind}\PYG{o}{\PYGZlt{}}\PYG{n+nx}{F}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nx}{B}\PYG{o}{\PYGZgt{}}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+
+\PYG{c+c1}{// Option.ts — register Option in the lookup table}
+\PYG{k+kr}{declare}\PYG{+w}{ }\PYG{n+nx}{module}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}./HKT\PYGZsq{}}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{  }\PYG{k+kd}{interface}\PYG{+w}{ }\PYG{n+nx}{URI2HKT}\PYG{o}{\PYGZlt{}}\PYG{n+nx}{A}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{n+nx}{Option}\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Option}\PYG{o}{\PYGZlt{}}\PYG{n+nx}{A}\PYG{o}{\PYGZgt{}}\PYG{p}{;}\PYG{+w}{ }\PYG{p}{\PYGZcb{}}
+\PYG{p}{\PYGZcb{}}
+\end{MintedVerbatim}

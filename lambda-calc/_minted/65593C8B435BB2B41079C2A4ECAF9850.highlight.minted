@@ -1,0 +1,8 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} WRONG: trying to use subst as if it were beta reduction}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} This does NOT compute \PYGZdq{}K a\PYGZdq{}!}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{K}\PYG{+w}{    }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Term}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}x\PYGZdq{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}y\PYGZdq{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{var}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}x\PYGZdq{}}\PYG{o}{))}\PYG{+w}{   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} named K = λx.λy. x}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{K\PYGZus{}db}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Expr}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{bvar}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{))}\PYG{+w}{            }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} de Bruijn K = λ.λ. 1}
+\PYG{k}{\PYGZsh{}eval}\PYG{+w}{ }\PYG{n}{subst}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}x\PYGZdq{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{var}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}a\PYGZdq{}}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{K}\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} named version    (3\PYGZhy{}arg named subst)}
+\PYG{k}{\PYGZsh{}eval}\PYG{+w}{ }\PYG{n}{subst}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{bvar}\PYG{+w}{ }\PYG{l+m+mi}{99}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{K\PYGZus{}db}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} de Bruijn version (2\PYGZhy{}arg de Bruijn subst)}
+\end{MintedVerbatim}

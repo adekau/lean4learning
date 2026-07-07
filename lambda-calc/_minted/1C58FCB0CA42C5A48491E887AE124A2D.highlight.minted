@@ -1,0 +1,18 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} `pure a`: always succeeds, produces `a`, consumes nothing}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{pure}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pos}\PYG{o}{)}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} `fail`: always fails}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{fail}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{none}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} `char c`: succeeds if the next character is `c`}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{char}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{c}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Char}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{Char}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{  }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{s.length}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZam{}\PYGZam{}}\PYG{+w}{ }\PYG{n}{s.get}\PYG{+w}{ }\PYG{o}{⟨}\PYG{n}{pos}\PYG{o}{⟩}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{c}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{)}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{n}{none}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} `satisfy p`: succeeds if the next character satisfies predicate `p`}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{satisfy}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{p}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Char}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Bool}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{Char}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{  }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{s.length}\PYG{+w}{ }\PYG{k}{then}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{s.get}\PYG{+w}{ }\PYG{o}{⟨}\PYG{n}{pos}\PYG{o}{⟩}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{p}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{c}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{)}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{n}{none}
+\PYG{+w}{  }\PYG{k}{else}\PYG{+w}{ }\PYG{n}{none}
+\end{MintedVerbatim}

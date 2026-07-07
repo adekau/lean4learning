@@ -3,7 +3,13 @@
 %% Fonts
 \usepackage{fontspec}
 \setmainfont{Latin Modern Roman}
-\setmonofont{DejaVu Sans Mono}[Scale=0.82]
+% Pin the system DejaVu (v2.37) by path: TeX Live/TinyTeX ships an
+% older DejaVu (v2.34) that lacks some glyphs used in the Lean
+% listings (e.g. the divisibility bar U+2223).
+\setmonofont{DejaVuSansMono.ttf}[
+  Path=/usr/share/fonts/truetype/dejavu/,
+  BoldFont=DejaVuSansMono-Bold.ttf,
+  Scale=0.82]
 
 %% Page Layout
 \usepackage[a4paper, top=2.8cm, bottom=2.8cm, left=3cm, right=3cm]{geometry}
@@ -195,9 +201,9 @@
 From the Natural Numbers to Symbolic Solvers in Lean~4\par}\vspace{1.8cm}
 {\color{white!50!navyblue}\rule{0.55\textwidth}{0.5pt}}\vspace{1.8cm}
 {\large\itshape A zero-to-hero journey through real analysis\par
-with every definition proved from scratch in Lean~4\par}
+with the number systems built from scratch in Lean~4\par}
 \vfill
-{\small\color{white!60!navyblue}No Mathlib. No shortcuts. Every theorem earned.\par}
+{\small\color{white!60!navyblue}Core Lean first, Mathlib after: build it once by hand, then wield the industrial version.\par}
 \vspace{0.5cm}
 {\small\color{white!50!navyblue}Lean~4 $\cdot$ Real Analysis $\cdot$ Symbolic Computation}
 \end{titlepage}
@@ -209,14 +215,20 @@ with every definition proved from scratch in Lean~4\par}
 \addcontentsline{toc}{chapter}{Preface}
 \color{black}
 
-This book rebuilds calculus from a single inductive type in Lean~4 to a working command-line symbolic solver. No external mathematics libraries are imported---every definition, from addition on the natural numbers to the Fundamental Theorem of Calculus, is constructed explicitly and its properties proved.
+This book rebuilds calculus from a single inductive type in Lean~4 to a working command-line symbolic solver. It proceeds in two deliberate phases.
 
-\medskip\noindent\textbf{Prerequisites.} Familiarity with proof-based mathematics (induction, contradiction, epsilon-delta arguments seen before). No prior Lean~4 experience required.
+\medskip\noindent\textbf{Phase one (Part~I): core Lean, no libraries.} No external mathematics libraries are imported. Every definition---addition on the natural numbers, the integers and rationals as quotients, the real numbers as a Cauchy completion---is constructed explicitly and its properties proved by hand. The point of this phase is that you should see, once in your life, that there is no magic underneath: the real numbers can be built, keystroke by keystroke, from \li{zero} and \li{succ}.
+
+\medskip\noindent\textbf{Phase two (Parts~II--VII): Mathlib.} From Chapter~6 onward the book switches---openly, and by design---to \textbf{Mathlib}, the Lean community's mathematical library. Having built $\R$ once yourself, you will use the industrial-strength version of it (Mathlib's \li{Real}) and Mathlib's proof tactics (\li{linarith}, \li{norm\_num}, \li{positivity}, \ldots) for the analysis that follows. This mirrors real practice: nobody re-proves commutativity of addition before doing analysis, but everybody is better at analysis for having done it once. Chapter~6 marks the switch explicitly and shows how to set up a Lean project that depends on Mathlib. The capstone solver of Part~VII is again plain core Lean (it computes over \li{Float}), except for its correctness theorems in Chapter~36, which use Mathlib's analysis library.
+
+Every Lean listing in this book is machine-checked: the Part~I and capstone listings against a bare Lean toolchain (\texttt{CalculusVerification.lean}), the Mathlib-based listings against Mathlib (\texttt{CalculusMathlibVerification.lean}). Where a listing deliberately leaves a proof as \li{sorry}, the surrounding text says so and marks it as an exercise.
+
+\medskip\noindent\textbf{Prerequisites.} Familiarity with proof-based mathematics (induction, contradiction, epsilon-delta arguments seen before). No prior Lean~4 experience required: Appendix~\ref{app:primer} is a primer on every Lean construct and tactic used in this book, including what several of them desugar to under the hood.
 
 \medskip\noindent\textbf{Structure.}
 \begin{itemize}[noitemsep]
-  \item \textbf{Part~I} constructs $\N$, $\Z$, $\Q$, and $\R$ via Cauchy completion.
-  \item \textbf{Part~II} develops the topology of $\R$: sequences, limits, continuity.
+  \item \textbf{Part~I} constructs $\N$, $\Z$, $\Q$, and $\R$ via Cauchy completion (core Lean, no libraries).
+  \item \textbf{Part~II} develops the topology of $\R$: sequences, limits, continuity (from here on, over Mathlib's \li{Real}).
   \item \textbf{Part~III} covers differential calculus through Taylor's theorem.
   \item \textbf{Part~IV} covers integral calculus and the Fundamental Theorem.
   \item \textbf{Part~V} treats infinite series and power series.
@@ -305,6 +317,8 @@ It is worth pausing on what makes these five axioms so powerful.  P1 and P2 say 
 
 In Lean~4, an inductive type with two constructors captures exactly these axioms: \li{zero} corresponds to $0$, and \li{succ} corresponds to $S$.  Crucially, the Lean kernel enforces P3 and P4 automatically: distinct constructors are always disjoint (\li{zero} $\neq$ \li{succ n}), and constructors are always injective (\li{succ m = succ n} $\Rightarrow$ \li{m = n}).  P5 is the elimination principle generated by the \li{inductive} declaration --- pattern matching on a \li{MyNat} is literally induction.
 
+If the listing below is your first encounter with Lean~4, do not worry about the syntax: Appendix~\ref{app:primer} (\emph{A Lean 4 Primer}) explains every keyword and tactic this book uses --- \li{inductive}, \li{def}, \li{theorem}, \li{induction \ldots with}, \li{simp}, \li{exact}, and the rest --- with small worked examples and, where illuminating, the lower-level term each tactic expands to.  Read it alongside this chapter, or dip into it whenever a new construct appears.
+
 \begin{leanbox}
 \begin{lstlisting}
 -- Our own natural numbers, no imports needed
@@ -350,7 +364,7 @@ The key point for us: when we write \texttt{inductive MyNat}, we are defining $\
 
 The Peano axioms give us $\N$ as a bare set with a successor function.  We have not yet said what $+$ or $\times$ mean --- those must be \emph{defined}, not assumed.  The tool for doing so is the recursion principle: to define a function $f : \N \to X$, it suffices to specify $f(0)$ and a rule computing $f(S(n))$ from $f(n)$.  This is just the constructive reading of induction: define the function by building it bottom-up from the base case.
 
-The definitions below may look strange at first --- why define $n + S(m)$ rather than $S(n) + m$?  The answer is that we recurse on the \emph{second} argument because Lean's pattern matching must terminate, and it terminates when we peel off one \li{succ} constructor at a time from a fixed argument.  The commutativity $m + n = n + m$ is then a non-trivial \emph{theorem} that requires induction to prove, not something built into the definition.
+The definitions below may look strange at first --- why define $n + S(m)$ rather than $S(n) + m$?  Recursing on the \emph{second} argument is a convention (it matches Peano's original definition and the one Lean's own \li{Nat} uses); recursing on the first would work just as well.  What matters for termination is only that each recursive call peels one \li{succ} constructor off a designated argument, so the recursion is structurally decreasing.  The commutativity $m + n = n + m$ is then a non-trivial \emph{theorem} that requires induction to prove, not something built into the definition.
 
 \begin{defbox}{Addition and Multiplication on $\N$}
 \textbf{Addition} is defined by recursion on the second argument:
@@ -516,38 +530,27 @@ Therefore $S = \emptyset$ and $\forall n,\, P(n)$. \qquad$\square$
 \end{thmbox}
 \color{black}
 
+Formalising this is our first taste of a recurring reality: before Lean will even let us \emph{state} $k < n$ for our own \li{MyNat}, we must define the order and register it with the \li{LE}/\li{LT} type classes, and before the equivalence proofs go through we need a small toolbox of order lemmas ($k \leq 0 \Rightarrow k = 0$, nothing is below zero, $k < n{+}1 \Rightarrow k \leq n$, \ldots).  None of this exists until we build it --- \li{MyNat} is ours alone, so Lean's lemmas about its built-in \li{Nat} do not apply.
+
 \begin{leanbox}
 \begin{lstlisting}
--- We can encode all three in Lean and derive each from the others.
+-- The order itself: m <= n iff some k witnesses the gap.
+def MyNat.le (m n : MyNat) : Prop := ∃ k : MyNat, m.add k = n
+def MyNat.lt (m n : MyNat) : Prop := m.le n ∧ m ≠ n
 
--- (1) Weak induction -- built into MyNat's eliminator.
+-- Register with the LE/LT type classes so <= and < notation work.
+instance : LE MyNat := ⟨MyNat.le⟩
+instance : LT MyNat := ⟨MyNat.lt⟩
 
--- (2) Strong induction -- derived from weak by the Q(n) trick.
--- Define Q n := forall k <= n, P k, prove Q by weak induction,
--- then P follows since P(n) is implied by Q(n).
-theorem MyNat.strong_ind (P : MyNat -> Prop)
-    (step : forall n, (forall k, k < n -> P k) -> P n) :
-    forall n, P n := by
-  suffices h : forall n, forall k, k <= n -> P k from
-    fun n => h n n (le_refl n)
-  intro n
-  induction n with
-  | zero =>
-    intro k hk
-    have hkz : k = MyNat.zero := Nat.le_zero.mp hk
-    subst hkz
-    exact step .zero (fun k hlt => absurd hlt (Nat.not_lt_zero k))
-  | succ n ih =>
-    intro k hk
-    rcases Nat.lt_or_eq_of_le hk with hlt | rfl
-    · exact ih k (Nat.lt_succ_iff.mp hlt)
-    · exact step (.succ n) (fun j hj => ih j (Nat.lt_succ_iff.mpr hj))
+theorem MyNat.le_refl (n : MyNat) : n ≤ n := ⟨.zero, rfl⟩
 
--- Key lemma: n + k.succ ≠ n (can't add a positive and return to start)
+-- Key lemma: n + k.succ ≠ n (can't add a positive and return to
+-- start). The succ case needs succ_add in the simp set to line the
+-- goal up with the induction hypothesis.
 theorem MyNat.no_overflow (n m : MyNat) : n.add m.succ ≠ n := by
   induction n with
   | zero      => simp [MyNat.add]
-  | succ n ih => simp [MyNat.add]; exact ih
+  | succ n ih => simp [MyNat.add, MyNat.succ_add] at *; exact ih
 
 -- Corollary: if n + k = n then k = 0
 theorem MyNat.add_eq_self (n k : MyNat) : n.add k = n -> k = .zero := by
@@ -577,21 +580,124 @@ theorem MyNat.le_antisymm {n m : MyNat}
   have h0 : k.add j = .zero := MyNat.add_eq_self n _ hkj
   have hk0 : k = .zero     := MyNat.add_eq_zero_left h0
   simp [hk0, MyNat.add] at hk
-  exact hk.symm
+  exact hk
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+With the order in place we can build the toolbox and derive strong induction from weak induction by the $Q(n)$ trick from the proof above.
+
+\begin{leanbox}
+\begin{lstlisting}
+-- The order toolbox: four small lemmas the big proofs lean on.
+theorem MyNat.le_zero_mp {n : MyNat} (h : n ≤ .zero) : n = .zero := by
+  obtain ⟨k, hk⟩ := h
+  exact MyNat.add_eq_zero_left hk
+
+theorem MyNat.not_lt_zero (n : MyNat) : ¬ n < .zero := by
+  intro ⟨hle, hne⟩
+  exact hne (MyNat.le_zero_mp hle)
+
+theorem MyNat.lt_or_eq_of_le {n m : MyNat} (h : n ≤ m) : n < m ∨ n = m := by
+  obtain ⟨k, hk⟩ := h
+  cases k with
+  | zero   => exact Or.inr (by simpa [MyNat.add] using hk)
+  | succ k =>
+    refine Or.inl ⟨⟨k.succ, hk⟩, ?_⟩
+    intro heq
+    subst heq
+    exact MyNat.no_overflow n k hk
+
+theorem MyNat.lt_succ_mp {n m : MyNat} (h : n < m.succ) : n ≤ m := by
+  obtain ⟨⟨k, hk⟩, hne⟩ := h
+  cases k with
+  | zero   => exact absurd (by simpa [MyNat.add] using hk) hne
+  | succ k =>
+    exact ⟨k, by simpa [MyNat.add] using hk⟩
+
+-- (2) Strong induction -- derived from weak by the Q(n) trick.
+-- Define Q n := forall k <= n, P k, prove Q by weak induction,
+-- then P follows since P(n) is implied by Q(n).
+theorem MyNat.strong_ind (P : MyNat -> Prop)
+    (step : forall n, (forall k, k < n -> P k) -> P n) :
+    forall n, P n := by
+  suffices h : forall n, forall k, k <= n -> P k from
+    fun n => h n n (MyNat.le_refl n)
+  intro n
+  induction n with
+  | zero =>
+    intro k hk
+    have hkz : k = MyNat.zero := MyNat.le_zero_mp hk
+    subst hkz
+    exact step .zero (fun k hlt => absurd hlt (MyNat.not_lt_zero k))
+  | succ n ih =>
+    intro k hk
+    rcases MyNat.lt_or_eq_of_le hk with hlt | rfl
+    · exact ih k (MyNat.lt_succ_mp hlt)
+    · exact step (.succ n) (fun j hj => ih j (MyNat.lt_succ_mp hj))
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+Finally, well-ordering.  The classical proof --- ``pick any witness; either it is minimal or something smaller is in $S$, and descend'' --- becomes a strong induction on the witness.  Totality of the order (\li{lt\_or\_ge}) supplies the ``something smaller'' step, and \li{Classical.em} performs the case split on whether the current witness is already minimal.
+
+\begin{leanbox}
+\begin{lstlisting}
+theorem MyNat.succ_ne_self (n : MyNat) : n.succ ≠ n := by
+  induction n with
+  | zero      => simp
+  | succ n ih => intro h; exact ih (MyNat.succ.inj h)
+
+theorem MyNat.le_succ_self (n : MyNat) : n ≤ n.succ := ⟨.one, rfl⟩
+
+theorem MyNat.lt_succ_self (n : MyNat) : n < n.succ :=
+  ⟨MyNat.le_succ_self n, fun h => MyNat.succ_ne_self n h.symm⟩
+
+theorem MyNat.succ_le_of_lt {n m : MyNat} (h : n < m) : n.succ ≤ m := by
+  obtain ⟨⟨k, hk⟩, hne⟩ := h
+  cases k with
+  | zero   => exact absurd (by simpa [MyNat.add] using hk) hne
+  | succ k => exact ⟨k, by subst hk; simp [MyNat.add, MyNat.succ_add]⟩
+
+theorem MyNat.lt_succ_of_lt {n m : MyNat} (h : n < m) : n < m.succ := by
+  obtain ⟨⟨k, hk⟩, _⟩ := h
+  constructor
+  · exact ⟨k.succ, by simp [MyNat.add, hk]⟩
+  · intro heq
+    subst heq
+    exact MyNat.no_overflow m k
+      (by simpa [MyNat.add, MyNat.succ_add] using hk)
+
+-- Totality: any two naturals are comparable.
+theorem MyNat.lt_or_ge (n m : MyNat) : n < m ∨ m ≤ n := by
+  induction m with
+  | zero      => exact Or.inr ⟨n, MyNat.zero_add n⟩
+  | succ m ih =>
+    rcases ih with hlt | hge
+    · exact Or.inl (MyNat.lt_succ_of_lt hlt)
+    · rcases MyNat.lt_or_eq_of_le hge with hlt | rfl
+      · exact Or.inr (MyNat.succ_le_of_lt hlt)
+      · exact Or.inl (MyNat.lt_succ_self _)
+
+theorem MyNat.lt_of_not_le {a b : MyNat} (hn : ¬ a ≤ b) : b < a :=
+  (MyNat.lt_or_ge b a).resolve_right hn
 
 -- (3) Well-ordering -- every nonempty S ⊆ MyNat has a least element.
-theorem MyNat.well_ordering (S : MyNat -> Prop) (hne : exists n, S n) :
-    exists m, S m /\ forall k, S k -> m <= k := by
-  by_contra hall
-  push_neg at hall
-  apply MyNat.strong_ind (fun n => ¬ S n)
-  · intro n ih hSn
-    obtain ⟨k, hSk, hkn⟩ := hall n hSn
-    exact ih k hkn hSk
-  · obtain ⟨n, hn⟩ := hne
-    exact absurd hn (MyNat.strong_ind _
-      (fun n ih hSn => (hall n hSn).elim
-        (fun ⟨k, hk, hlt⟩ => ih k hlt hk)) n)
+-- Strong induction on the witness: either n is already minimal, or
+-- S contains some k < n and we recurse on k.
+theorem MyNat.well_ordering (S : MyNat -> Prop) (hne : ∃ n, S n) :
+    ∃ m, S m ∧ ∀ k, S k -> m ≤ k := by
+  obtain ⟨n, hn⟩ := hne
+  refine MyNat.strong_ind
+    (fun n => S n → ∃ m, S m ∧ ∀ k, S k → m ≤ k) ?_ n hn
+  intro n ih hSn
+  rcases Classical.em (∀ k, S k → n ≤ k) with hmin | hnotmin
+  · exact ⟨n, hSn, hmin⟩
+  · rw [Classical.not_forall] at hnotmin
+    obtain ⟨k, hk⟩ := hnotmin
+    rw [Classical.not_imp] at hk
+    obtain ⟨hSk, hkn⟩ := hk
+    exact ih k (MyNat.lt_of_not_le hkn) hSk
 \end{lstlisting}
 \end{leanbox}
 \color{black}
@@ -753,9 +859,9 @@ def intNeg (x : MyInt) : MyInt :=
 
 Now that we have $\Z$ as a set, we must equip it with arithmetic.  The definitions look natural once you remember that $(a, b)$ means $a - b$: adding two differences adds numerators and denominators componentwise, and multiplying uses the FOIL identity $(a-b)(c-d) = (ac+bd) - (ad+bc)$.
 
-The subtle point is \textbf{well-definedness}.  When we write $[(a,b)] + [(c,d)] := [(a+c, b+d)]$, we are defining addition on \emph{equivalence classes} by choosing \emph{representatives}.  This is only legitimate if swapping in a different representative for $[(a,b)]$ or $[(c,d)]$ gives the same equivalence class on the right-hand side.  Checking well-definedness is not optional: it is the mathematical price of the quotient construction, and it must be paid for every operation we define.  In Lean~4 this is enforced by the type system via \li{Quot.lift} and \li{Quot.lift2}, which demand a proof of well-definedness before they will build the lifted function.
+The subtle point is \textbf{well-definedness}.  When we write $[(a,b)] + [(c,d)] := [(a+c, b+d)]$, we are defining addition on \emph{equivalence classes} by choosing \emph{representatives}.  This is only legitimate if swapping in a different representative for $[(a,b)]$ or $[(c,d)]$ gives the same equivalence class on the right-hand side.  Checking well-definedness is not optional: it is the mathematical price of the quotient construction, and it must be paid for every operation we define.  In Lean~4 this is enforced by the type system via \li{Quot.lift}, which demands a proof of well-definedness before it will build the lifted function.  For a \emph{binary} operation there is no ready-made \li{Quot.lift2} in core Lean: we lift one argument at a time with two nested \li{Quot.lift}s, and we owe Lean \emph{two} well-definedness proofs --- one for each argument.  Chapter~5 carries this out in full for addition on the reals.
 
-A ring satisfying $ab = 0 \Rightarrow a = 0$ or $b = 0$ is called an \textbf{integral domain}.  This property says there are no ``zero divisors'' --- no two nonzero elements whose product is zero.  $\Z$ is an integral domain; this fact was used in the transitivity proof for $\approx$ in Chapter~3, and it is what allows us to cancel a common nonzero factor.
+A \emph{commutative} ring with $1 \neq 0$ satisfying $ab = 0 \Rightarrow a = 0$ or $b = 0$ is called an \textbf{integral domain}.  The last property says there are no ``zero divisors'' --- no two nonzero elements whose product is zero.  $\Z$ is an integral domain; this fact will be used in the transitivity proof for $\approx$ in Chapter~3, and it is what allows us to cancel a common nonzero factor.
 
 \begin{defbox}{Addition and Multiplication on $\Z$}
 $[(a,b)] + [(c,d)] := [(a+c,\; b+d)]$
@@ -866,11 +972,13 @@ def invRat (p : MyRat) (h : p.num ≠ 0) : MyRat :=
     { num := -p.den, den := -p.num,
       den_pos := by omega }
 
--- The midpoint of two rationals
+-- The midpoint of two rationals. The positivity proof is assembled
+-- by hand from Int.mul_pos (in Part II, Mathlib's `positivity`
+-- tactic will discharge goals like this in one line).
 def midpoint (p q : MyRat) : MyRat :=
   { num     := p.num * q.den + q.num * p.den,
     den     := 2 * p.den * q.den,
-    den_pos := by positivity }
+    den_pos := Int.mul_pos (Int.mul_pos (by omega) p.den_pos) q.den_pos }
 \end{lstlisting}
 \end{leanbox}
 \color{black}
@@ -917,23 +1025,31 @@ No rational number squares to $2$.
 
 \begin{leanbox}
 \begin{lstlisting}
+-- If n*n is even, n is even: split on n mod 2. If n were odd,
+-- n*n mod 2 = 1, contradicting 2 ∣ n*n. All arithmetic by omega.
 theorem even_of_sq_even (n : Nat) (h : 2 ∣ n * n) : 2 ∣ n := by
-  by_contra hodd
-  rw [Nat.not_dvd_iff_odd (by norm_num)] at hodd
-  obtain ⟨k, rfl⟩ := hodd
-  simp [Nat.mul_add, Nat.add_mul] at h
-  omega
+  rcases Nat.mod_two_eq_zero_or_one n with h0 | h1
+  · exact Nat.dvd_of_mod_eq_zero h0
+  · exfalso
+    have h2 : (n * n) % 2 = 1 := by rw [Nat.mul_mod, h1]
+    have h0 : (n * n) % 2 = 0 := Nat.mod_eq_zero_of_dvd h
+    omega
 
 theorem sqrt2_irrational :
     forall p q : Nat, q ≠ 0 -> Nat.Coprime p q -> p * p ≠ 2 * (q * q) := by
   intro p q hq hcop heq
-  have h2p : 2 ∣ p := even_of_sq_even p ⟨q * q, by linarith⟩
+  -- p^2 = 2q^2, so p is even; write p = 2k
+  have h2p : 2 ∣ p := even_of_sq_even p ⟨q * q, heq⟩
   obtain ⟨k, rfl⟩ := h2p
-  have hq2 : q * q = 2 * (k * k) := by linarith
-  have h2q : 2 ∣ q := even_of_sq_even q ⟨k * k, by linarith⟩
-  have : 2 ∣ Nat.gcd (2 * k) q := Nat.dvd_gcd ⟨k, rfl⟩ h2q
-  rw [hcop] at this
-  exact absurd this (by norm_num)
+  -- Then 4k^2 = 2q^2, so q^2 = 2k^2, making q even too
+  have hexp : 2 * k * (2 * k) = 2 * (2 * (k * k)) := by ac_rfl
+  have heq' : 2 * (2 * (k * k)) = 2 * (q * q) := by rw [← hexp]; exact heq
+  have hq2 : q * q = 2 * (k * k) := by omega
+  have h2q : 2 ∣ q := even_of_sq_even q ⟨k * k, hq2⟩
+  -- But then 2 divides gcd(p, q) = 1 -- contradiction
+  have hgcd : 2 ∣ Nat.gcd (2 * k) q := Nat.dvd_gcd ⟨k, rfl⟩ h2q
+  rw [hcop] at hgcd
+  omega
 \end{lstlisting}
 \end{leanbox}
 \color{black}
@@ -973,11 +1089,11 @@ There exists a Cauchy sequence in $\Q$ with no limit in $\Q$.
 \color{black}
 
 \begin{proof}
-The Newton sequence above is Cauchy (the error halves quadratically at each step) and its limit satisfies $L^2 = 2$, which has no rational solution.
+The Newton sequence above is Cauchy (the error is roughly \emph{squared} at each step --- quadratic convergence) and its limit satisfies $L^2 = 2$, which has no rational solution.
 \end{proof}
 
 \begin{remarkbox}
-Cauchy completion generalizes: given any metric space, we can form its completion by the same quotient of Cauchy sequences. This construction is used to define $p$-adic numbers, $L^2$ spaces, and completions of normed rings.
+Cauchy completion generalizes: given any \emph{metric space} --- a set equipped with a distance function $d(x,y)$ that is symmetric, vanishes exactly when $x = y$, and satisfies the triangle inequality ($\R$ with $d(x,y) = |x-y|$ is the prototype) --- we can form its completion by the same quotient of Cauchy sequences. This construction is used to define $p$-adic numbers, $L^2$ spaces, and completions of normed rings.
 \end{remarkbox}
 \color{black}
 
@@ -1098,6 +1214,22 @@ If $(a_n)$ and $(b_n)$ are Cauchy in $\Q$, so are $(a_n + b_n)$ and $(a_n b_n)$.
 Choose $N$ so both terms are $< \eps/2$.
 \end{proof}
 
+One housekeeping matter before the code: we are still in phase one --- core Lean, no libraries --- and core Lean provides the type \li{Rat} but \emph{no} absolute value on it, and no $|\cdot|$ notation.  True to the from-scratch spirit, we roll our own, \li{rabs}, together with the two facts the construction below actually uses (the remaining standard properties --- $|ab| = |a||b|$, $|a - b| = |b - a|$, and so on --- make good exercises).  The proofs lean on \li{grind}, core Lean's general-purpose arithmetic closer.
+
+\begin{leanbox}
+\begin{lstlisting}
+-- Absolute value on Rat, from scratch (core Lean has none).
+def rabs (q : Rat) : Rat := if q < 0 then -q else q
+
+theorem rabs_zero : rabs 0 = 0 := by simp [rabs]
+
+-- The triangle inequality -- the workhorse of all of analysis.
+theorem rabs_add (a b : Rat) : rabs (a + b) ≤ rabs a + rabs b := by
+  simp only [rabs]; grind
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
 \begin{leanbox}
 \begin{lstlisting}
 -- Our real numbers as a quotient of Cauchy sequences over Rat
@@ -1105,7 +1237,7 @@ Choose $N$ so both terms are $< \eps/2$.
 def IsCauchy (a : Nat -> Rat) : Prop :=
   forall eps : Rat, eps > 0 ->
     exists N : Nat, forall m n : Nat, m > N -> n > N ->
-      |a m - a n| < eps
+      rabs (a m - a n) < eps
 
 structure CauchySeq where
   seq    : Nat -> Rat
@@ -1114,7 +1246,7 @@ structure CauchySeq where
 def CauchyEquiv (a b : CauchySeq) : Prop :=
   forall eps : Rat, eps > 0 ->
     exists N : Nat, forall n : Nat, n > N ->
-      |a.seq n - b.seq n| < eps
+      rabs (a.seq n - b.seq n) < eps
 
 -- MyReal is the quotient
 def MyReal : Type := Quot CauchyEquiv
@@ -1123,37 +1255,68 @@ def MyReal : Type := Quot CauchyEquiv
 def ofRat (q : Rat) : MyReal :=
   Quot.mk CauchyEquiv
     { seq    := fun _ => q,
-      cauchy := fun eps heps => ⟨0, fun m n _ _ => by simp; exact heps⟩ }
+      cauchy := fun eps heps => ⟨0, fun _ _ _ _ => by
+        have e : q - q = (0:Rat) := by grind
+        rw [e, rabs_zero]; exact heps⟩ }
 
--- Addition
+-- Addition of Cauchy sequences: the eps/2 argument from the
+-- theorem above, verbatim.
 def addCauchy (a b : CauchySeq) : CauchySeq :=
   { seq    := fun n => a.seq n + b.seq n,
     cauchy := fun eps heps => by
-      obtain ⟨Na, ha⟩ := a.cauchy (eps/2) (by linarith)
-      obtain ⟨Nb, hb⟩ := b.cauchy (eps/2) (by linarith)
+      obtain ⟨Na, ha⟩ := a.cauchy (eps/2) (by grind)
+      obtain ⟨Nb, hb⟩ := b.cauchy (eps/2) (by grind)
       refine ⟨max Na Nb, fun m n hm hn => ?_⟩
-      have hma := Nat.lt_of_lt_of_le hm (Nat.le_max_left Na Nb)
-      have hmb := Nat.lt_of_lt_of_le hm (Nat.le_max_right Na Nb)
-      have hna := Nat.lt_of_lt_of_le hn (Nat.le_max_left Na Nb)
-      have hnb := Nat.lt_of_lt_of_le hn (Nat.le_max_right Na Nb)
-      have h1 := ha m n hma hna
-      have h2 := hb m n hmb hnb
-      have : |(a.seq m + b.seq m) - (a.seq n + b.seq n)| <=
-             |a.seq m - a.seq n| + |b.seq m - b.seq n| := by
-        calc |(a.seq m + b.seq m) - (a.seq n + b.seq n)|
-            = |(a.seq m - a.seq n) + (b.seq m - b.seq n)| := by ring_nf
-          _ <= |a.seq m - a.seq n| + |b.seq m - b.seq n| := abs_add _ _
-      linarith }
+      have h1 := ha m n (by omega) (by omega)
+      have h2 := hb m n (by omega) (by omega)
+      have key : (a.seq m + b.seq m) - (a.seq n + b.seq n)
+               = (a.seq m - a.seq n) + (b.seq m - b.seq n) := by grind
+      have tri := rabs_add (a.seq m - a.seq n) (b.seq m - b.seq n)
+      rw [key]; grind }
+\end{lstlisting}
+\end{leanbox}
+\color{black}
 
+Now the payoff of the well-definedness discussion from Chapter~2.  Addition takes \emph{two} \li{MyReal} arguments, so we must lift through the quotient twice --- one nested \li{Quot.lift} per argument --- and prove that \li{addCauchy} respects \li{CauchyEquiv} \emph{in each argument separately}.  Neither proof is optional: omit one and Lean rejects the definition.
+
+\begin{leanbox}
+\begin{lstlisting}
+-- Respecting the equivalence in the right argument...
+theorem addCauchy_respects_right (a b b' : CauchySeq)
+    (h : CauchyEquiv b b') :
+    CauchyEquiv (addCauchy a b) (addCauchy a b') := by
+  intro eps heps
+  obtain ⟨N, hN⟩ := h eps heps
+  refine ⟨N, fun n hn => ?_⟩
+  have hb := hN n hn
+  show rabs ((a.seq n + b.seq n) - (a.seq n + b'.seq n)) < eps
+  have key : (a.seq n + b.seq n) - (a.seq n + b'.seq n)
+           = b.seq n - b'.seq n := by grind
+  rw [key]; exact hb
+
+-- ...and in the left argument.
+theorem addCauchy_respects_left (a a' b : CauchySeq)
+    (h : CauchyEquiv a a') :
+    CauchyEquiv (addCauchy a b) (addCauchy a' b) := by
+  intro eps heps
+  obtain ⟨N, hN⟩ := h eps heps
+  refine ⟨N, fun n hn => ?_⟩
+  have ha := hN n hn
+  show rabs ((a.seq n + b.seq n) - (a'.seq n + b.seq n)) < eps
+  have key : (a.seq n + b.seq n) - (a'.seq n + b.seq n)
+           = a.seq n - a'.seq n := by grind
+  rw [key]; exact ha
+
+-- Addition on MyReal: nested Quot.lift, one well-definedness
+-- proof per argument.
 def addReal : MyReal -> MyReal -> MyReal :=
-  Quot.lift2
-    (fun a b => Quot.mk CauchyEquiv (addCauchy a b))
-    (by
-      intro a1 a2 b h
-      apply Quot.sound
-      intro eps heps
-      obtain ⟨N, hN⟩ := h eps heps
-      exact ⟨N, fun n hn => by simp [addCauchy]; linarith [hN n hn]⟩)
+  Quot.lift
+    (fun a => Quot.lift (fun b => Quot.mk CauchyEquiv (addCauchy a b))
+      (fun b b' h => Quot.sound (addCauchy_respects_right a b b' h)))
+    (fun a a' h => by
+      funext y
+      induction y using Quot.ind with
+      | mk b => exact Quot.sound (addCauchy_respects_left a a' b h))
 \end{lstlisting}
 \end{leanbox}
 \color{black}
@@ -1173,7 +1336,7 @@ Finally, a note on uniqueness: the complete ordered field axioms characterise $\
 
 Bishop's constructive analysis resolves this by weakening the statement: instead of ``every bounded-above set has a supremum,'' one proves ``every \emph{located} set'' (one for which the distance from any point can be computed) has a supremum. This is a strictly stronger hypothesis and gives a strictly weaker conclusion, but it is computable. The resulting theory is consistent with classical analysis (every classically valid theorem is also constructively valid if you add enough hypotheses), but proofs are longer.
 
-For our purposes, we work classically throughout. The Lean~4 theorems in this book use \texttt{Classical.em} (law of excluded middle) implicitly wherever we appeal to the LUB property or prove existence by contradiction. If you wanted a fully constructive development, you would need to replace our \texttt{MyReal} with a type of \emph{Cauchy reals with modulus} --- sequences equipped with an explicit convergence rate function --- and all existence proofs would need to be replaced by explicit constructions. This is the approach taken in Lean's \texttt{Mathlib.Topology.Algebra.Order} when it works in the constructive fragment.
+For our purposes, we work classically throughout. The Lean~4 theorems in this book use \texttt{Classical.em} (law of excluded middle) implicitly wherever we appeal to the LUB property or prove existence by contradiction. If you wanted a fully constructive development, you would need to replace our \texttt{MyReal} with a type of \emph{Cauchy reals with modulus} --- sequences equipped with an explicit convergence rate function --- and all existence proofs would need to be replaced by explicit constructions. This is the approach taken in constructive libraries such as CoRN (for the Coq/Rocq prover); Lean's Mathlib, which we adopt in the next chapter, is unapologetically classical.
 
 \begin{thmbox}{$\R$ is Complete}
 Every Cauchy sequence in $\R$ converges to an element of $\R$.
@@ -1242,6 +1405,36 @@ The $\varepsilon$-$N$ definition we use in this chapter is essentially Cauchy's,
 An important subtlety: Cauchy's definition of limit was slightly different from ours. He defined $\lim_{n\to\infty} a_n = L$ to mean ``$a_n - L$ becomes infinitely small,'' which required a separate (and never fully rigorous) account of what ``infinitely small'' meant. Weierstrass replaced this with the purely quantitative $\forall \varepsilon > 0, \exists N, \forall n > N, |a_n - L| < \varepsilon$, which contains no undefined terms at all. This is the version in our Definition box below.
 \end{remarkbox}
 \color{black}
+
+\section{From \texorpdfstring{\li{MyReal}}{MyReal} to Mathlib}\label{sec:mathlib-switch}
+
+Before the first definition of this chapter, an important and deliberate change of gear.
+
+\textbf{Retiring \li{MyReal}.}  The \li{MyReal} we built in Chapter~5 has served its purpose.  You have now seen, in full detail, that the real numbers are not handed down from anywhere: they can be constructed --- pairs, fractions, Cauchy sequences, three quotients --- from \li{zero} and \li{succ}, with every well-definedness debt paid.  But pushing \emph{analysis} through that construction would mean months of API-building: every $|{\cdot}|$ estimate, every field identity, every completeness argument re-proved by hand before we could even state the Intermediate Value Theorem.  That work has already been done, once, by a community of hundreds --- so from this chapter onward we retire \li{MyReal} and write \li{Real} to mean \textbf{Mathlib's} real numbers.  This is not a retreat: Mathlib's \li{Real} is \emph{the same construction you just carried out} --- equivalence classes of Cauchy sequences of rationals (see \li{Mathlib.Data.Real.Basic}; the quotient lives in \li{CauSeq.Completion}) --- built with more generality and a vastly larger lemma library.  You built the engine once by hand; now you get to drive the production model.
+
+\textbf{What Mathlib is.}  Mathlib is the Lean community's monolithic mathematics library: over a million lines of machine-checked mathematics, from linear algebra through measure theory to schemes, maintained at \url{https://github.com/leanprover-community/mathlib4}.  Importing it gives us two things.  First, \emph{definitions and theorems}: \li{Real}, \li{Real.sqrt}, \li{Real.exp}, \li{Real.sin}, the absolute-value notation $|x|$, \li{Finset} sums, and thousands of named lemmas (\li{abs\_add\_le}, \li{abs\_mul}, \ldots).  Second, \emph{tactics}: powerful proof-automation such as \li{linarith} (linear arithmetic), \li{nlinarith}, \li{norm\_num}, \li{positivity}, \li{ring}, \li{field\_simp}, and \li{push\_neg}, none of which exist in core Lean.  Each is described in Appendix~\ref{app:primer} the first time we use it.
+
+\textbf{Setting up a Mathlib project.}  Lake, Lean's build tool, fetches Mathlib as a dependency.  Create a project directory containing a file \li{lean-toolchain} with the single line \li{leanprover/lean4:v4.31.0} and a \li{lakefile.toml} like this:
+
+\begin{leanbox}[title={lakefile.toml}]
+\begin{lstlisting}
+name = "verifiedcalculus"
+defaultTargets = ["VerifiedCalculus"]
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.31.0"
+
+[[lean_lib]]
+name = "VerifiedCalculus"
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+Then run \li{lake update} to resolve the dependency and \li{lake exe cache get} to download prebuilt binaries --- do not skip this step, or your machine will spend hours compiling Mathlib from source.  All fetched packages and build artifacts (including the compiled \li{.olean} files) live under the \li{.lake/} directory of your project.  Start your Lean files with \li{import Mathlib} and everything in this chapter compiles.
+
+\textbf{The ground rules from here on.}  We still \emph{define our own} analysis: \li{SeqLimit}, \li{FuncLimit}, \li{ContinuousAt}, \li{HasDerivAt} below are ours, written out in $\varepsilon$--$\delta$ form, not Mathlib's versions --- the point of the book is to build calculus, not to import it.  What we take from Mathlib is the substrate: the real numbers and their ordered-field API, plus the tactics.  (One exception is flagged loudly when it happens: in Chapter~16 we state the Fundamental Theorem against Mathlib's own integral.)  When you have finished the book, comparing our definitions with Mathlib's \li{Filter}-based ones is a highly instructive exercise.
 
 \section{Convergence of Sequences}
 
@@ -1317,27 +1510,34 @@ def SeqLimit (a : Nat -> Real) (L : Real) : Prop :=
   forall eps : Real, eps > 0 ->
     exists N : Nat, forall n : Nat, n > N -> |a n - L| < eps
 
--- Limits are unique
+-- Limits are unique. The proof mirrors the prose exactly:
+-- eps = |L - M|/2, pick an index beyond both thresholds, and let
+-- the triangle inequality produce |L - M| < |L - M|.
 theorem limit_unique (a : Nat -> Real) (L M : Real)
     (hL : SeqLimit a L) (hM : SeqLimit a M) : L = M := by
-  by_contra h
-  have hne : L ≠ M := h
-  set eps := |L - M| / 2
-  have heps : eps > 0 := by positivity
-  obtain ⟨N1, hN1⟩ := hL eps heps
-  obtain ⟨N2, hN2⟩ := hM eps heps
-  have hn := max N1 N2 + 1
+  by_contra hne
+  have heps : |L - M| / 2 > 0 := by
+    have h : L - M ≠ 0 := sub_ne_zero.mpr hne
+    positivity
+  obtain ⟨N1, hN1⟩ := hL (|L - M| / 2) heps
+  obtain ⟨N2, hN2⟩ := hM (|L - M| / 2) heps
   have h1 := hN1 (max N1 N2 + 1) (by omega)
   have h2 := hN2 (max N1 N2 + 1) (by omega)
-  have : |L - M| < |L - M| := by
-    calc |L - M| = |L - a _ + (a _ - M)| := by ring_nf
-      _ <= |L - a _| + |a _ - M| := abs_add _ _
-      _ < eps + eps := by linarith
-      _ = |L - M| := by ring
+  have key : |L - M|
+      ≤ |a (max N1 N2 + 1) - L| + |a (max N1 N2 + 1) - M| := by
+    calc |L - M|
+        = |(L - a (max N1 N2 + 1)) + (a (max N1 N2 + 1) - M)| := by
+          ring_nf
+      _ ≤ |L - a (max N1 N2 + 1)| + |a (max N1 N2 + 1) - M| :=
+          abs_add_le _ _
+      _ = |a (max N1 N2 + 1) - L| + |a (max N1 N2 + 1) - M| := by
+          rw [abs_sub_comm]
   linarith
 \end{lstlisting}
 \end{leanbox}
 \color{black}
+
+Three Mathlib tactics make their debut here: \li{by\_contra} turns the goal $L = M$ into a hypothesis $L \neq M$ with goal \li{False}; \li{positivity} dispatches the ``obviously positive'' side-goal; and \li{linarith} finishes by deriving a contradiction from the linear inequalities in scope ($|L-M| \leq h_1 + h_2$, $h_1 < |L-M|/2$, $h_2 < |L-M|/2$).  Appendix~\ref{app:primer} covers all three.
 
 \section{Algebra of Limits}
 
@@ -1495,19 +1695,22 @@ def FuncLimit (f : Real -> Real) (a L : Real) : Prop :=
 
 -- Example: lim_{x -> 2} (x^2) = 4
 -- We need: for |x - 2| < delta, |x^2 - 4| < eps
--- |x^2 - 4| = |x+2||x-2|.  If |x-2| < 1 then |x| < 3, |x+2| < 5.
+-- |x^2 - 4| = |x+2||x-2|.  If |x-2| < 1 then |x+2| < 5.
 -- So take delta = min(1, eps/5).
 example : FuncLimit (fun x => x * x) 2 4 := by
   intro eps heps
-  refine ⟨min 1 (eps / 5), by positivity, fun x hxpos hxd => ?_⟩
-  have hx2 : |x - 2| < 1     := lt_of_lt_of_le hxd (min_le_left _ _)
+  refine ⟨min 1 (eps / 5), by positivity, fun x _ hxd => ?_⟩
+  have hx1 : |x - 2| < 1     := lt_of_lt_of_le hxd (min_le_left _ _)
   have hx5 : |x - 2| < eps/5 := lt_of_lt_of_le hxd (min_le_right _ _)
   have hbound : |x + 2| < 5 := by
-    have : |x| < 3 := by linarith [abs_lt.mp hx2]
-    linarith [abs_le.mp (le_of_lt (abs_lt.mpr (by linarith)))]
-  calc |x * x - 4| = |(x - 2) * (x + 2)| := by ring_nf
-    _ = |x - 2| * |x + 2| := abs_mul _ _
-    _ < (eps / 5) * 5 := by nlinarith
+    have h := abs_add_le (x - 2) 4
+    have e : x - 2 + 4 = x + 2 := by ring
+    rw [e] at h
+    have h4 : |(4 : Real)| = 4 := by norm_num
+    linarith
+  calc |x * x - 4| = |x - 2| * |x + 2| := by rw [← abs_mul]; ring_nf
+    _ < (eps / 5) * 5 :=
+        mul_lt_mul'' hx5 hbound (abs_nonneg _) (abs_nonneg _)
     _ = eps := by ring
 \end{lstlisting}
 \end{leanbox}
@@ -1572,7 +1775,7 @@ Reduce to the sequential characterization and apply the Algebra of Sequential Li
 
 The nineteenth century produced a series of increasingly disturbing examples that forced mathematicians to rethink their intuitions about continuity.
 
-\textbf{Fourier} (1822) showed that a discontinuous function --- one with jumps --- could be represented as an infinite sum of continuous sine and cosine functions. This raised an immediate question: if the \emph{limit} of continuous functions is not necessarily continuous, what exactly does ``continuous'' mean? Cauchy claimed (incorrectly) that the uniform limit of continuous functions is continuous. \textbf{Abel} found a counterexample in 1826; \textbf{Seidel} and \textbf{Stokes} independently clarified the issue in 1847--48 by distinguishing uniform from pointwise convergence.
+\textbf{Fourier} (1822) showed that a discontinuous function --- one with jumps --- could be represented as an infinite sum of continuous sine and cosine functions. This raised an immediate question: if the \emph{limit} of continuous functions is not necessarily continuous, what exactly does ``continuous'' mean? Cauchy claimed (incorrectly) that the \emph{pointwise} limit of continuous functions is continuous. \textbf{Abel} found a counterexample in 1826; \textbf{Seidel} and \textbf{Stokes} independently clarified the issue in 1847--48 by distinguishing uniform from pointwise convergence: it is the \emph{uniform} limit of continuous functions that is guaranteed continuous (the uniform-limit theorem), while pointwise limits can jump.
 
 The next shock came from \textbf{Dirichlet} (1829), who defined the function that is $1$ on rationals and $0$ on irrationals. This function is nowhere continuous --- the rationals and irrationals are both dense --- yet it is perfectly well-defined pointwise. It is not Riemann integrable (Riemann's criterion requires the oscillation to be controllable on each subinterval, which fails everywhere for Dirichlet's function). It \emph{is} Lebesgue integrable, with integral $0$, since the rationals form a set of measure zero.
 
@@ -1605,24 +1808,22 @@ def ContinuousAt (f : Real -> Real) (a : Real) : Prop :=
 -- Polynomials are continuous: x^2 is continuous at every a
 theorem sq_continuous_at (a : Real) : ContinuousAt (fun x => x * x) a := by
   intro eps heps
-  -- |x^2 - a^2| = |x-a||x+a|. If |x-a| < 1, |x+a| <= |x-a| + 2|a| < 1 + 2|a|
-  refine ⟨min 1 (eps / (1 + 2 * |a| + 1)), by positivity, fun x hx => ?_⟩
+  -- |x^2 - a^2| = |x-a||x+a|. If |x-a| < 1, |x+a| <= |x-a| + 2|a| < 2|a| + 1
+  refine ⟨min 1 (eps / (2 * |a| + 2)), by positivity, fun x hx => ?_⟩
   have hd1 : |x - a| < 1 := lt_of_lt_of_le hx (min_le_left _ _)
-  have hde : |x - a| < eps / (1 + 2 * |a| + 1) :=
+  have hde : |x - a| < eps / (2 * |a| + 2) :=
     lt_of_lt_of_le hx (min_le_right _ _)
-  have hxa : |x + a| < 1 + 2 * |a| := by
-    have : |x + a| <= |x - a| + 2 * |a| := by
+  have hxa : |x + a| < 2 * |a| + 1 := by
+    have h : |x + a| <= |x - a| + 2 * |a| := by
       calc |x + a| = |(x - a) + 2 * a| := by ring_nf
-        _ <= |x - a| + |2 * a| := abs_add _ _
+        _ <= |x - a| + |2 * a| := abs_add_le _ _
         _ = |x - a| + 2 * |a| := by rw [abs_mul]; norm_num
     linarith
   calc |x * x - a * a|
       = |x - a| * |x + a| := by rw [← abs_mul]; ring_nf
-    _ < (eps / (1 + 2 * |a| + 1)) * (1 + 2 * |a|) := by nlinarith
-    _ < eps := by
-        apply div_mul_lt_iff.mpr
-        · ring_nf; linarith
-        · linarith
+    _ < (eps / (2 * |a| + 2)) * (2 * |a| + 2) :=
+        mul_lt_mul'' hde (by linarith) (abs_nonneg _) (abs_nonneg _)
+    _ = eps := div_mul_cancel₀ eps (by positivity)
 \end{lstlisting}
 \end{leanbox}
 \color{black}
@@ -1665,7 +1866,7 @@ Hence $f(c) = v$.
 \end{proof}
 
 \begin{corbox}{Existence of $n$-th Roots}
-For any $y > 0$ and $n \in \N$, $y^{1/n}$ exists as a real number.
+For any $y > 0$ and any integer $n \geq 1$, $y^{1/n}$ exists as a real number.
 \end{corbox}
 \color{black}
 
@@ -1763,7 +1964,7 @@ A subset $K \subseteq \R$ is compact if and only if it is closed and bounded.
 \color{black}
 
 \begin{proof}
-$(\Rightarrow)$: Compact sets in a metric space are closed and bounded. Boundedness: the cover $\{(-n,n)\}_{n\geq 1}$ has a finite subcover. Closure: if $x$ is a limit point not in $K$, the sets $\R \setminus \{y : |y-x| \leq 1/n\}$ cover $K$ but no finite subcollection does.
+$(\Rightarrow)$: Compact sets are closed and bounded (the argument works in any metric space --- any set with a distance function, of which $\R$ with $d(x,y) = |x-y|$ is the basic example). Boundedness: the cover $\{(-n,n)\}_{n\geq 1}$ has a finite subcover. Closure: if $x$ is a limit point not in $K$, the sets $\R \setminus \{y : |y-x| \leq 1/n\}$ cover $K$ but no finite subcollection does.
 
 $(\Leftarrow)$: Closed and bounded in $\R$ implies compact. The key lemma (proved by the bisection method, using completeness) is that $[a,b]$ is compact; a closed subset of a compact set is compact.
 \end{proof}
@@ -1782,7 +1983,7 @@ The image $f(K)$ is compact (continuous images of compact sets are compact). A c
 A connected set cannot be split into two separated open pieces.  Intuitively, it is ``in one piece.''  In $\R$, the connected sets are exactly the intervals --- a fact that is not obvious from the definition but is a theorem.  Connectedness is what powers the Intermediate Value Theorem: the image of a connected set under a continuous function is connected, so it must itself be an interval, and therefore contains all values between its endpoints.
 
 \begin{defbox}{Connectedness}
-A set $S \subseteq \R$ is \textbf{connected} if it cannot be written as a disjoint union $S = A \cup B$ of two nonempty open sets. The connected subsets of $\R$ are exactly the intervals (including rays and $\R$ itself).
+A set $S \subseteq \R$ is \textbf{connected} if it cannot be written as a disjoint union $S = A \cup B$ of two nonempty sets that are \emph{open in $S$} --- that is, $A = S \cap U$ and $B = S \cap V$ for open sets $U, V \subseteq \R$ (this is the \textbf{subspace topology} on $S$). The relativisation matters: $S = [0,1] \cup [2,3]$ is visibly disconnected, yet neither piece is open in $\R$; each \emph{is} open in $S$ (take $U = (-1, 1.5)$ and $V = (1.5, 4)$). The connected subsets of $\R$ are exactly the intervals (including rays and $\R$ itself).
 \end{defbox}
 \color{black}
 
@@ -1792,7 +1993,7 @@ If $f$ is continuous and $S$ is connected, then $f(S)$ is connected.
 \color{black}
 
 \begin{proof}
-Suppose $f(S) = A \cup B$ (disjoint open sets). Then $S = f^{-1}(A) \cup f^{-1}(B)$, both open by continuity of $f$. Since $S$ is connected, one must be empty.
+Suppose $f(S) = A \cup B$ with $A, B$ nonempty, disjoint, and open in $f(S)$, say $A = f(S) \cap U$ and $B = f(S) \cap V$ with $U, V$ open. Then $S = (S \cap f^{-1}(U)) \cup (S \cap f^{-1}(V))$, a disjoint union of nonempty sets open in $S$ (preimages of open sets are open, by continuity of $f$). This contradicts the connectedness of $S$.
 \end{proof}
 
 \begin{corbox}{Intermediate Value Theorem (Topological Proof)}
@@ -1943,17 +2144,18 @@ def HasDerivAt (f : Real -> Real) (x L : Real) : Prop :=
       forall h : Real, |h| < delta -> h ≠ 0 ->
         |(f (x + h) - f x) / h - L| < eps
 
--- The derivative of a constant is zero
+-- The derivative of a constant is zero: the difference quotient
+-- (c - c)/h is literally 0, so simp closes everything.
 theorem const_deriv (c x : Real) : HasDerivAt (fun _ => c) x 0 := by
   intro eps heps
-  exact ⟨1, one_pos, fun h _ _ => by
-    simp; rw [div_self (ne_of_gt (by linarith))]; simp; exact heps⟩
+  refine ⟨1, one_pos, fun h _ _ => ?_⟩
+  simpa using heps
 
--- The derivative of x is 1
+-- The derivative of x is 1: the quotient is h/h = 1 (h ≠ 0!).
 theorem id_deriv (x : Real) : HasDerivAt id x 1 := by
   intro eps heps
-  exact ⟨1, one_pos, fun h _ _ => by
-    simp [id]; rw [add_sub_cancel_left, div_self (by assumption)]; simp; linarith⟩
+  refine ⟨1, one_pos, fun h _ hne => ?_⟩
+  simpa [div_self hne] using heps
 
 -- Differentiability implies continuity
 theorem differentiable_implies_continuous (f : Real -> Real) (x L : Real)
@@ -1999,6 +2201,13 @@ $(e^x)' = e^x$.
 \begin{proof}
 $(e^{x+h} - e^x)/h = e^x(e^h - 1)/h \to e^x \cdot 1$, where $\lim_{h\to 0}(e^h-1)/h = 1$ follows from the power series $e^h = 1 + h + h^2/2! + \cdots$.
 \end{proof}
+
+\begin{remarkbox}
+\textbf{An honest accounting: where do $\sin$, $\cos$, and $e^x$ come from?}
+
+Notice that the last two proofs \emph{consume} facts we have not yet established: the angle-addition formula, the limits $\sin(h)/h \to 1$ and $(e^h - 1)/h \to 1$, indeed the very definitions of $\sin$, $\cos$, and $e^x$.  This book does not construct these functions from first principles.  The standard rigorous route --- which we sketch but do not complete --- is to \emph{define} them by their power series ($e^x = \sum x^n/n!$, etc.), prove the series converge everywhere (Chapter~20), and derive the derivative rules by term-by-term differentiation (Chapters~20--21).  In Lean, this is exactly what Mathlib does: \li{Real.exp}, \li{Real.sin}, and \li{Real.cos} are defined via power series (over $\mathbb{C}$, then restricted), and the rules above are library theorems (\li{Real.hasDerivAt\_sin} and friends).  When the capstone's differentiation engine applies $(\sin u)' = \cos(u)\,u'$, it is these theorems that back the rule.
+\end{remarkbox}
+\color{black}
 
 \begin{exbox}
 \begin{enumerate}
@@ -2290,18 +2499,22 @@ By Taylor's theorem: $0 = f(r) = f(x_n) + f'(x_n)(r - x_n) + \frac{f''(\xi)}{2}(
 
 \begin{leanbox}
 \begin{lstlisting}
--- Newton's method as a recursive function
-def newton (f df : Real -> Real) : Nat -> Real -> Real
+-- Newton's method as a recursive function. Note the type: Float,
+-- not Real. Mathlib's Real is noncomputable (a Real is an
+-- equivalence class of Cauchy sequences -- there is nothing to
+-- "run"), so a Real-valued newton could be defined but never
+-- #eval'd. Float is the computational stand-in.
+def newton (f df : Float -> Float) : Nat -> Float -> Float
   | 0,     x => x
   | n + 1, x => newton f df n (x - f x / df x)
 
 -- Example: computing sqrt(2) via Newton's method for f(x) = x^2 - 2
-def sqrtNewton (n : Nat) (x0 : Real) : Real :=
+def sqrtNewton (n : Nat) (x0 : Float) : Float :=
   newton (fun x => x * x - 2) (fun x => 2 * x) n x0
 
 -- Starting from x0 = 1.5:
 -- 1.5 -> 1.4166... -> 1.41421356... (converges to sqrt(2))
-#eval sqrtNewton 5 1.5  -- (using Float approximation)
+#eval sqrtNewton 5 1.5  -- prints 1.414214 (Float's default precision)
 \end{lstlisting}
 \end{leanbox}
 \color{black}
@@ -2404,14 +2617,14 @@ A \textbf{partition} of $[a,b]$ is a finite sequence $P = \{a = x_0 < x_1 < \cdo
 
 The \textbf{mesh} of $P$ is $\|P\| = \max_i (x_i - x_{i-1})$.
 
-For $f : [a,b] \to \R$, the \textbf{upper Darboux sum} and \textbf{lower Darboux sum} are:
+For $f : [a,b] \to \R$ \textbf{bounded} (boundedness is what guarantees the suprema and infima below exist), the \textbf{upper Darboux sum} and \textbf{lower Darboux sum} are:
 \[ U(f, P) = \sum_{i=1}^n M_i(x_i - x_{i-1}), \quad L(f, P) = \sum_{i=1}^n m_i(x_i - x_{i-1}), \]
 where $M_i = \sup_{x \in [x_{i-1},x_i]} f(x)$ and $m_i = \inf_{x \in [x_{i-1},x_i]} f(x)$.
 \end{defbox}
 \color{black}
 
 \begin{defbox}{Riemann Integrability}
-$f$ is \textbf{Riemann integrable} on $[a,b]$ if:
+A \textbf{bounded} $f$ is \textbf{Riemann integrable} on $[a,b]$ if:
 \[ \sup_P L(f,P) = \inf_P U(f,P). \]
 This common value is the \textbf{Riemann integral} $\int_a^b f(x)\,dx$.
 \end{defbox}
@@ -2445,26 +2658,35 @@ For increasing $f$ and partition $P$ with equal subintervals of width $(b-a)/n$:
 -- A partition of [a, b]
 structure Partition (a b : Real) where
   points : List Real
-  sorted : points.Sorted (· ≤ ·)
+  sorted : points.Pairwise (· ≤ ·)
   starts : points.head? = some a
   ends   : points.getLast? = some b
 
 -- Subintervals from a partition
-def subintervals (P : Partition a b) : List (Real × Real) :=
+def subintervals {a b : Real} (P : Partition a b) : List (Real × Real) :=
   P.points.zip P.points.tail
 
--- Upper and lower Darboux sums (sketch)
-def upperSum (f : Real -> Real) (P : Partition a b) : Real :=
-  (subintervals P).foldl (fun acc (xi_prev, xi) =>
-    let Mi := sorry  -- sup of f on [xi_prev, xi]
-    acc + Mi * (xi - xi_prev)) 0
+-- Upper and lower Darboux sums (sketch: the two sorries stand for
+-- the sup and inf of f on a subinterval, which exist because f is
+-- bounded; constructing them is this chapter's project exercise).
+noncomputable def upperSum {a b : Real} (f : Real -> Real)
+    (P : Partition a b) : Real :=
+  (subintervals P).foldl (fun acc (p : Real × Real) =>
+    let Mi : Real := sorry  -- sup of f on [p.1, p.2]
+    acc + Mi * (p.2 - p.1)) 0
 
--- Riemann integrability
+noncomputable def lowerSum {a b : Real} (f : Real -> Real)
+    (P : Partition a b) : Real :=
+  (subintervals P).foldl (fun acc (p : Real × Real) =>
+    let mi : Real := sorry  -- inf of f on [p.1, p.2]
+    acc + mi * (p.2 - p.1)) 0
+
+-- Riemann integrability (for bounded f)
 def IsIntegrable (f : Real -> Real) (a b : Real) : Prop :=
   exists I : Real,
     forall eps : Real, eps > 0 ->
       exists P : Partition a b,
-        upperSum f P - I < eps /\ I - sorry < eps
+        upperSum f P - I < eps /\ I - lowerSum f P < eps
 \end{lstlisting}
 \end{leanbox}
 \color{black}
@@ -2490,7 +2712,7 @@ If $f, g$ are integrable on $[a,b]$:
   \item Prove that if $f$ is integrable and $f = g$ everywhere except finitely many points, then $g$ is integrable with $\int f = \int g$.
   \item Show that Dirichlet's function $f(x) = 1$ for $x \in \Q$ and $0$ otherwise is not Riemann integrable on $[0,1]$.
   \item Prove the triangle inequality for integrals: $\left|\int_a^b f\right| \leq \int_a^b |f|$.
-  \item Formalize the definition of \li{IsIntegrable} in Lean~4 using Lean's \li{Real} type.
+  \item Complete the formalization of \li{IsIntegrable} over Mathlib's \li{Real} type: replace the two \li{sorry}s in the sketch above with genuine suprema and infima (Mathlib's \li{sSup}/\li{sInf} of \li{f '' Set.Icc p.1 p.2}), adding the boundedness hypothesis the definition needs.
 \end{enumerate}
 \end{exbox}
 \color{black}
@@ -2548,28 +2770,29 @@ If $f$ is continuous on $[a,b]$ and $G$ is any antiderivative of $f$ (i.e., $G' 
 \color{black}
 
 \begin{proof}
-Let $F(x) = \int_a^x f(t)\,dt$. By Part 1, $F' = f = G'$, so $G - F$ is constant (by MVT, $(G-F)'=0 \Rightarrow G-F=c$). Then $\int_a^b f = F(b) = G(b) - G(a) + F(b) - G(b) + G(a) = G(b) - G(a)$ (using $F(a) = 0$).
+Let $F(x) = \int_a^x f(t)\,dt$. By Part 1, $F' = f = G'$, so $G - F$ is constant (by MVT, $(G-F)'=0 \Rightarrow G-F=c$). Evaluating the constant at $x = a$: $c = G(a) - F(a) = G(a)$, since $F(a) = 0$. Hence $F(x) = G(x) - G(a)$ for all $x$, and in particular $\int_a^b f = F(b) = G(b) - G(a)$.
 \end{proof}
 
 The power of FTC Part 2 cannot be overstated: instead of computing limits of Riemann sums, we need only find an antiderivative. This is why the integration techniques of Chapter~17 matter.
 
+Formalising FTC honestly requires an \emph{actual integral}, and our Chapter~15 sketch stopped short of one (its Darboux sums still contain \li{sorry}s for the suprema).  Rather than state a theorem about an integral we never finished defining, this is the one place in the book where we lean on Mathlib's analysis library itself: Mathlib's interval integral \li{∫ x in a..b, f x}, its own derivative predicate (written \li{\_root\_.HasDerivAt} below to distinguish it from our $\varepsilon$--$\delta$ version --- the underscore prefix says ``the top-level one, not ours''), and its integrability predicate \li{IntervalIntegrable}.  The reward for stating it in Mathlib's terms: the proof is a \emph{one-liner}, because Mathlib has already done the work of this whole chapter, in full generality.
+
 \begin{leanbox}
 \begin{lstlisting}
--- FTC Part 2 in Lean: if G' = f and f is continuous, then integral = G(b) - G(a)
--- We state it in terms of our HasDerivAt definition
+-- FTC Part 2, stated against Mathlib's interval integral and
+-- proved by Mathlib's own FTC. The hypothesis asks G to have
+-- derivative f(x) at every x between a and b (Set.uIcc a b is
+-- the closed interval between them, whichever is larger).
 theorem ftc_part2 (f G : Real -> Real) (a b : Real)
-    (hcont : forall x, a <= x -> x <= b -> ContinuousAt f x)
-    (hderiv : forall x, a < x -> x < b -> HasDerivAt G x (f x))
-    (hint : IsIntegrable f a b) :
-    integral f a b = G b - G a := by
-  sorry  -- Full proof requires the full Riemann integral machinery
-  -- Sketch: F(x) := integral f a x satisfies F' = f by FTC Part 1
-  -- G' = f = F', so (G - F)' = 0, so G - F = constant C
-  -- At x = a: G(a) - F(a) = G(a) - 0 = G(a), so C = G(a)
-  -- At x = b: integral = F(b) = G(b) - C = G(b) - G(a)
+    (hderiv : ∀ x ∈ Set.uIcc a b, _root_.HasDerivAt G (f x) x)
+    (hint : IntervalIntegrable f MeasureTheory.volume a b) :
+    ∫ x in a..b, f x = G b - G a :=
+  intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv hint
 \end{lstlisting}
 \end{leanbox}
 \color{black}
+
+Completing the story with our own definitions --- proving that a continuous $f$ satisfies \li{IsIntegrable} (Chapter~15) and that the resulting value equals $G(b) - G(a)$, following the paper proof above --- is a substantial but rewarding project; the sketch in the paper proof is the roadmap.
 
 \begin{exbox}
 \begin{enumerate}
@@ -2807,10 +3030,19 @@ A conditionally convergent series can be rearranged to converge to any real numb
 %%-----------------------------------------------------------------------------
 \color{black}
 
+The radius-of-convergence formula below uses one piece of vocabulary we have not yet defined: the \emph{limit superior}.  A bounded sequence need not converge, but the suprema of its tails always settle down.
+
+\begin{defbox}{Limit Superior}
+For a sequence $(a_n)$ of reals, the \textbf{limit superior} is
+\[ \limsup_{n\to\infty} a_n := \lim_{n\to\infty}\, \Bigl(\sup_{k \geq n} a_k\Bigr), \]
+i.e.\ the limit of the tail-suprema $s_n = \sup\{a_k : k \geq n\}$.  The $s_n$ are non-increasing, so by the Monotone Convergence Theorem the limit always exists when $(a_n)$ is bounded above (we set $\limsup a_n = +\infty$ otherwise, and $-\infty$ if $a_n \to -\infty$).  Equivalently, $\limsup a_n$ is the largest limit of any convergent subsequence.  For a convergent sequence, $\limsup a_n = \lim a_n$; the point of $\limsup$ is that it exists even when the plain limit does not --- e.g.\ $\limsup\,(-1)^n = 1$.
+\end{defbox}
+\color{black}
+
 \begin{defbox}{Power Series and Radius of Convergence}
 A \textbf{power series} centered at $a$ is $\sum_{n=0}^\infty c_n(x-a)^n$.
 
-Its \textbf{radius of convergence} is $R = 1/\limsup_{n\to\infty} |c_n|^{1/n}$ (the Cauchy--Hadamard formula). The series converges absolutely for $|x-a| < R$ and diverges for $|x-a| > R$.
+Its \textbf{radius of convergence} is $R = 1/\limsup_{n\to\infty} |c_n|^{1/n}$ (the Cauchy--Hadamard formula, with the conventions $1/0 = \infty$ and $1/\infty = 0$). The series converges absolutely for $|x-a| < R$ and diverges for $|x-a| > R$.
 \end{defbox}
 \color{black}
 
@@ -2871,24 +3103,25 @@ Not every $C^\infty$ function is analytic. The function $f(x) = e^{-1/x^2}$ (ext
 
 \begin{leanbox}
 \begin{lstlisting}
--- We can define e^x via its Taylor series and prove properties
--- Taylor polynomials for e^x
-def expTaylor (n : Nat) (x : Real) : Real :=
+-- We can define e^x via its Taylor series and prove properties.
+-- Taylor polynomials for e^x (noncomputable: Real division is)
+noncomputable def expTaylor (n : Nat) (x : Real) : Real :=
   Finset.sum (Finset.range (n + 1)) (fun k =>
-    x ^ k / Nat.factorial k)
+    x ^ k / (Nat.factorial k : Real))
 
 -- The k-th term
-def expTerm (k : Nat) (x : Real) : Real :=
-  x ^ k / Nat.factorial k
+noncomputable def expTerm (k : Nat) (x : Real) : Real :=
+  x ^ k / (Nat.factorial k : Real)
 
 -- Ratio test: |a_{k+1}/a_k| = |x|/(k+1) -> 0 for any fixed x
 theorem expTaylor_converges (x : Real) :
     SeqLimit (fun n => expTaylor n x) (Real.exp x) := by
-  sorry  -- requires series convergence machinery from Ch. 19-20
+  sorry  -- exercise: series convergence machinery from Ch. 19-20
 
--- e^x satisfies (e^x)' = e^x
+-- e^x satisfies (e^x)' = e^x (our epsilon-delta HasDerivAt)
 theorem exp_deriv (x : Real) : HasDerivAt Real.exp x (Real.exp x) := by
-  sorry  -- follows from term-by-term differentiation of the Taylor series
+  sorry  -- exercise: term-by-term differentiation, or transfer
+         -- Mathlib's Real.hasDerivAt_exp to our definition
 \end{lstlisting}
 \end{leanbox}
 \color{black}
@@ -2956,7 +3189,7 @@ def dotProduct {n : Nat} (v w : Vec n) : Real :=
 def normSq {n : Nat} (v : Vec n) : Real :=
   dotProduct v v
 
-def euclidNorm {n : Nat} (v : Vec n) : Real :=
+noncomputable def euclidNorm {n : Nat} (v : Vec n) : Real :=
   Real.sqrt (normSq v)
 
 -- Cauchy-Schwarz
@@ -2965,10 +3198,11 @@ theorem cauchy_schwarz {n : Nat} (v w : Vec n) :
   -- Classic proof via discriminant
   have h : forall t : Real,
       0 <= normSq (fun i => v i + t * w i) := fun t => by
-    simp [normSq, dotProduct]; positivity
+    unfold normSq dotProduct
+    exact Finset.sum_nonneg fun i _ => mul_self_nonneg _
   -- The LHS is a non-negative quadratic in t: ||v||^2 + 2t(v.w) + t^2||w||^2
   -- Discriminant must be <= 0
-  sorry
+  sorry  -- exercise: expand normSq and apply the discriminant argument
 \end{lstlisting}
 \end{leanbox}
 \color{black}
@@ -3046,16 +3280,20 @@ By the MVT applied in each coordinate direction. Write $f(a+h) - f(a) = \sum_i [
 
 \begin{leanbox}
 \begin{lstlisting}
--- Partial derivative: fix all coordinates except the i-th
-def partialDeriv (f : Vec n -> Real) (i : Fin n) (a : Vec n) : Real :=
-  let g := fun (t : Real) => f (fun j => if j = i then t else a j)
-  -- This is just the ordinary derivative of g at a i
-  Classical.choose (HasDerivAt g (a i)) -- sketch
+-- Partial derivative: fix all coordinates except the i-th and
+-- take the one-variable derivative of the resulting function.
+-- Here we use Mathlib's deriv (which returns 0 when the function
+-- is not differentiable -- a "junk value", a standard Mathlib
+-- idiom that keeps partialDeriv total).
+noncomputable def partialDeriv {n : Nat} (f : Vec n -> Real)
+    (i : Fin n) (a : Vec n) : Real :=
+  deriv (fun t => f (Function.update a i t)) (a i)
 
 -- Total (Frechet) derivative as a linear map
-def HasTotalDerivAt (f : Vec n -> Real) (a : Vec n) (L : Vec n -> Real) : Prop :=
-  (forall v w : Vec n, L (fun i => v i + w i) = L v + L w) /\   -- linearity
-  (forall c : Real, forall v, L (fun i => c * v i) = c * L v) /\ -- homogeneity
+def HasTotalDerivAt {n : Nat} (f : Vec n -> Real) (a : Vec n)
+    (L : Vec n -> Real) : Prop :=
+  (forall v w : Vec n, L (fun i => v i + w i) = L v + L w) /\
+  (forall c : Real, forall v, L (fun i => c * v i) = c * L v) /\
   forall eps : Real, eps > 0 ->
     exists delta : Real, delta > 0 /\
       forall h : Vec n, euclidNorm h < delta -> euclidNorm h > 0 ->
@@ -3215,7 +3453,7 @@ $T_a(\{g=c\})$, so it is parallel to $\nabla g(a)$.
 Maximise $f(x,y)=xy$ on the ellipse $x^2/4+y^2=1$.
 Setting $\nabla f=\lambda\nabla g$: $(y,x)=\lambda(x/2,2y)$.
 From $y=\lambda x/2$ and $x=2\lambda y$: $x=2\lambda\cdot\lambda x/2=\lambda^2 x$,
-so $\lambda=\pm 1$.  The maximum is $f=1/2$ at $(\sqrt{2},1/\sqrt{2})$.
+so $\lambda=\pm 1$.  Taking $\lambda = 1$ gives $y = x/2$; substituting into the constraint, $x^2/4 + x^2/4 = 1$, so $x = \sqrt{2}$, $y = 1/\sqrt{2}$.  The maximum is $f = \sqrt{2}\cdot\tfrac{1}{\sqrt{2}} = 1$, attained at $(\sqrt{2},1/\sqrt{2})$ (and at $(-\sqrt{2},-1/\sqrt{2})$).
 \end{example}
 
 \begin{exbox}
@@ -3537,11 +3775,14 @@ Here $d$ is the exterior derivative.  The dictionary is:
 %%=============================================================================
 \color{black}
 
-The previous six parts built calculus from scratch and proved its core theorems.
+The previous six parts built the real numbers from scratch and then developed
+calculus over them, proving its core theorems.
 Now we build something with those theorems: \textbf{Symboliculus}, a command-line
 symbolic calculus solver in Lean~4 that computes derivatives and integrals with
-full step-by-step traces --- just like Symbolab, but with every rule
-traced back to the mathematics we proved.
+step-by-step traces --- just like Symbolab, but with every rule
+traced back to the mathematics we proved.  The capstone is once again plain
+core Lean --- it computes over \li{Float} and needs no Mathlib to build or
+run; only the correctness theorems of Chapter~36 bring Mathlib back.
 
 %%-----------------------------------------------------------------------------
 \chapter{Expression Trees}
@@ -3582,7 +3823,7 @@ end Symboliculus
 
 \section{Evaluation}
 
-Once we have the syntax tree, evaluation gives it meaning: given an assignment of numerical values to variables, \li{eval} traverses the tree and computes the corresponding \li{Float}.  This is the \textbf{denotational semantics} of our expression language --- exactly the semantics function from the lambda calculus book, now applied to a concrete arithmetic language.  Note that \li{eval} is total: every well-formed \li{Expr} has a value (though it may be \li{Float.nan} or \li{Float.inf} for divisions by zero).
+Once we have the syntax tree, evaluation gives it meaning: given an assignment of numerical values to variables, \li{eval} traverses the tree and computes the corresponding \li{Float}.  This is the \textbf{denotational semantics} of our expression language --- the same idea by which programming-language theory assigns mathematical meaning to programs, here applied to a concrete arithmetic language.  Note that \li{eval} is total: every well-formed \li{Expr} has a value (though it may be \li{Float.nan} or \li{Float.inf} for divisions by zero).
 
 \begin{leanbox}
 \begin{lstlisting}
@@ -3622,7 +3863,7 @@ def Expr.precedence : Expr -> Nat
 
 def Expr.pp : Expr -> String
   | Const c     => if c == Float.floor c then
-                     toString (Int.ofFloat c)
+                     toString c.toInt64   -- print 2.0 as "2"
                    else toString c
   | Var x       => x
   | Add e1 e2   => s!"{e1.pp} + {e2.pp}"
@@ -3691,6 +3932,13 @@ def parseStr (s : String) : Except String Expr :=
 Before and after differentiation or integration we run a simplification pass
 to collapse trivial expressions.
 
+One Lean subtlety shapes the code: you cannot pattern-match on \li{Float}
+\emph{literals}.  A pattern like \li{Add e (Const 0)} is rejected, because
+\li{0 : Float} is not a constructor --- it elaborates to a function call
+(\li{Float.ofScientific \ldots}), and match patterns must be built from
+constructors.  So the identity rules match \li{Const c} and test
+\li{c == 0} with an ordinary \li{if} guard on the right-hand side.
+
 \begin{leanbox}
 \begin{lstlisting}
 def Expr.simplify : Expr -> Expr
@@ -3698,19 +3946,30 @@ def Expr.simplify : Expr -> Expr
   | Add (Const a) (Const b)  => Const (a + b)
   | Sub (Const a) (Const b)  => Const (a - b)
   | Mul (Const a) (Const b)  => Const (a * b)
-  | Div (Const a) (Const b)  => if b != 0 then Const (a / b) else Div (Const a) (Const b)
+  | Div (Const a) (Const b)  =>
+      if b != 0 then Const (a / b) else Div (Const a) (Const b)
   -- Additive identity
-  | Add e (Const 0)          => e.simplify
-  | Add (Const 0) e          => e.simplify
+  | Add e (Const c)          =>
+      if c == 0 then e.simplify else Add e.simplify (Const c)
+  | Add (Const c) e          =>
+      if c == 0 then e.simplify else Add (Const c) e.simplify
   -- Multiplicative identity / zero
-  | Mul e (Const 1)          => e.simplify
-  | Mul (Const 1) e          => e.simplify
-  | Mul _ (Const 0)          => Const 0
-  | Mul (Const 0) _          => Const 0
+  | Mul e (Const c)          =>
+      if c == 1 then e.simplify
+      else if c == 0 then Const 0
+      else Mul e.simplify (Const c)
+  | Mul (Const c) e          =>
+      if c == 1 then e.simplify
+      else if c == 0 then Const 0
+      else Mul (Const c) e.simplify
   -- Power rules
-  | Pow e (Const 1)          => e.simplify
-  | Pow _ (Const 0)          => Const 1
-  | Pow (Const 1) _          => Const 1
+  | Pow e (Const c)          =>
+      if c == 1 then e.simplify
+      else if c == 0 then Const 1
+      else if e == Const 1 then Const 1
+      else Pow e.simplify (Const c)
+  | Pow (Const c) e          =>
+      if c == 1 then Const 1 else Pow (Const c) e.simplify
   -- Double negation
   | Neg (Neg e)              => e.simplify
   -- Recurse
@@ -3785,88 +4044,94 @@ inductive DiffStep where
 
 The differentiation engine is a structural recursion over \li{Expr}.  Each constructor of \li{Expr} corresponds to exactly one differentiation rule from Part~III, and the Lean pattern match makes this correspondence explicit.  Crucially, each recursive call produces not just the derivative expression but also a \li{DiffStep} that records which rule was applied --- this is what will become the step-by-step trace the user sees.  After computing the derivative, we run \li{fullSimplify} to collapse trivial expressions before returning.
 
+A syntax note: because \li{diff} is not declared inside the \li{Expr} namespace, the \emph{patterns} use the dot-prefixed constructor names (\li{.Add}, \li{.Mul}, \ldots), which Lean resolves against the type being matched.  Writing the bare names under an \li{open Expr} would collide with the arithmetic type classes \li{Add}, \li{Mul}, \li{Pow}, \li{Neg} that core Lean defines --- Lean rejects such patterns as ambiguous.  On the right-hand sides, where the expected type disambiguates, the bare names (via \li{open Expr}) are fine.
+
 \begin{leanbox}
 \begin{lstlisting}
--- diff e x returns (derivative, trace)
+open Expr
+
+-- diff x e returns (derivative, trace)
 def diff (x : String) : Expr -> Expr × DiffStep
   -- Constants
-  | Const _     => (Const 0, .ConstRule)
+  | .Const _     => (Const 0, .ConstRule)
 
   -- Variables
-  | Var y       => if y == x
-                   then (Const 1, .VarRule)
-                   else (Const 0, .VarOther)
+  | .Var y       => if y == x
+                    then (Const 1, .VarRule)
+                    else (Const 0, .VarOther)
 
   -- Negation: (-u)' = -u'
-  | Neg u       =>
+  | .Neg u       =>
       let (u', s) := diff x u
       (Neg u', .NegRule s)
 
   -- Sum rule: (u + v)' = u' + v'
-  | Add u v     =>
+  | .Add u v     =>
       let (u', su) := diff x u
       let (v', sv) := diff x v
       (Add u' v' |>.fullSimplify, .SumRule su sv)
 
   -- Sub rule: (u - v)' = u' - v'
-  | Sub u v     =>
+  | .Sub u v     =>
       let (u', su) := diff x u
       let (v', sv) := diff x v
       (Sub u' v' |>.fullSimplify, .SubRule su sv)
 
   -- Product rule: (uv)' = u'v + uv'
-  | Mul u v     =>
+  | .Mul u v     =>
       let (u', su) := diff x u
       let (v', sv) := diff x v
       ((Add (Mul u' v) (Mul u v')).fullSimplify, .ProductRule su sv)
 
   -- Quotient rule: (u/v)' = (u'v - uv') / v^2
-  | Div u v     =>
+  | .Div u v     =>
       let (u', su) := diff x u
       let (v', sv) := diff x v
       ((Div (Sub (Mul u' v) (Mul u v')) (Pow v (Const 2))).fullSimplify,
        .QuotRule su sv)
 
-  -- Power rule: (u^n)' = n * u^(n-1) * u'  (general, via chain rule)
-  | Pow u (Const n) =>
+  -- Power rule: (u^n)' = n * u^(n-1) * u'  (general, via chain rule;
+  -- note the trace is the LEAF .PowerRule -- the inner derivation su
+  -- is used for the derivative but not recorded in the trace)
+  | .Pow u (Const n) =>
       let (u', su) := diff x u
       ((Mul (Mul (Const n) (Pow u (Const (n-1)))) u').fullSimplify,
        .PowerRule)
 
   -- Trig: sin(u)' = cos(u) * u'
-  | Sin u       =>
+  | .Sin u       =>
       let (u', su) := diff x u
       ((Mul (Cos u) u').fullSimplify, .ChainRule "sin" su)
 
   -- Trig: cos(u)' = -sin(u) * u'
-  | Cos u       =>
+  | .Cos u       =>
       let (u', su) := diff x u
       ((Neg (Mul (Sin u) u')).fullSimplify, .ChainRule "cos" su)
 
   -- Tan: (tan u)' = sec^2(u) * u' = u' / cos^2(u)
-  | Tan u       =>
+  | .Tan u       =>
       let (u', su) := diff x u
       ((Div u' (Pow (Cos u) (Const 2))).fullSimplify, .ChainRule "tan" su)
 
   -- Exp: (e^u)' = e^u * u'
-  | Exp u       =>
+  | .Exp u       =>
       let (u', su) := diff x u
       ((Mul (Exp u) u').fullSimplify, .ChainRule "exp" su)
 
   -- Ln: (ln u)' = u' / u
-  | Ln u        =>
+  | .Ln u        =>
       let (u', su) := diff x u
       ((Div u' u).fullSimplify, .ChainRule "ln" su)
 
   -- General Pow: (u^v)' = u^v * (v'*ln(u) + v*u'/u)
-  | Pow u v     =>
+  | .Pow u v     =>
       let (u', su) := diff x u
       let (v', sv) := diff x v
       let result := Mul (Pow u v)
                         (Add (Mul v' (Ln u)) (Div (Mul v u') u))
       (result.fullSimplify, .ChainRule "pow" (.ProductRule su sv))
 
-  | Abs _       => (Const 0, .ConstRule)  -- simplified; full version uses sign
+  | .Abs _       => (Const 0, .ConstRule)  -- simplified; full version uses sign
 \end{lstlisting}
 \end{leanbox}
 \color{black}
@@ -3925,7 +4190,7 @@ the next approach.
 
 \section{Strategies and the \li{IntStep} Trace}
 
-Integration is fundamentally different from differentiation: there is no single algorithm that handles all cases.  Instead, we model the engine as a collection of \emph{strategies}, each specialised to a class of integrands.  A strategy is a function that either succeeds --- returning an antiderivative and a trace --- or fails, signalling that the next strategy should try.  This is the strategy pattern from software engineering, but it also has a mathematical interpretation: the strategy chain is a propagator network over the lattice \li{Option (Expr $\times$ IntStep)}, ordered by $\bot <$ \li{Some}.
+Integration is fundamentally different from differentiation: there is no single algorithm that handles all cases.  Instead, we model the engine as a collection of \emph{strategies}, each specialised to a class of integrands.  A strategy is a function that either succeeds --- returning an antiderivative and a trace --- or fails, signalling that the next strategy should try.  This is the classic strategy pattern from software engineering: the dispatcher runs down an ordered list and short-circuits on the first \li{some}, exactly what \li{List.findSome?} does.
 
 \begin{leanbox}
 \begin{lstlisting}
@@ -3961,26 +4226,26 @@ The first strategy is the simplest: pattern-match the integrand against a table 
 \begin{lstlisting}
 -- Antiderivatives of atomic expressions
 def directLookup (x : String) : Expr -> Option (Expr × IntStep)
-  | Const c           =>
+  | .Const c           =>
       some (Mul (Const c) (Var x), .DirectLookup s!"∫{c} dx = {c}x")
-  | Var y             =>
+  | .Var y             =>
       if y == x
       then some (Div (Pow (Var x) (Const 2)) (Const 2),
                  .DirectLookup "∫x dx = x²/2")
       else none
-  | Sin (Var y)       =>
+  | .Sin (Var y)       =>
       if y == x
       then some (Neg (Cos (Var x)), .DirectLookup "∫sin(x) dx = -cos(x)")
       else none
-  | Cos (Var y)       =>
+  | .Cos (Var y)       =>
       if y == x
       then some (Sin (Var x), .DirectLookup "∫cos(x) dx = sin(x)")
       else none
-  | Exp (Var y)       =>
+  | .Exp (Var y)       =>
       if y == x
       then some (Exp (Var x), .DirectLookup "∫eˣ dx = eˣ")
       else none
-  | Pow (Var y) (Const n) =>
+  | .Pow (Var y) (Const n) =>
       if y == x && n != -1
       then some (Div (Pow (Var x) (Const (n+1))) (Const (n+1)),
                  .DirectLookup s!"∫xⁿ dx = xⁿ⁺¹/(n+1)")
@@ -3994,10 +4259,72 @@ def directLookup (x : String) : Expr -> Option (Expr × IntStep)
 
 The $u$-substitution strategy looks for an integrand of the form $f(g(x))\cdot g'(x)$.
 It tries common choices for $u$ and checks whether differentiating $u$ (and dividing)
-simplifies the integrand.
+simplifies the integrand.  It needs three small syntactic helpers first: the list of
+variables occurring in an expression, and two substitution functions (rename a
+variable, and replace a variable by an expression).  Each is the same mechanical
+structural recursion over the fourteen constructors.
+Note also \li{innerFunctions}: a \li{Pow} node contributes only its \emph{base} as a
+candidate --- a second alternative \li{Pow \_ u} would be rejected by Lean as
+redundant, since the first pattern already matches every \li{Pow}.
 
 \begin{leanbox}
 \begin{lstlisting}
+-- Collect the innermost composite functions as u candidates
+def innerFunctions : Expr -> List Expr
+  | .Sin u | .Cos u | .Tan u | .Exp u | .Ln u => [u]
+  | .Pow u _                                  => [u]
+  | .Mul u v | .Add u v => innerFunctions u ++ innerFunctions v
+  | _                                         => []
+
+-- All variables occurring in an expression
+def varsOf : Expr -> List String
+  | .Const _   => []
+  | .Var y     => [y]
+  | .Add a b | .Sub a b | .Mul a b | .Div a b | .Pow a b =>
+      varsOf a ++ varsOf b
+  | .Neg a | .Sin a | .Cos a | .Tan a | .Exp a | .Ln a | .Abs a =>
+      varsOf a
+
+-- Rename variable x to u throughout
+def substVar (x u : String) : Expr -> Expr
+  | .Const c   => Const c
+  | .Var y     => if y == x then Var u else Var y
+  | .Add a b   => Add (substVar x u a) (substVar x u b)
+  | .Sub a b   => Sub (substVar x u a) (substVar x u b)
+  | .Mul a b   => Mul (substVar x u a) (substVar x u b)
+  | .Div a b   => Div (substVar x u a) (substVar x u b)
+  | .Pow a b   => Pow (substVar x u a) (substVar x u b)
+  | .Neg a     => Neg (substVar x u a)
+  | .Sin a     => Sin (substVar x u a)
+  | .Cos a     => Cos (substVar x u a)
+  | .Tan a     => Tan (substVar x u a)
+  | .Exp a     => Exp (substVar x u a)
+  | .Ln  a     => Ln  (substVar x u a)
+  | .Abs a     => Abs (substVar x u a)
+
+-- Replace variable u by the expression repl: identical shape to
+-- substVar, with the Var case reading
+--   | .Var y => if y == u then repl else Var y
+def substExpr (u : String) (repl : Expr) : Expr -> Expr
+  | .Const c   => Const c
+  | .Var y     => if y == u then repl else Var y
+  | .Add a b   => Add (substExpr u repl a) (substExpr u repl b)
+  | .Sub a b   => Sub (substExpr u repl a) (substExpr u repl b)
+  | .Mul a b   => Mul (substExpr u repl a) (substExpr u repl b)
+  | .Div a b   => Div (substExpr u repl a) (substExpr u repl b)
+  | .Pow a b   => Pow (substExpr u repl a) (substExpr u repl b)
+  | .Neg a     => Neg (substExpr u repl a)
+  | .Sin a     => Sin (substExpr u repl a)
+  | .Cos a     => Cos (substExpr u repl a)
+  | .Tan a     => Tan (substExpr u repl a)
+  | .Exp a     => Exp (substExpr u repl a)
+  | .Ln  a     => Ln  (substExpr u repl a)
+  | .Abs a     => Abs (substExpr u repl a)
+
+-- "e is expressed in terms of u": every variable of e occurs in u
+def isInTermsOf (u e : Expr) : Bool :=
+  (varsOf e).all (fun v => (varsOf u).contains v)
+
 -- Try u = inner function, check if integrand / du simplifies
 def tryUSub (x : String) (e : Expr) : Option (Expr × IntStep) :=
   -- Collect candidate u-substitutions from the expression tree
@@ -4015,36 +4342,56 @@ def tryUSub (x : String) (e : Expr) : Option (Expr × IntStep) :=
                 .USub u du step)
       | none => none
     else none
-
--- Collect the innermost composite functions as u candidates
-def innerFunctions : Expr -> List Expr
-  | Sin u | Cos u | Tan u | Exp u | Ln u => [u]
-  | Pow u _ | Pow _ u                    => [u]
-  | Mul u v | Add u v                    => innerFunctions u ++ innerFunctions v
-  | _                                    => []
 \end{lstlisting}
 \end{leanbox}
 \color{black}
 
+A frank engineering note: this detector is deliberately naive.  Because \li{fullSimplify} only folds constants and identities --- it cannot cancel a symbolic factor $g'(x)$ from a quotient --- \li{tryUSub} fires only on the easiest shapes.  Strengthening the simplifier until $\int 2x\,e^{x^2}\,dx$ goes through is one of this chapter's exercises, and a genuinely instructive one.
+
 \section{Integration by Parts Heuristic}
 
 The LIATE rule (Logarithm, Inverse trig, Algebraic, Trig, Exponential) guides
-which factor to assign to $u$ and which to $dv$.
+which factor to assign to $u$ and which to $dv$.  Two implementation notes.
+First, our \li{Expr} has no inverse-trig constructors (adding \li{Arctan} and
+\li{Arcsin}, with priority~1 here, is Exercise~2 of Chapter~32), so the printed
+table skips that tier.  Second, the ``algebraic'' tier must include the bare
+variable: $x$ is the polynomial $x^1$, and if \li{Var} fell through to the
+default priority it would rank \emph{below} \li{Exp} --- the engine would then
+pick $u = e^x$, $dv = x\,dx$ for $\int x e^x\,dx$ and fail.  (In an earlier
+draft it did exactly that.  Heuristics deserve tests.)
 
 \begin{leanbox}
 \begin{lstlisting}
--- LIATE priority for choosing u
+-- LIATE priority for choosing u (lower = more eager to be u)
 def liatePriority : Expr -> Nat
-  | Ln _               => 0   -- highest: logarithm
-  | Arctan _ | Arcsin _ => 1  -- inverse trig
-  | Pow (Var _) _      => 2   -- algebraic (polynomial)
-  | Sin _ | Cos _      => 3   -- trigonometric
-  | Exp _              => 4   -- exponential (lowest priority)
-  | _                  => 5
+  | .Ln _               => 0   -- highest: logarithm
+  | .Pow (Var _) _      => 2   -- algebraic (polynomial x^n)
+  | .Var _              => 2   -- algebraic (bare x)
+  | .Sin _ | .Cos _     => 3   -- trigonometric
+  | .Exp _              => 4   -- exponential (lowest priority)
+  | _                   => 5
+\end{lstlisting}
+\end{leanbox}
+\color{black}
 
-def tryIBP (x : String) (e : Expr) : Option (Expr × IntStep) :=
+The IBP strategy itself calls the top-level \li{integrate} on the remainder
+integral $\int v\,du$ --- so \li{tryIBP} and \li{integrate} are \emph{mutually
+recursive}, and the recursion is not structurally decreasing (the remainder is a
+freshly built expression, not a subterm).  Lean therefore cannot verify
+termination, and we must declare the whole cluster inside a \li{mutual} block
+with \li{partial def}.  This is an honest trade: \li{partial} functions can be
+compiled and run but are opaque to the proof system, and any claim that the
+engine terminates on all inputs is exactly that --- a claim, unproven.  For
+well-founded inputs it terminates in practice because each remainder is
+strictly simpler; making that precise (and provable) is a hard exercise.
+
+\begin{leanbox}
+\begin{lstlisting}
+mutual
+
+partial def tryIBP (x : String) (e : Expr) : Option (Expr × IntStep) :=
   match e with
-  | Mul u v =>
+  | .Mul u v =>
     -- Assign u and dv by LIATE priority
     let (uPart, dvPart) :=
       if liatePriority u <= liatePriority v
@@ -4072,10 +4419,19 @@ def tryIBP (x : String) (e : Expr) : Option (Expr × IntStep) :=
 
 The dispatcher tries each strategy in a fixed priority order and returns the first success.  The order reflects the complexity hierarchy of integration techniques: we try the cheapest checks first (direct lookup, constant multiple, sum) before invoking the more expensive searches (substitution, parts, partial fractions).  This greedy first-success approach is sound but not complete: some integrands require trying multiple strategies in combination, which a more sophisticated planner could handle.
 
+Two of the strategies in the dispatch list --- \li{partialFracStrategy} and \li{trigReduceStrategy} --- are left for you to implement (Exercises~2 and~3 below).  So that the engine compiles and runs meanwhile, we declare them as stubs that always decline; they sit \emph{before} the \li{mutual} block, since they are not (yet) recursive.  The remaining strategies continue the \li{mutual} block begun with \li{tryIBP} above --- \li{sumStrategy} and \li{constMulStrategy} also call back into \li{integrate} --- and the block closes with \li{end}.
+
 \begin{leanbox}
 \begin{lstlisting}
--- Try strategies in order; return first success
-def integrate (x : String) (e : Expr) : Option (Expr × IntStep) :=
+-- Stubs for the two exercise strategies (place BEFORE the mutual
+-- block): always decline, so the dispatcher moves on.
+def partialFracStrategy : Strategy := fun _ _ => none
+def trigReduceStrategy  : Strategy := fun _ _ => none
+
+-- ... continuing the mutual block from tryIBP:
+
+partial def integrate (x : String) (e : Expr) :
+    Option (Expr × IntStep) :=
   let strategies : List Strategy :=
     [ directLookup,
       constMulStrategy,
@@ -4087,8 +4443,8 @@ def integrate (x : String) (e : Expr) : Option (Expr × IntStep) :=
   strategies.findSome? (· x e)
 
 -- Sum rule strategy
-def sumStrategy (x : String) : Expr -> Option (Expr × IntStep)
-  | Add u v =>
+partial def sumStrategy (x : String) : Expr -> Option (Expr × IntStep)
+  | .Add u v =>
       match integrate x u, integrate x v with
       | some (U, su), some (V, sv) =>
           some ((Add U V).fullSimplify, .SumRule su sv)
@@ -4096,16 +4452,19 @@ def sumStrategy (x : String) : Expr -> Option (Expr × IntStep)
   | _ => none
 
 -- Constant multiple strategy
-def constMulStrategy (x : String) : Expr -> Option (Expr × IntStep)
-  | Mul (Const c) e =>
+partial def constMulStrategy (x : String) :
+    Expr -> Option (Expr × IntStep)
+  | .Mul (Const c) e =>
       match integrate x e with
       | some (E, s) => some ((Mul (Const c) E).fullSimplify, .ConstMul s)
       | none        => none
-  | Mul e (Const c) =>
+  | .Mul e (Const c) =>
       match integrate x e with
       | some (E, s) => some ((Mul (Const c) E).fullSimplify, .ConstMul s)
       | none        => none
   | _ => none
+
+end  -- of the mutual block
 \end{lstlisting}
 \end{leanbox}
 \color{black}
@@ -4143,7 +4502,9 @@ inductive SolveTrace where
   | Leaf   : String -> Expr -> SolveTrace          -- rule name, result
   | Node   : String -> Expr -> List SolveTrace -> SolveTrace
 
--- Convert DiffStep to SolveTrace
+-- Convert DiffStep to SolveTrace. The match must be exhaustive:
+-- forget the SubRule case and Lean rejects the definition with
+-- "missing cases".
 def DiffStep.toTrace (e result : Expr) : DiffStep -> SolveTrace
   | .ConstRule    =>
       .Leaf "Constant Rule" (Const 0)
@@ -4153,6 +4514,9 @@ def DiffStep.toTrace (e result : Expr) : DiffStep -> SolveTrace
       .Leaf "Independent Variable" (Const 0)
   | .SumRule s t  =>
       .Node "Sum Rule" result [s.toTrace e result, t.toTrace e result]
+  | .SubRule s t  =>
+      .Node "Difference Rule" result
+        [s.toTrace e result, t.toTrace e result]
   | .ProductRule s t =>
       .Node "Product Rule" result [s.toTrace e result, t.toTrace e result]
   | .QuotRule s t =>
@@ -4167,20 +4531,24 @@ def DiffStep.toTrace (e result : Expr) : DiffStep -> SolveTrace
 \end{leanbox}
 \color{black}
 
+Observe an honest limitation before we render anything: \li{DiffStep} records which \emph{rules} fired, but not the intermediate \emph{results} --- so \li{toTrace} has nothing better to thread into a compound child node than the top-level \li{result}.  Compound sub-steps will therefore repeat the final expression rather than show their own sub-derivative, and \li{PowerRule}, being a leaf, shows no inner derivation at all.  Upgrading \li{DiffStep} to carry the result of each sub-derivation (and \li{diff}'s \li{Pow} case to keep its inner trace) is Exercise~3 --- the payoff is a trace that reads like Symbolab's.
+
 \section{Rendering to Text}
 
 The text renderer performs an in-order traversal of the \li{SolveTrace} tree, printing each node with indentation proportional to its depth.  Each level of indentation corresponds to one level of sub-problem decomposition.  The result is a hierarchical, numbered derivation --- the same format Symbolab uses in its step-by-step display, where main steps appear at the top level and substeps are indented beneath them.
 
 \begin{leanbox}
 \begin{lstlisting}
--- Render a SolveTrace as an indented numbered list
+-- Render a SolveTrace as an indented list. "".pushn ' ' n builds
+-- the n-space indent; List.flatMap concatenates the per-child
+-- line lists.
 def SolveTrace.renderLines (depth : Nat := 0) : SolveTrace -> List String
   | .Leaf rule result =>
-      [String.replicate (depth * 2) ' ' ++ s!"• {rule}: {result.pp}"]
+      ["".pushn ' ' (depth * 2) ++ s!"• {rule}: {result.pp}"]
   | .Node rule result children =>
-      let header := String.replicate (depth * 2) ' '
+      let header := "".pushn ' ' (depth * 2)
                       ++ s!"▶ {rule} → {result.pp}"
-      let childLines := children.bind (·.renderLines (depth + 1))
+      let childLines := children.flatMap (·.renderLines (depth + 1))
       header :: childLines
 
 def SolveTrace.render (t : SolveTrace) : String :=
@@ -4210,11 +4578,13 @@ Running \li{solveDerivative "x" (Mul (Var "x") (Sin (Var "x")))} produces:
 d/dx(x * sin(x)) = sin(x) + x * cos(x)
 
 Steps:
-▶ Product Rule -> sin(x) + x * cos(x)
+▶ Product Rule → sin(x) + x * cos(x)
   • Variable Rule: 1
-  ▶ Chain Rule (sin) -> cos(x)
+  ▶ Chain Rule (sin) → sin(x) + x * cos(x)
     • Variable Rule: 1
 \end{verbatim}
+
+The derivative is right, and the rule skeleton is right --- product rule at the root, with the variable rule and a chain-rule-on-$\sin$ beneath it.  The blemish is the one flagged above: the Chain Rule line repeats the final answer instead of showing its own contribution $\cos(x)$, because \li{DiffStep} never recorded it.  Exercise~3 fixes this.
 \end{example}
 
 \begin{exbox}
@@ -4226,7 +4596,9 @@ Steps:
   \item Extend the trace to record the original sub-expression at each node,
         not just the rule and result.
   \item Run \li{solveIntegral "x" (Mul (Var "x") (Exp (Var "x")))} and verify
-        the output matches $(x-1)e^x + C$.
+        the output is \li{x * exp(x) - exp(x) + C} --- which equals
+        $(x-1)e^x + C$, though the engine does not factor.  Bonus: add a
+        factoring rule to \li{simplify} so it does.
 \end{enumerate}
 \end{exbox}
 \color{black}
@@ -4238,7 +4610,7 @@ Steps:
 
 \section{Lake Project Structure}
 
-Lake is Lean~4's package manager and build system.  A Lake project specifies its modules (libraries) and executables in a \li{lakefile.lean} at the project root.  Our project has one library (\li{Symboliculus}, containing the expression, differentiation, integration, and trace modules) and one executable (\li{symboliculus}, the CLI entry point).  Running \li{lake build} compiles everything and places the binary at \li{./build/bin/symboliculus}.
+Lake is Lean~4's package manager and build system.  A Lake project specifies its modules (libraries) and executables in a \li{lakefile.lean} (or \li{lakefile.toml}, as in the Mathlib setup of Chapter~6) at the project root.  Our project has one library (\li{Symboliculus}, containing the expression, differentiation, integration, and trace modules) and one executable (\li{symboliculus}, the CLI entry point).  Running \li{lake build} compiles everything and places all build artifacts under the \li{.lake/} directory --- the binary lands at \li{.lake/build/bin/symboliculus}.  Note that no Mathlib dependency is declared: the engine is plain core Lean.
 
 \begin{leanbox}
 \begin{lstlisting}
@@ -4246,13 +4618,12 @@ Lake is Lean~4's package manager and build system.  A Lake project specifies its
 import Lake
 open Lake DSL
 
-package symboliculus where
-  name    := "symboliculus"
-  version := "0.1.0"
+package symboliculus
 
 lean_lib Symboliculus where
   srcDir := "Symboliculus"
 
+@[default_target]
 lean_exe symboliculus where
   root := `Main
 \end{lstlisting}
@@ -4273,7 +4644,7 @@ lean_exe symboliculus where
 
 \section{\li{Main.lean} --- Argument Parsing and Entry Point}
 
-The entry point parses command-line arguments, delegates to the appropriate engine (differentiation or integration), and prints the result.  The \li{--steps} flag controls whether the full trace tree is rendered or just the final answer.  Error handling covers both parse failures (the input string is not a valid expression) and unknown arguments.  The design keeps \li{Main.lean} thin: all the mathematical logic lives in the library modules, and \li{main} is purely plumbing.
+The entry point parses command-line arguments, delegates to the appropriate engine (differentiation or integration), and prints the result.  The \li{--steps} flag controls whether the full trace tree is rendered or just the final answer.  Error handling covers both parse failures (the input string is not a valid expression) and unknown arguments.  The design keeps \li{Main.lean} thin: all the mathematical logic lives in the library modules, and \li{main} is purely plumbing.  One ordering constraint to notice: Lean processes a file top to bottom, so \li{Mode} must be declared \emph{before} the \li{Args} structure that uses it.
 
 \begin{leanbox}
 \begin{lstlisting}
@@ -4288,13 +4659,13 @@ open Symboliculus
 def usage : String :=
   "symboliculus [--diff | --integral] --expr <expr> --var <var> [--steps]"
 
+inductive Mode where | Diff | Integral
+
 structure Args where
   mode  : Mode := .Diff
   expr  : String := ""
   var   : String := "x"
   steps : Bool   := false
-
-inductive Mode where | Diff | Integral
 
 def parseArgs : List String -> Except String Args
   | []         => .ok {}
@@ -4342,7 +4713,7 @@ def main (args : List String) : IO Unit := do
 
 \section{Building and Running}
 
-Below are the canonical invocations for the two main use cases: differentiation with full step trace, and integration with full step trace.  The examples match what you computed by hand in the exercises of Chapters~32 and~33 --- you can verify that the output matches your handwritten derivations.  Try feeding in more complex expressions; the engine should handle any combination of the functions and rules implemented in the library.
+Below are the canonical invocations for the two main use cases: differentiation with step trace, and integration.  The outputs shown are the engine's \emph{actual} output, so you can diff your build against them character for character.  For the derivative trace, recall the Chapter~34 caveats: compound sub-steps repeat the final expression, and the power rule prints as a leaf (Exercise~3 of Chapter~34 upgrades both).  For the integral, note the engine returns the unfactored \li{x * exp(x) - exp(x)} --- mathematically $(x-1)e^x$ --- and, since \li{IntStep.toTrace} is still Exercise~1 of Chapter~34, the \li{--steps} flag reports only that a trace is available.  Try feeding in more complex expressions; the engine should handle any combination of the functions and rules implemented in the library.
 
 \begin{leanbox}
 \begin{lstlisting}
@@ -4350,36 +4721,32 @@ Below are the canonical invocations for the two main use cases: differentiation 
 $ lake build
 
 -- Differentiate x^2 * sin(x) with steps shown
-$ ./build/bin/symboliculus \
+$ ./.lake/build/bin/symboliculus \
     --diff \
     --expr "x^2 * sin(x)" \
     --var x \
     --steps
 
 -- Output:
--- d/dx(x^2 * sin(x)) = 2*x*sin(x) + x^2*cos(x)
+-- d/dx(x^2 * sin(x)) = 2 * x * sin(x) + x^2 * cos(x)
 --
 -- Steps:
--- ▶ Product Rule -> 2*x*sin(x) + x^2*cos(x)
---   ▶ Power Rule -> 2*x
---     • Variable Rule: 1
---   ▶ Chain Rule (sin) -> cos(x)
+-- ▶ Product Rule → 2 * x * sin(x) + x^2 * cos(x)
+--   • Power Rule: 2 * x * sin(x) + x^2 * cos(x)
+--   ▶ Chain Rule (sin) → 2 * x * sin(x) + x^2 * cos(x)
 --     • Variable Rule: 1
 
 -- Integrate x * exp(x) with steps
-$ ./build/bin/symboliculus \
+$ ./.lake/build/bin/symboliculus \
     --integral \
     --expr "x * exp(x)" \
     --var x \
     --steps
 
 -- Output:
--- ∫(x * exp(x)) dx = (x - 1)*exp(x) + C
+-- ∫(x * exp(x)) dx = x * exp(x) - exp(x) + C
 --
--- Steps:
--- ▶ Integration by Parts (u=x, dv=exp(x)dx)
---   • d/dx(x) = 1
---   • ∫exp(x) dx = exp(x)  [Direct Lookup]
+-- (step trace available)
 \end{lstlisting}
 \end{leanbox}
 \color{black}
@@ -4405,47 +4772,150 @@ $ ./build/bin/symboliculus \
 
 \section{What We Can Prove: Correctness of Differentiation}
 
-The differentiation engine is \emph{correct}: its output is the mathematical
-derivative of its input.  We can state and prove this formally.
+The differentiation engine \emph{applies correct rules}: each case of \li{diff}
+transcribes a theorem from Part~III.  Can we turn that observation into a
+machine-checked theorem about the program?  Mostly yes --- but being precise
+about the ``mostly'' is the most instructive part of this section.
 
-\begin{thmbox}{Correctness of \li{diff}}
-For any expression \li{e} and variable \li{x}, if \li{f := fun t => e.eval (env[x := t])}
-is the function represented by \li{e}, then:
-\[\mathtt{(diff\ x\ e).1.eval\ env} = f'(\mathtt{env}\ x).\]
-\end{thmbox}
-\color{black}
+\textbf{First obstacle: \li{Float} is not $\R$.}  The tempting statement is
+``\li{(diff x e).1.eval env} equals the derivative of \li{fun t => e.eval
+(env[x := t])}.''  It is doubly broken.  Formally, \li{eval} produces
+\li{Float}, and a derivative (Mathlib's \li{deriv}, or our \li{HasDerivAt})
+only makes sense over a normed field --- which \li{Float} is not: it is a
+finite set of $2^{64}$ bit patterns with rounding arithmetic (not even
+associative: try \li{\#eval (0.1 + 0.2) + 0.3 == 0.1 + (0.2 + 0.3)}).
+And substantively, the statement is \emph{false} for Float: the sum rule
+$(u+v)' = u' + v'$ holds exactly over $\R$, but Float addition rounds, so no
+exact equality of this shape can survive.  Correctness of numerical code is
+always a statement about the \emph{ideal semantics}, with rounding handled
+separately (that is the subject of numerical analysis).
 
-\begin{proof}[Proof by structural induction on \li{e}]
-The base cases (\li{Const}, \li{Var}) follow directly.  The inductive cases
-correspond exactly to the mathematical differentiation rules proved in Part~III:
-sum rule (Ch.\ 11), product rule (Ch.\ 11), chain rule (Ch.\ 11), power rule (Ch.\ 10).
-Each case of \li{diff} was written to match its corresponding theorem.
-\end{proof}
+So we give \li{Expr} a second, real-valued semantics --- reading an expression
+as a function $\R \to \R$ of the single variable \li{x} --- and state
+correctness against \emph{that}.  The stored \li{Float} constants are read
+through a map \li{ι : Float → Real} (think ``the exact rational this bit
+pattern denotes''), of which we require only \li{ι 0 = 0} and \li{ι 1 = 1}.
+This section uses Mathlib (\li{Real.sin}, \li{HasDerivAt}, and friends);
+it is the one place the capstone project needs it.
 
 \begin{leanbox}
 \begin{lstlisting}
--- The formal statement in Lean
-theorem diff_correct (e : Expr) (x : String)
-    (env : String -> Float) :
-    let f := fun t => e.eval (fun y => if y == x then t else env y)
-    (diff x e).1.eval env = deriv f (env x) := by
-  induction e with
-  | Const c  => simp [diff, Expr.eval, deriv_const]
-  | Var y    =>
-      by_cases hxy : y == x
-      · simp [diff, hxy, Expr.eval, deriv_id']
-      · simp [diff, hxy, Expr.eval, deriv_const]
-  | Add u v ih_u ih_v =>
-      simp [diff, Expr.eval, deriv_add, ih_u, ih_v]
-  | Mul u v ih_u ih_v =>
-      simp [diff, Expr.eval, deriv_mul, ih_u, ih_v]
-  | Sin u ih_u =>
-      simp [diff, Expr.eval, deriv_sin, ih_u,
-            Function.comp, Real.deriv_sin]
-  -- ... (remaining cases follow the same pattern)
-  | _ => sorry
+-- A real-valued semantics for Expr: interpret e as a function of
+-- the single variable x. (noncomputable: it lives in Real.)
+noncomputable def Expr.evalR (ι : Float -> Real) (x : String) :
+    Expr -> Real -> Real
+  | .Const c   => fun _ => ι c
+  | .Var y     => fun t => if y == x then t else 0
+  | .Add u v   => fun t => u.evalR ι x t + v.evalR ι x t
+  | .Sub u v   => fun t => u.evalR ι x t - v.evalR ι x t
+  | .Mul u v   => fun t => u.evalR ι x t * v.evalR ι x t
+  | .Div u v   => fun t => u.evalR ι x t / v.evalR ι x t
+  | .Pow u v   => fun t => u.evalR ι x t ^ v.evalR ι x t   -- Real.rpow
+  | .Neg u     => fun t => -(u.evalR ι x t)
+  | .Sin u     => fun t => Real.sin (u.evalR ι x t)
+  | .Cos u     => fun t => Real.cos (u.evalR ι x t)
+  | .Tan u     => fun t => Real.tan (u.evalR ι x t)
+  | .Exp u     => fun t => Real.exp (u.evalR ι x t)
+  | .Ln  u     => fun t => Real.log (u.evalR ι x t)
+  | .Abs u     => fun t => |u.evalR ι x t|
 \end{lstlisting}
 \end{leanbox}
+\color{black}
+
+\begin{thmbox}{Correctness of \li{diff} (rule-by-rule, over $\R$)}
+Read expressions through \li{evalR}.  Then each rule \li{diff} applies is
+correct: wherever the sub-expressions are differentiable (with the derivatives
+claimed by the recursive calls), the expression built by the corresponding
+\li{diff} case has the claimed derivative.  For the total fragment ---
+\li{Const}, \li{Var}, \li{Add}, \li{Sub}, \li{Mul}, \li{Neg}, \li{Sin},
+\li{Cos}, \li{Exp} --- this holds unconditionally; for \li{Div}, \li{Pow},
+\li{Ln}, and \li{Abs} it holds under the usual side conditions (nonvanishing
+denominator, positive base, etc.), which is why a single global equation
+cannot be stated without qualifications.
+\end{thmbox}
+\color{black}
+
+In Lean we prove the two base cases of \li{diff} itself, and the inductive
+steps as \emph{rule-level} lemmas (shown here for \li{Add} and \li{Sin}; the
+remaining total-fragment cases follow the same two-line pattern and are the
+extended exercise below).  Note how much Mathlib is doing for us: \li{hu.add hv}
+\emph{is} the sum rule, and \li{hu.sin} \emph{is} the chain rule for sine.
+
+\begin{leanbox}
+\begin{lstlisting}
+-- Base case: constants differentiate to 0.
+theorem diff_correct_const (ι : Float -> Real) (hι0 : ι 0 = 0)
+    (x : String) (c : Float) (t : Real) :
+    HasDerivAt ((Expr.Const c).evalR ι x)
+      (((diff x (.Const c)).1).evalR ι x t) t := by
+  simpa [diff, Expr.evalR, hι0] using hasDerivAt_const t (ι c)
+
+-- Base case: the variable differentiates to 1, other variables to 0.
+theorem diff_correct_var (ι : Float -> Real) (hι0 : ι 0 = 0)
+    (hι1 : ι 1 = 1) (x y : String) (t : Real) :
+    HasDerivAt ((Expr.Var y).evalR ι x)
+      (((diff x (.Var y)).1).evalR ι x t) t := by
+  by_cases h : y == x
+  · simpa [diff, h, Expr.evalR, hι1] using hasDerivAt_id' t
+  · simpa [diff, h, Expr.evalR, hι0] using hasDerivAt_const t (0 : Real)
+
+-- Inductive step for Add: the SUM RULE of Chapter 11, at the level
+-- of expression trees (the rule diff's Add case applies, before its
+-- final simplification pass).
+theorem add_rule_correct (ι : Float -> Real) (x : String)
+    {u v u' v' : Expr} {t : Real}
+    (hu : HasDerivAt (u.evalR ι x) (u'.evalR ι x t) t)
+    (hv : HasDerivAt (v.evalR ι x) (v'.evalR ι x t) t) :
+    HasDerivAt ((Expr.Add u v).evalR ι x)
+      ((Expr.Add u' v').evalR ι x t) t :=
+  hu.add hv
+
+-- Inductive step for Sin: the CHAIN RULE, ditto.
+theorem sin_rule_correct (ι : Float -> Real) (x : String)
+    {u u' : Expr} {t : Real}
+    (hu : HasDerivAt (u.evalR ι x) (u'.evalR ι x t) t) :
+    HasDerivAt ((Expr.Sin u).evalR ι x)
+      ((Expr.Mul (Expr.Cos u) u').evalR ι x t) t := by
+  simpa [Expr.evalR] using hu.sin
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+(If you prefer the statement in terms of Mathlib's \li{deriv} function:
+\li{HasDerivAt f L t} implies \li{deriv f t = L} --- that is Mathlib's
+\li{HasDerivAt.deriv} --- so each lemma above yields the corresponding
+\li{deriv} equation.)
+
+\textbf{Second obstacle: the simplifier folds constants in \li{Float}.}
+Why lemmas per rule instead of one induction over \li{e}?  Assembling the full
+theorem for the \emph{shipped} \li{diff} needs one more ingredient: every
+compound case of \li{diff} finishes with \li{fullSimplify}, so we would need
+\li{simplify} to preserve \li{evalR}-semantics.  And here honesty bites:
+it does not, exactly.  \li{simplify} rewrites \li{Add (Const a) (Const b)}
+to \li{Const (a + b)} --- \emph{Float} addition, which rounds.  Over the reals
+this rule is only valid if \li{ι (a + b) = ι a + ι b}, and no map from a
+$64$-bit type into $\R$ can make rounding arithmetic exact (the identity-style
+rules like $e + 0 \to e$ are fine; constant \emph{folding} is not).  This is
+not pedantry --- it is precisely the gap between symbolic and floating-point
+computation, and formalisation forced us to notice it.
+
+\begin{exbox}[title={Extended Exercise: the full correctness theorem}]
+\begin{enumerate}
+  \item Prove the remaining total-fragment rule lemmas (\li{Sub}, \li{Mul},
+        \li{Neg}, \li{Cos}, \li{Exp}) in the style of
+        \li{add\_rule\_correct}, using Mathlib's \li{HasDerivAt.sub},
+        \li{.mul}, \li{.neg}, \li{.cos}, \li{.exp}.
+  \item Define a simplification-free \li{diffRaw} (drop the
+        \li{fullSimplify} calls) and prove by structural induction, from your
+        rule lemmas, that \li{diffRaw} is correct on the total fragment.
+  \item Restrict \li{simplify} to its semantics-preserving rules (drop the
+        four constant-folding cases), prove it preserves \li{evalR}, and
+        conclude correctness for the corresponding variant of \li{diff}.
+  \item Ponder (or prove!): for the \emph{original} \li{simplify} the
+        preservation statement is false.  Exhibit concrete Float constants
+        witnessing this.
+\end{enumerate}
+\end{exbox}
 \color{black}
 
 \section{What We Cannot Decide: The Risch Algorithm}
@@ -4457,7 +4927,7 @@ The question of whether a given elementary function has an elementary antideriva
 
 \textbf{Liouville} proved in 1835 that $e^{-x^2}$, $\sin(x)/x$, and $\sqrt{1-k^2\sin^2 x}$ have no elementary antiderivatives --- no antiderivative expressible in terms of polynomials, exponentials, logarithms, and trigonometric functions via composition and arithmetic. His proof used an algebraic structure on \emph{differential fields} that constrains the form any antiderivative must take, then derives contradictions when no such form exists. This was among the first examples of a natural mathematical problem shown to be ``impossible'' within a given class of functions.
 
-\textbf{Robert Risch} solved the general case in 1969--1970 with a complete algorithm: given any elementary function, the Risch algorithm either finds an elementary antiderivative or proves none exists. It is correct and always terminates, making symbolic integration of elementary functions \emph{decidable} in principle. In practice, a full implementation requires handling dozens of cases across algebraic, logarithmic, and exponential extensions. Complete implementations exist in Mathematica and Maple; they run to tens of thousands of lines.
+\textbf{Robert Risch} solved the general case in 1969--1970 with a complete algorithm: given any elementary function, the Risch algorithm either finds an elementary antiderivative or proves none exists. One fine print matters, though. The algorithm repeatedly needs to decide whether certain expressions are identically zero, and by \textbf{Richardson's theorem} (1968) zero-equivalence for a rich enough class of closed-form expressions (involving $\pi$, $\ln 2$, $e^x$, $\sin x$, $|x|$, \ldots) is \emph{undecidable} in general. So Risch's procedure is an algorithm \emph{modulo a zero-equivalence oracle}: fully decidable on well-behaved differential-field towers (for instance, purely transcendental ones with constant field $\Q$), and heuristic at the ragged edges where constant recognition itself is unsolvable. In practice, a full implementation requires handling dozens of cases across algebraic, logarithmic, and exponential extensions. The most complete implementations, in systems such as Mathematica, Maple, and Axiom, run to tens of thousands of lines --- and even they implement the algebraic case only partially.
 
 \textbf{Symbolab and the pedagogical approach.} Symbolab --- which inspired this capstone --- does not implement Risch. Instead it pattern-matches against the techniques taught in calculus courses: substitution, integration by parts, partial fractions, trigonometric substitution. It displays the matching technique as a ``step'' in human-readable form. This is less complete than Risch but far more pedagogically useful: the steps shown are the ones a student would write. Symboliculus follows the same philosophy. Our correctness theorem guarantees that everything we \emph{do} return is correct; it says nothing about what we fail to find.
 \end{remarkbox}
@@ -4466,19 +4936,24 @@ The question of whether a given elementary function has an elementary antideriva
 Unlike differentiation, integration is fundamentally harder.
 
 \begin{thmbox}{Risch's Theorem (1969)}
-There exists a decision procedure (the \textbf{Risch algorithm}) that, given
-an elementary function $f$, either:
+There is a procedure (the \textbf{Risch algorithm}) that, given an elementary
+function $f$ presented over a suitable differential field, either:
 \begin{enumerate}[noitemsep]
   \item Computes an elementary antiderivative $F$ with $F'=f$, or
   \item Proves that no elementary antiderivative exists.
 \end{enumerate}
+The procedure is a genuine decision procedure \emph{relative to an oracle for
+deciding whether expressions are identically zero}; by Richardson's theorem
+that sub-problem is undecidable for general closed-form expressions, so
+``symbolic integration is decidable'' must always carry this asterisk.
 \end{thmbox}
 \color{black}
 
 \begin{remarkbox}
-The Risch algorithm is correct and decidable, but it is \emph{extremely} complex
-to implement fully --- a complete implementation (as in Mathematica or Maple) runs
-to thousands of lines of code and handles dozens of special cases.  Our engine
+The Risch algorithm is \emph{extremely} complex
+to implement fully --- the most complete implementations (as in Mathematica or Maple) run
+to tens of thousands of lines of code and handle dozens of special cases, and none
+is complete for the algebraic case.  Our engine
 covers the cases taught in a calculus course (polynomial, trig, exponential,
 integration by parts, $u$-sub, partial fractions) but not the general algorithm.
 Examples of elementary functions with no elementary antiderivative:
@@ -4486,40 +4961,44 @@ $e^{-x^2}$, $\sin(x)/x$, $\sqrt{1-k^2\sin^2 x}$ (elliptic integral).
 \end{remarkbox}
 \color{black}
 
-\section{Connections to the Rest of the Book Series}
+\section{Connections to Neighbouring Fields}
 
-Symboliculus is not an isolated project --- every major component connects back
-to other books in this series:
+Symboliculus is not an isolated project --- every major component opens a door
+to a larger subject worth exploring on its own:
 
 \begin{itemize}
-  \item \textbf{\li{Expr} and the lambda calculus.}  The \li{Expr} inductive type
-        is a term algebra in exactly the sense of the lambda calculus book:
-        constructors are introduction rules, pattern matching is elimination,
-        and \li{eval} is the denotational semantics.  Adding variable capture and
-        substitution makes it a full term rewriting system.
+  \item \textbf{\li{Expr} and programming-language theory.}  The \li{Expr}
+        inductive type is a \emph{term algebra} in the sense of the lambda
+        calculus and universal algebra: constructors are introduction rules,
+        pattern matching is elimination, and \li{eval} is a denotational
+        semantics.  Adding binders, capture-avoiding substitution, and rewrite
+        rules turns it into a full term rewriting system --- the gateway to
+        PL theory.
 
-  \item \textbf{Strategy dispatch and propagator networks.}  The integration engine's
+  \item \textbf{Strategy dispatch.}  The integration engine's
         strategy chain --- try \li{directLookup}, fall back to \li{tryUSub}, then
-        \li{tryIBP}, etc.\ --- is a propagator network over the lattice
-        \li{Option (Expr × IntStep)} ordered by $\bot < \text{Some}$.
-        Each strategy is a monotone propagator; the dispatcher finds the least
-        fixed point.
+        \li{tryIBP}, etc.\ --- is ordered, first-match-wins dispatch over
+        \li{Option}, short-circuiting on the first \li{some}.  Serious computer
+        algebra systems generalise this to backtracking search over a space of
+        rewriting tactics --- the same design space as proof search in Lean
+        itself.
 
-  \item \textbf{Correctness proofs and Galois theory.}  The field of rational
-        functions over which the Risch algorithm operates is a differential field.
-        The question of whether an elementary antiderivative exists is answered by
-        Galois theory applied to differential equations --- the same Galois
-        theory developed in the Galois theory book.
+  \item \textbf{Correctness proofs and differential Galois theory.}  The field
+        of rational functions over which the Risch algorithm operates is a
+        \emph{differential field}.  Whether an elementary antiderivative exists
+        is answered by Liouville's theorem and, more deeply, by Galois theory
+        applied to differential equations (Picard--Vessiot theory) --- a
+        beautiful subject if you have met Galois theory for polynomials.
 
-  \item \textbf{Numerical integration and ML.}  When the symbolic engine returns
-        \li{none}, we could fall back to numerical integration (Gaussian quadrature,
-        Simpson's rule) --- the numerical methods developed in the ML/AI book's
-        optimisation chapter.
+  \item \textbf{Numerical integration.}  When the symbolic engine returns
+        \li{none}, real systems fall back to numerical integration (Gaussian
+        quadrature, Simpson's rule) --- numerical analysis, the other half of
+        the Float discussion from the previous section.
 
   \item \textbf{Optimisation and the Hessian.}  The multivariable optimisation
-        chapters (Chs.\ 26, 27) connect directly to the optimisation book:
-        gradient descent is the continuous analogue of the discrete propagator
-        update, and the Hessian controls convergence speed.
+        chapter (Ch.\ 26) is the calculus behind machine-learning
+        optimisation: gradient descent follows $-\nabla f$, and the Hessian
+        controls its convergence speed.
 \end{itemize}
 
 \section{Open Problems and Extensions}
@@ -4538,11 +5017,12 @@ to other books in this series:
         partial derivatives ($\partial f/\partial x_i$) and then
         \li{integrate} to handle iterated integrals.
 
-  \item \textbf{Connect to Lean's \li{Mathlib}.}  The definitions here are
-        self-contained, but every theorem has a Mathlib counterpart.
-        A natural project is to build a verified bridge: show that
-        \li{MyReal} is isomorphic to Mathlib's \li{Real}, and that
-        \li{diff x e} computes Mathlib's \li{HasDerivAt}.
+  \item \textbf{Bridge \li{MyReal} to Mathlib's \li{Real}.}  Part~I's
+        \li{MyReal} and Mathlib's \li{Real} arise from the same Cauchy-sequence
+        construction.  Make that precise: build the field isomorphism
+        \li{MyReal ≃ Real} and use it to transport a Part~I theorem across.
+        Then extend Section~36.1's rule lemmas into the full
+        \li{diff}-computes-\li{HasDerivAt} bridge.
 
   \item \textbf{Step-counting complexity.}  How many integration strategies
         does the engine try before giving up?  Analyse the worst-case and
@@ -4552,9 +5032,10 @@ to other books in this series:
 
 \begin{exbox}
 \begin{enumerate}
-  \item Complete the proof of \li{diff\_correct} in Lean~4, filling in all
-        remaining cases (\li{Mul}, \li{Div}, \li{Pow}, \li{Sin}, \li{Cos},
-        \li{Exp}, \li{Ln}).
+  \item Work the Extended Exercise of Section~36.1: prove the remaining
+        rule-correctness lemmas (\li{Sub}, \li{Mul}, \li{Neg}, \li{Cos},
+        \li{Exp}), then tackle the side-condition cases (\li{Div}, \li{Ln},
+        \li{Pow}) with appropriate hypotheses.
   \item Implement the simplest non-trivial case of the Risch algorithm: the
         ``rational function'' case, which decides when $\int p(x)/q(x)\,dx$ is
         elementary (always) and computes it via partial fractions.
@@ -4567,6 +5048,475 @@ to other books in this series:
 \end{enumerate}
 \end{exbox}
 \color{black}
+
+\appendix
+
+%%-----------------------------------------------------------------------------
+\chapter{A Lean 4 Primer}\label{app:primer}
+%%-----------------------------------------------------------------------------
+\color{black}
+
+This appendix is the promised zero-prerequisites tour of every Lean~4 construct and tactic used in this book.  Each entry says what the construct does, shows a small self-contained example (every example here is machine-checked), and --- where it illuminates --- shows the lower-level term the tactic is sugar for.  That last part is worth your attention: Lean tactics are not magic, they are \emph{programs that build proof terms}, and seeing the terms once demystifies them permanently.
+
+Entries marked \textbf{(Mathlib)} require \li{import Mathlib} (see the setup instructions in Section~\ref{sec:mathlib-switch}); everything else is core Lean.
+
+\section{Declarations}
+
+\subsection*{\li{inductive} --- defining new types}
+
+An \li{inductive} declaration creates a brand-new type from a list of \emph{constructors} --- the only ways to make values of the type.  The kernel automatically knows that constructors are injective and disjoint, and generates an induction principle (Section~\ref{sec:primer-induction}).
+
+\begin{leanbox}
+\begin{lstlisting}
+inductive Tree where
+  | leaf : Tree
+  | node : Tree -> Tree -> Tree
+  deriving Repr   -- auto-generate printing, so #eval can show Trees
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\li{deriving Repr} asks Lean to synthesise a printer; \li{deriving BEq} (used by the capstone's \li{Expr}) synthesises the boolean equality test \li{==}.
+
+\subsection*{\li{def} and pattern matching}
+
+A \li{def} introduces a function or value.  Functions on inductive types are usually written by \emph{pattern matching}: one equation per constructor.  Recursion is allowed as long as some argument structurally shrinks (Lean checks this; when it cannot, you must write \li{partial def}, as the integration engine of Chapter~33 does, and you give up the ability to reason about the function in proofs).
+
+\begin{leanbox}
+\begin{lstlisting}
+def Tree.size : Tree -> Nat
+  | .leaf     => 1
+  | .node l r => l.size + r.size
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+The leading dot in \li{.leaf} means ``the constructor of the type being matched'' --- shorthand for \li{Tree.leaf}.  Because the function is named \li{Tree.size}, the \emph{dot notation} \li{t.size} works for any \li{t : Tree}.
+
+\subsection*{\li{theorem}, \li{example}, and \li{Prop}}
+
+In Lean, propositions are types (of sort \li{Prop}) and proofs are programs: to prove $P$ is to construct a term of type $P$.  A \li{theorem} is a named proof; an \li{example} is an anonymous one (used throughout this appendix).  The body can be a direct \emph{term} or a \emph{tactic block} introduced by \li{by}, in which tactics manipulate the current \emph{goal} until none remain.
+
+\begin{leanbox}
+\begin{lstlisting}
+example (p q : Prop) (hp : p) (h : p -> q) : q := h hp  -- term style
+
+example (p q : Prop) : p -> (p -> q) -> q := by         -- tactic style
+  intro hp h
+  apply h
+  exact hp
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{Type classes and \li{instance}}
+
+A \emph{type class} is an interface: \li{Add α} says ``$\alpha$ has a \li{+}''.  An \li{instance} registers an implementation, and Lean finds it automatically whenever \li{+} is used --- this is how \li{MyNat} gets \li{+} in Chapter~1 and how \li{MyNat.le} becomes \li{≤}.
+
+\begin{leanbox}
+\begin{lstlisting}
+structure Complex where
+  re : Float
+  im : Float
+  deriving Repr
+
+instance : Add Complex where
+  add a b := ⟨a.re + b.re, a.im + b.im⟩
+
+#eval (Complex.mk 1 2) + (Complex.mk 3 4)
+-- { re := 4.000000, im := 6.000000 }
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+The angle brackets \li{⟨\ldots⟩} are the \emph{anonymous constructor}: Lean infers which constructor to apply from the expected type.  They also build proofs of $\exists$ and $\land$ --- \li{⟨k, hk⟩} proves \li{∃ k, P k} by supplying the witness and the proof.
+
+\subsection*{\li{@[simp]} --- the simplifier's rule set}
+
+The attribute \li{@[simp]} marks an equation as a rewrite rule for the \li{simp} tactic, which rewrites left-to-right until no rule applies.  Marking a \emph{definition} \li{@[simp]} (as Chapter~1 does with \li{MyNat.add}) makes \li{simp} unfold it.
+
+\begin{leanbox}
+\begin{lstlisting}
+@[simp] theorem Tree.size_node (l r : Tree) :
+    (Tree.node l r).size = l.size + r.size := rfl
+
+example (t : Tree) : (Tree.node t .leaf).size = t.size + 1 := by
+  simp [Tree.size]
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\section{Core Tactics}
+
+\subsection*{\li{rfl} --- true by computation}
+
+Proves any goal of the form \li{a = a} \emph{after both sides compute} to the same normal form.  Definitional unfolding is free: \li{2 + 3 = 5} is \li{rfl} because the kernel can evaluate it.
+
+\begin{leanbox}
+\begin{lstlisting}
+example : 2 + 3 = 5 := rfl
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{intro} --- peel off hypotheses}
+
+If the goal is \li{p -> q} (or \li{∀ x, P x}), \li{intro hp} moves the antecedent into the context as hypothesis \li{hp}, leaving goal \li{q}.  It is the tactic form of writing \li{fun hp => \ldots}.
+
+\subsection*{\li{exact} and \li{apply} --- supply the proof}
+
+\li{exact h} closes the goal with the term \li{h}, which must match exactly.  \li{apply h} works \emph{backwards}: if \li{h : p -> q} and the goal is \li{q}, then \li{apply h} replaces the goal by \li{p}.  (See the \li{intro}/\li{apply}/\li{exact} example above --- the term-style proof \li{h hp} is what the three tactics assemble.)
+
+\subsection*{\li{rw} --- rewrite with an equation}
+
+\li{rw [h]}, for \li{h : a = b}, replaces occurrences of \li{a} in the goal by \li{b} (use \li{rw [← h]} for the other direction, and \li{rw [h] at h2} to rewrite inside a hypothesis).
+
+\begin{leanbox}
+\begin{lstlisting}
+example (a b : Nat) (h : a = b) : a + a = b + b := by rw [h]
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{simp} --- the simplifier}
+
+Rewrites with every \li{@[simp]} rule (plus any extras you pass in brackets) until nothing changes, then tries to close the goal.  \li{simp [foo]} adds \li{foo} to the rule set; \li{simp at h} simplifies a hypothesis; \li{simpa using h} simplifies both the goal and \li{h}, then closes the goal with it.  \li{simp only [\ldots]} uses \emph{only} the listed rules --- more predictable, common in this book.
+
+\begin{leanbox}
+\begin{lstlisting}
+example (n : Nat) : (n + 0) * 1 = n := by simp
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{induction \ldots with} --- structural induction}\label{sec:primer-induction}
+
+\li{induction n with} splits the goal into one case per constructor, giving the step case an induction hypothesis.  Under the hood there is no primitive ``induction'': every \li{inductive} type \li{T} comes with a \emph{recursor} \li{T.rec}, a function stating exactly the induction principle, and the tactic merely applies it.  Seeing this once is worth a hundred words:
+
+\begin{leanbox}
+\begin{lstlisting}
+theorem zero_add_nat (n : Nat) : 0 + n = n := by
+  induction n with
+  | zero      => rfl
+  | succ n ih => rw [Nat.add_succ, ih]
+
+-- ...and its desugaring: applying the recursor directly. (The
+-- `show` re-states the goal in beta-reduced form so `rw` can see it.)
+theorem zero_add_nat' (n : Nat) : 0 + n = n :=
+  Nat.rec (motive := fun n => 0 + n = n)
+    rfl                                     -- base case
+    (fun n ih => by                         -- step case
+      show 0 + (n + 1) = n + 1
+      rw [Nat.add_succ, ih])
+    n
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+The \li{motive} is the property being proved, as a function of \li{n} --- what a paper proof calls ``$P(n)$''.  Chapter~1's \li{mynat\_ind} is precisely \li{MyNat}'s recursor restricted to \li{Prop}.
+
+\subsection*{\li{cases} --- case analysis without induction}
+
+Like \li{induction} but with no induction hypothesis: just split on the constructors.  Works on data (\li{cases k with | zero => \ldots | succ k => \ldots}) and on logical connectives, since \li{Or}, \li{And}, \li{Exists} are themselves inductive types:
+
+\begin{leanbox}
+\begin{lstlisting}
+example (p q : Prop) (h : p ∨ q) : q ∨ p := by
+  cases h with
+  | inl hp => exact Or.inr hp
+  | inr hq => exact Or.inl hq
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{obtain} / \li{rcases} --- destructure in one step}
+
+\li{obtain ⟨n, hn⟩ := h} takes \li{h : ∃ n, P n} apart into a witness \li{n} and a proof \li{hn}; \li{rcases} is the same with nested patterns (\li{⟨n, hgt, hlt⟩} flattens a $\land$ inside an $\exists$) and alternation (\li{h1 | h2} for $\lor$).  The desugaring is a \li{match} --- or, fully explicitly, the eliminator \li{Exists.elim}:
+
+\begin{leanbox}
+\begin{lstlisting}
+example (h : ∃ n : Nat, n > 5) : ∃ n : Nat, n > 3 := by
+  obtain ⟨n, hn⟩ := h
+  exact ⟨n, by omega⟩
+
+-- ...and the desugaring: a match on the anonymous constructor
+example (h : ∃ n : Nat, n > 5) : ∃ n : Nat, n > 3 :=
+  match h with
+  | ⟨n, hn⟩ => ⟨n, by omega⟩
+
+-- ...or, fully explicit, the eliminator:
+example (h : ∃ n : Nat, n > 5) : ∃ n : Nat, n > 3 :=
+  Exists.elim h (fun n hn => ⟨n, by omega⟩)
+
+-- rcases with a nested pattern
+example (h : ∃ n : Nat, n > 5 ∧ n < 10) : ∃ n : Nat, n < 10 := by
+  rcases h with ⟨n, hgt, hlt⟩
+  exact ⟨n, hlt⟩
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+(Why can a \li{match} take an $\exists$ apart?  Because \li{Exists} is an ordinary inductive type with one constructor \li{Exists.intro}, so matching on it is just \li{cases}.)
+
+\subsection*{\li{constructor} --- build the goal's constructor}
+
+If the goal's head is an inductive with one applicable constructor (\li{∧}, \li{↔}, a structure), \li{constructor} applies it, turning e.g.\ a goal \li{p ∧ q} into two goals \li{p} and \li{q}.  The \li{·} bullets then focus one subgoal each.
+
+\begin{leanbox}
+\begin{lstlisting}
+example (p q : Prop) (hp : p) (hq : q) : p ∧ q := by
+  constructor
+  · exact hp
+  · exact hq
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{calc} --- chained (in)equalities}
+
+A \li{calc} block strings together steps \li{a ≤ b := proof}, each line picking up where the previous ended.  Mixed relations are allowed when transitivity makes sense ($=$ with $\leq$, $\leq$ with $<$, \ldots).  The desugaring: each adjacent pair is glued by the \li{Trans} type class's \li{Trans.trans}:
+
+\begin{leanbox}
+\begin{lstlisting}
+example (a b c : Nat) (h1 : a ≤ b) (h2 : b ≤ c) : a ≤ c + 1 := by
+  calc a ≤ b     := h1
+    _    ≤ c     := h2
+    _    ≤ c + 1 := Nat.le_succ c
+
+-- ...and its desugaring: chained Trans.trans applications
+example (a b c : Nat) (h1 : a ≤ b) (h2 : b ≤ c) : a ≤ c + 1 :=
+  Trans.trans (Trans.trans h1 h2) (Nat.le_succ c)
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{have}, \li{show}, and \li{suffices} --- structuring proofs}
+
+\li{have h : P := proof} adds an intermediate fact to the context.  \li{show P} re-states the current goal (useful to force an unfolding, or just for readability).  \li{suffices h : P by tac} argues top-down: ``it suffices to prove \li{P}, because \li{tac} derives the goal from it''; the remaining goal is then \li{P}.
+
+\begin{leanbox}
+\begin{lstlisting}
+example (a b : Nat) (h : a = b) : b = a := by
+  have h2 : a = b := h
+  show b = a
+  exact h2.symm
+
+example (n : Nat) (h : n ≥ 10) : n > 3 := by
+  suffices hs : n > 5 by omega
+  omega
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{omega} --- linear integer arithmetic, decided}
+
+A decision procedure for linear arithmetic over \li{Nat} and \li{Int} (with \li{+}, constants multiples, \li{≤}, \li{<}, \li{=}, \li{min}/\li{max}, \li{\%} by constants).  If the goal follows from the linear facts in context, \li{omega} closes it --- no hints needed.  It knows nothing about multiplication of variables or about \li{Real}.
+
+\begin{leanbox}
+\begin{lstlisting}
+example (a b : Nat) (h : a + 2 * b = 10) (hb : b ≥ 3) : a ≤ 4 := by
+  omega
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{decide} --- run the decision procedure}
+
+For goals whose truth is \emph{decidable by computation} (a \li{Decidable} instance exists), \li{decide} simply evaluates it and checks the answer is \li{true}.  Works for concrete arithmetic and for quantifiers over finite types; useless for infinite quantifiers or \li{Real}.
+
+\begin{leanbox}
+\begin{lstlisting}
+example : 17 * 3 = 51 := by decide
+example : ∀ n : Fin 5, n.val < 10 := by decide
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{grind} --- core Lean's general closer}
+
+A core-Lean automation tactic combining congruence closure with arithmetic; in Part~I we use it for routine \li{Rat} algebra (where \li{omega} does not apply and Mathlib's \li{linarith} is not yet available).
+
+\begin{leanbox}
+\begin{lstlisting}
+example (a b : Rat) (h : a < b) : a - b < 0 := by grind
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{funext} --- functions equal pointwise are equal}
+
+Not a tactic but a lemma (usable with \li{apply}): to prove \li{f = g} for functions, prove \li{∀ x, f x = g x}.  Chapter~5's \li{addReal} uses it to compare two lifted functions.
+
+\begin{leanbox}
+\begin{lstlisting}
+example (f g : Nat -> Nat) (h : ∀ n, f n = g n) : f = g := funext h
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\section{Quotients: \li{Quot}, \li{Quot.mk}, \li{Quot.lift}, \li{Quot.sound}}
+
+Given a relation \li{r : α → α → Prop}, the type \li{Quot r} is ``$\alpha$ with \li{r}-related elements glued together.''  Four primitives run the whole show:
+
+\begin{itemize}[noitemsep]
+  \item \li{Quot.mk r a} --- the class of \li{a} (write $[a]$ on paper);
+  \item \li{Quot.sound : r a b → Quot.mk r a = Quot.mk r b} --- related representatives give \emph{equal} classes;
+  \item \li{Quot.lift f h} --- descend \li{f : α → β} to \li{Quot r → β}, \emph{provided} the proof \li{h} that \li{f} respects \li{r} (well-definedness!);
+  \item \li{Quot.ind} --- to prove something for every class, prove it for every \li{Quot.mk r a}.
+\end{itemize}
+
+A complete miniature (integers-mod-2 as a quotient of \li{Nat}):
+
+\begin{leanbox}
+\begin{lstlisting}
+def parityRel (m n : Nat) : Prop := m % 2 = n % 2
+
+def Parity : Type := Quot parityRel
+
+def Parity.ofNat (n : Nat) : Parity := Quot.mk parityRel n
+
+-- Descend a function to the quotient: needs a respect proof.
+def Parity.isEven : Parity -> Bool :=
+  Quot.lift (fun n => n % 2 == 0)
+    (fun a b h => by simp [parityRel] at h; simp [h])
+
+-- Equate two representatives: Quot.sound turns relatedness into
+-- equality of equivalence classes.
+theorem parity_two_zero : Parity.ofNat 2 = Parity.ofNat 0 :=
+  Quot.sound (by simp [parityRel])
+
+#eval (Parity.ofNat 6).isEven  -- true
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+This is exactly the machinery behind \li{MyInt} (Chapter~2) and \li{MyReal} (Chapter~5); there, the ``respect'' proofs are the well-definedness arguments, and binary operations need a nested \li{Quot.lift} with one respect proof per argument.
+
+\section{Mathlib Tactics (Parts II--VII)}
+
+All entries below require \li{import Mathlib}.
+
+\subsection*{\li{linarith} --- linear arithmetic over ordered fields \textbf{(Mathlib)}}
+
+The workhorse of our $\varepsilon$--$\delta$ proofs: closes any goal that is a linear consequence of linear hypotheses over \li{Real} (or \li{Rat}, \li{Int}, \ldots).  Extra facts can be passed inline: \li{linarith [abs\_nonneg x]}.
+
+\begin{leanbox}
+\begin{lstlisting}
+example (x y : Real) (h1 : x < 2 * y) (h2 : y ≤ 3) : x < 6 := by
+  linarith
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{nlinarith} --- a nonlinear boost \textbf{(Mathlib)}}
+
+\li{linarith} after multiplying hypotheses together and adding squares; the bracket hints tell it which products to consider.  Heuristic, not complete --- when it fails, feed it the key square.
+
+\begin{leanbox}
+\begin{lstlisting}
+example (a : Real) : 0 ≤ a ^ 2 - 2 * a + 1 := by
+  nlinarith [sq_nonneg (a - 1)]
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{norm\_num} --- numeric normalisation \textbf{(Mathlib)}}
+
+Evaluates concrete numeric expressions in any ordered field or ring --- like \li{decide}, but for types such as \li{Real} where nothing literally computes, plus extensions (primality, \ldots).
+
+\begin{leanbox}
+\begin{lstlisting}
+example : (2 : Real) + 2 ≠ 5 := by norm_num
+example : (127 : Nat).Prime := by norm_num
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{positivity} --- positivity by structure \textbf{(Mathlib)}}
+
+Proves goals \li{0 < e}, \li{0 ≤ e}, or \li{e ≠ 0} by recursing over the syntax of \li{e} (products of positives are positive, \ldots).  Ubiquitous for our ``$\delta > 0$'' side-goals.
+
+\begin{leanbox}
+\begin{lstlisting}
+example (x : Real) (hx : 0 < x) : 0 < x ^ 2 / (x + 1) := by positivity
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{push\_neg} --- normalise negations \textbf{(Mathlib)}}
+
+Pushes \li{¬} inward through quantifiers and connectives: $\lnot\forall$ becomes $\exists\lnot$, $\lnot(a \leq b)$ becomes $b < a$, and so on --- exactly the ``negate the definition of convergence'' step of analysis.  (Recent Mathlib versions are renaming this to \li{push Not}; \li{push\_neg} still works, possibly with a deprecation notice.)
+
+\begin{leanbox}
+\begin{lstlisting}
+example (P : Nat -> Prop) (h : ¬ ∀ n, P n) : ∃ n, ¬ P n := by
+  push_neg at h
+  exact h
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{by\_contra} --- proof by contradiction \textbf{(Mathlib)}}
+
+\li{by\_contra hx} assumes the negation of the goal as \li{hx} and asks you to derive \li{False}.  It usually travels with \li{push\_neg at hx}.  The desugaring is the classical axiom-powered lemma \li{Classical.byContradiction : (¬p → False) → p}:
+
+\begin{leanbox}
+\begin{lstlisting}
+example (x : Real) (h : ∀ eps : Real, eps > 0 -> x ≤ eps) : x ≤ 0 := by
+  by_contra hx
+  push_neg at hx
+  have := h (x / 2) (by linarith)
+  linarith
+
+-- ...which is sugar for Classical.byContradiction:
+example (p : Prop) (h : ¬¬p) : p :=
+  Classical.byContradiction fun hnp => h hnp
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{ring} and \li{ring\_nf} --- commutative-ring identities \textbf{(Mathlib)}}
+
+\li{ring} proves any identity valid in every commutative ring by normalising both sides to a canonical polynomial form; \li{ring\_nf} performs the same normalisation without requiring it to close the goal (we use it to tidy expressions inside $|\cdot|$ before applying the triangle inequality).
+
+\begin{leanbox}
+\begin{lstlisting}
+example (a b : Real) : (a + b) ^ 2 = a ^ 2 + 2 * a * b + b ^ 2 := by ring
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{set} --- name a subexpression \textbf{(Mathlib)}}
+
+\li{set s := e with hs} abbreviates a recurring expression: it replaces every occurrence of \li{e} by a new local \li{s} and records \li{hs : s = e}.  Purely organisational, but it keeps $\varepsilon$--$\delta$ proofs readable.
+
+\begin{leanbox}
+\begin{lstlisting}
+example (a b : Real) (h : a + b > 2) : (a + b) ^ 2 > 4 := by
+  set s := a + b with hs
+  nlinarith
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{field\_simp} --- clear denominators \textbf{(Mathlib)}}
+
+Multiplies out fractions, using nonzeroness hypotheses from the context, typically leaving a polynomial goal for \li{ring} or \li{linarith}.
+
+\begin{leanbox}
+\begin{lstlisting}
+example (x : Real) (hx : x ≠ 0) : 1 / x + 1 = (1 + x) / x := by
+  field_simp
+\end{lstlisting}
+\end{leanbox}
+\color{black}
+
+\subsection*{\li{by\_cases} and \li{unfold}}
+
+Two small players seen in Chapter~36: \li{by\_cases h : p} splits the proof into the case where \li{p} holds and the case where it fails (classically, any proposition may be split; for decidable \li{p} it is constructive).  \li{unfold foo} replaces \li{foo} by its definition in the goal --- a blunter, more predictable cousin of \li{simp only [foo]}.
+
+\bigskip
+\noindent That is the complete toolbox.  If a proof in the book uses something not listed here, it is a named lemma, not a tactic --- and Lean's \li{exact?}, or a search on \url{https://leanprover-community.github.io/mathlib4_docs}, will find it for you.
 
 \backmatter
 

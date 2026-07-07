@@ -2,7 +2,12 @@
 
 % ── Encoding & Fonts ─────────────────────────────────────────────
 \usepackage{fontspec}
-\setmonofont{DejaVu Sans Mono}[Scale=0.85]
+% Pin the full system DejaVu by path: TeX-trimmed DejaVu can silently drop
+% some math glyphs used in the Lean listings. The system TTFs carry them.
+\setmonofont{DejaVuSansMono.ttf}[
+  Path=/usr/share/fonts/truetype/dejavu/,
+  BoldFont=DejaVuSansMono-Bold.ttf,
+  Scale=0.85]
 % microtype removed (requires scalable fonts)
 
 % ── Page Geometry ────────────────────────────────────────────────
@@ -20,7 +25,7 @@
 \usepackage{forest}
 
 % ── Code Highlighting ────────────────────────────────────────────
-\usepackage[outputdir=build]{minted}
+\usepackage{minted}
 \setminted{
   fontsize=\small,
   breaklines,
@@ -44,7 +49,7 @@
 \newtcolorbox{defnbox}[1][]{
   enhanced, breakable,
   colback=blue!3, colframe=accentblue,
-  fonttitle=\bfseries, title=#1,
+  fonttitle=\bfseries, title={#1},
   boxrule=0.8pt, arc=2pt,
   left=6pt, right=6pt, top=4pt, bottom=4pt,
 }
@@ -52,7 +57,7 @@
 \newtcolorbox{intuition}[1][Intuition]{
   enhanced, breakable,
   colback=green!3, colframe=darkgreen,
-  fonttitle=\bfseries, title=#1,
+  fonttitle=\bfseries, title={#1},
   boxrule=0.8pt, arc=2pt,
   left=6pt, right=6pt, top=4pt, bottom=4pt,
 }
@@ -60,7 +65,7 @@
 \newtcolorbox{workedexample}[1][Example]{
   enhanced, breakable,
   colback=orange!3, colframe=orange!70!black,
-  fonttitle=\bfseries, title=#1,
+  fonttitle=\bfseries, title={#1},
   boxrule=0.8pt, arc=2pt,
   left=6pt, right=6pt, top=4pt, bottom=4pt,
 }
@@ -68,7 +73,7 @@
 \newtcolorbox{warning}[1][Warning]{
   enhanced, breakable,
   colback=red!3, colframe=red!70!black,
-  fonttitle=\bfseries, title=#1,
+  fonttitle=\bfseries, title={#1},
   boxrule=0.8pt, arc=2pt,
   left=6pt, right=6pt, top=4pt, bottom=4pt,
 }
@@ -76,7 +81,7 @@
 \newtcolorbox{exercisebox}[1][Exercises]{
   enhanced, breakable,
   colback=violet!3, colframe=violet!60!black,
-  fonttitle=\bfseries, title=#1,
+  fonttitle=\bfseries, title={#1},
   boxrule=0.8pt, arc=2pt,
   left=6pt, right=6pt, top=4pt, bottom=4pt,
 }
@@ -533,6 +538,14 @@ def safeDivide (a b : Nat) : Option Nat := do
 Key points: Lean requires termination by default. For $\beta$-reduction (which
 may loop), we'll use a \textit{fuel} parameter.
 
+That is enough to start reading. As the code grows we lean on a handful of
+Lean conveniences---\texttt{do}/\texttt{←} notation, \texttt{<|>},
+\texttt{guard}, \texttt{Id.run do} with \texttt{let mut}, \texttt{deriving},
+\texttt{partial}/\texttt{termination\_by}, and the odd \texttt{by omega}. Each
+is introduced in passing, but if any feels like magic, Appendix~\ref{app:primer}
+(``A Lean\,4 Primer'') collects them in one place and shows the plain
+\texttt{match}/recursor code each one desugars to.
+
 %======================================================================
 \section{The Syntax of Lambda Terms}\label{sec:syntax}
 %======================================================================
@@ -737,8 +750,10 @@ Section~\ref{sec:parser} as a desugaring step.
 
 %======================================================================
 
-indices, type checking, and ultimately a dependent type checker that verifies
-proofs.
+We have the theory of syntax in hand. Over the rest of this book we will turn
+it into running Lean code, building up step by step to De Bruijn indices, type
+checking, and ultimately a dependent type checker that verifies proofs. The
+first step is the humblest one: choosing a data structure for a $\lam$-term.
 
 \subsection{Implementing It: Representing Terms}\label{sec:namedimpl}
 %======================================================================
@@ -1703,13 +1718,13 @@ Here is the implementation. Read it against the substitution rules---each
 \texttt{if}/\texttt{else} branch corresponds to one rule:
 
 \begin{minted}{lean}
-def freshVar (avoid : List String) (base : String := "x") : String :=
+partial def freshVar (avoid : List String) (base : String := "x") : String :=
   let rec go (n : Nat) : String :=
     let candidate := s!"{base}{n}"
     if candidate ∈ avoid then go (n + 1) else candidate
   if base ∉ avoid then base else go 0
 
-def subst (x : String) (s : Term) : Term → Term
+partial def subst (x : String) (s : Term) : Term → Term
   | .var y     => if y == x then s else .var y         -- Rules 1,2
   | .app e₁ e₂ => .app (subst x s e₁) (subst x s e₂) -- Rule 6
   | .lam y e   =>
@@ -1723,6 +1738,22 @@ def subst (x : String) (s : Term) : Term → Term
 
 The \texttt{freshVar} function generates a name that doesn't collide with
 anything in scope. This is the ``pick a fresh $z$'' step from Rule~5.
+
+\begin{warning}[Why \texttt{partial} here?]
+Both functions are marked \texttt{partial}. Lean normally insists that every
+\texttt{def} terminate, and it proves this automatically only when each
+recursive call is on a \emph{structural subterm} of an argument. Neither
+function qualifies: \texttt{freshVar.go} recurses on \texttt{n + 1} (which
+\emph{grows}), and \texttt{subst}'s Rule~5 recurses on
+\texttt{subst y (.var z) e}---a freshly \emph{built} term, not a piece of the
+input. Without \texttt{partial}, Lean rejects both with ``fail to show
+termination.'' Marking them \texttt{partial} tells Lean ``trust me, this
+halts'' and opts out of the termination check. (Both really do halt: names
+eventually stop colliding, and the rename recursion shrinks the term's
+$\lambda$-nesting even though Lean can't see it.) The alternative---a
+\texttt{termination\_by} clause that spells out a decreasing measure---is
+shown in Appendix~\ref{app:primer}.
+\end{warning}
 
 \begin{intuition}[Substitution is not ``calling the function'']
 A common early mistake is to test substitution by writing something like
@@ -1825,13 +1856,20 @@ Let's test it:
 \begin{minted}{lean}
 -- (λx. x)(λy. y) →β (λy. y)
 #eval eval 100 (.app (.lam "x" (.var "x")) (.lam "y" (.var "y")))
--- Result: (λy. y)
+-- Result: Term.lam "y" (Term.var "y")
 
 -- K a b = (λx. λy. x) a b →β a
 #eval eval 100
   (.app (.app (.lam "x" (.lam "y" (.var "x"))) (.var "a")) (.var "b"))
--- Result: a
+-- Result: Term.var "a"
 \end{minted}
+
+Because \texttt{Term} derives \texttt{Repr}, \texttt{\#eval} prints the raw
+constructor tree (\texttt{Term.lam "y" (Term.var "y")}), not the pretty
+$\lam$-notation. Once we add a \texttt{ToString} instance
+(Appendix~\ref{app:code}), \texttt{IO.println (toString (eval 100 t))} prints
+the friendly form \texttt{(λy. y)} instead. Either way the value is the same:
+$(\lam y.\, y)$ and $a$, exactly the reductions we expected.
 
 It works! We have a complete $\lam$-calculus interpreter. But there's a problem
 lurking beneath the surface\ldots
@@ -1921,12 +1959,16 @@ and doesn't depend on $\Omega$ at all.
 
 This example demonstrates a fundamental theorem:
 
-\begin{theorem}[Standardization]
-If a term has a normal form, normal-order reduction will find it. Applicative
-order may diverge even when a normal form exists.
+\begin{theorem}[Normalization / Leftmost Reduction]
+If a term has a normal form, normal-order (leftmost-outermost) reduction will
+find it. Applicative order may diverge even when a normal form exists.
 \end{theorem}
 
-This theorem was proved by Curry and Feys in 1958 and sharpened
+(This is the \emph{normalization theorem}, sometimes called the leftmost- or
+standard-reduction theorem. Do not confuse it with the separate
+\emph{Standardization Theorem}, which says any reduction sequence can be
+reordered into a standard one.) The normalization theorem was proved by Curry
+and Feys in 1958, and the operational picture was sharpened
 by Plotkin in 1975, who formalized the precise relationship between
 different evaluation strategies and their corresponding programming language
 semantics. Plotkin's paper ``Call-by-name, call-by-value, and the
@@ -1940,6 +1982,30 @@ applicative order, each argument is evaluated exactly once. Under normal order,
 if an argument is used three times in the body, it might be evaluated three
 times. Call-by-need (Haskell's approach) gets the best of both worlds: lazy
 semantics with no redundant work---but at the cost of implementation complexity.
+\end{intuition}
+
+\begin{intuition}[Normal form vs.\ diverges-when-applied]
+It is easy to blur two different questions: ``does reducing this term
+terminate?'' and ``does this term loop?'' Keep them apart.
+
+A term \textbf{has a normal form} if repeatedly firing redexes (in normal
+order) eventually reaches a term with \emph{no} redex left. That is a property
+of the term \emph{as written}. For example, $\lam x.\, (x\,x)\,(x\,x)$ is
+\emph{already} a normal form: its only applications are $x\,x$, and $x$ is a
+plain variable, not a $\lam$, so there is nothing to reduce. Normalizing it
+halts immediately.
+
+A term \textbf{diverges when applied} if \emph{supplying it an argument}
+creates an unbounded reduction. The very same $\lam x.\, (x\,x)\,(x\,x)$
+loops forever the moment you apply it to a self-duplicator like
+$\lam y.\, y\,y$---that rebuilds $\Omega$. But that divergence lives in the
+\emph{application}, not in the original (already-normal) function.
+
+So a term can sit in a perfectly good normal form and still build a machine
+that loops once you feed it input---exactly like a Lean function that is
+well-defined but would run forever on certain arguments. When an exercise asks
+you to ``normalize the body,'' answer the first question; do not assume a
+self-application must diverge.
 \end{intuition}
 
 %======================================================================
@@ -2929,8 +2995,10 @@ you try to substitute directly into the whole term:
 \begin{minted}{lean}
 -- WRONG: trying to use subst as if it were beta reduction
 -- This does NOT compute "K a"!
-#eval subst "x" (.var "a") K    -- named version
-#eval subst 0 (.bvar 99) K_db  -- de Bruijn version
+def K    : Term := .lam "x" (.lam "y" (.var "x"))   -- named K = λx.λy. x
+def K_db : Expr := .lam (.lam (.bvar 1))            -- de Bruijn K = λ.λ. 1
+#eval subst "x" (.var "a") K    -- named version    (3-arg named subst)
+#eval subst 0 (.bvar 99) K_db  -- de Bruijn version (2-arg de Bruijn subst)
 \end{minted}
 
 Both produce the \emph{original term, unchanged}. Why? Because $x$ (or index
@@ -4045,7 +4113,7 @@ inductive TExpr where
 \begin{minted}{lean}
 -- Γ ⊢ e : τ    (Γ is List Ty, index 0 = innermost binder)
 def typeCheck (ctx : List Ty) : TExpr → Option Ty
-  | .bvar n          => ctx.get? n                -- Var: look up in Γ
+  | .bvar n          => ctx[n]?                   -- Var: look up in Γ
   | .lam paramTy body =>                          -- Abs: extend Γ, check body
     match typeCheck (paramTy :: ctx) body with
     | some bodyTy => some (.arrow paramTy bodyTy)
@@ -4364,13 +4432,6 @@ that make Lean, Coq, and Agda work.
 
 \subsection{The Classical View}
 
-
-Before we can understand dependent types, we need to understand the
-philosophical revolution they grew out of. This detour into the foundations of
-mathematics may seem far from programming, but it leads directly to the ideas
-that make Lean, Coq, and Agda work.
-
-\paragraph{The classical view.}
 In classical logic---the logic most people learn in school and most
 mathematicians use daily---every proposition is either true or false, regardless
 of whether anyone can prove it. The Goldbach conjecture (``every even number
@@ -4577,6 +4638,12 @@ The connection to programming is not a metaphor. In a dependently typed
 proof assistant like Lean:
 
 \begin{minted}{lean}
+-- Fix A and B as propositions so `modus_ponens` is itself a proposition.
+-- (Without this, Lean auto-binds A B : Sort _, and rejects modus_ponens
+--  with "type of theorem modus_ponens is not a proposition". The ∧/∨/∃
+--  lines happen to survive because those connectives force Prop.)
+variable {A B : Prop}
+
 -- "A and B" is a struct (pair)
 theorem and_intro (ha : A) (hb : B) : A ∧ B := ⟨ha, hb⟩
 
@@ -4799,7 +4866,7 @@ plus two new ones:
 \begin{minted}{lean}
 def fTypeCheck (ctx : List FTy) : FExpr → Option FTy
   -- Same as STLC:
-  | .bvar n       => ctx.get? n
+  | .bvar n       => ctx[n]?
   | .lam ty body  =>
     match fTypeCheck (ty :: ctx) body with
     | some bodyTy => some (.arrow ty bodyTy)
@@ -5346,7 +5413,9 @@ The length $3$ or $0$ is a \emph{value} appearing inside a \emph{type}.
 
 This lets you express invariants that simpler type systems can't:
 \begin{minted}{lean}
--- This type GUARANTEES the output has the same length as the inputs
+-- Schematic only: `Vec` is not part of core Lean (you would define it
+-- yourself, or import Mathlib). We show just the SIGNATURE to make the
+-- point; there is no body here, so this is illustrative pseudocode.
 def zipWith (f : α → β → γ) : Vec α n → Vec β n → Vec γ n
 \end{minted}
 
@@ -5450,18 +5519,30 @@ def DTerm.shift (d : Int) (c : Nat) : DTerm → DTerm
   | .pi  ty e  => .pi  (ty.shift d c) (e.shift d (c + 1))
   | .univ      => .univ
 
+-- NOTE: `subst` has signature `(k) (s) : DTerm → DTerm`, so the SUBJECT is
+-- the last (pattern-matched) argument. We must call it in prefix form,
+-- `DTerm.subst k s subject`: writing `subject.subst k s` (dot notation)
+-- would insert `subject` as the *replacement* `s` — the wrong argument —
+-- and the recursion would never shrink (Lean: "fail to show termination").
 def DTerm.subst (k : Nat) (s : DTerm) : DTerm → DTerm
   | .bvar n    => if n == k then s
                    else if n > k then .bvar (n - 1) else .bvar n
-  | .app e₁ e₂ => .app (e₁.subst k s) (e₂.subst k s)
-  | .lam ty e  => .lam (ty.subst k s) (e.subst (k+1) (s.shift 1 0))
-  | .pi  ty e  => .pi  (ty.subst k s) (e.subst (k+1) (s.shift 1 0))
+  | .app e₁ e₂ => .app (DTerm.subst k s e₁) (DTerm.subst k s e₂)
+  | .lam ty e  => .lam (DTerm.subst k s ty) (DTerm.subst (k+1) (s.shift 1 0) e)
+  | .pi  ty e  => .pi  (DTerm.subst k s ty) (DTerm.subst (k+1) (s.shift 1 0) e)
   | .univ      => .univ
 
--- Beta reduction (needed during type checking!)
-partial def DTerm.whnf : DTerm → DTerm
-  | .app (.lam _ body) arg => (body.subst 0 arg).whnf
-  | e                      => e
+-- Beta reduction (needed during type checking!). We must reduce the FUNCTION
+-- position first: in `((λ.λ.·) X) Y` the head `(λ.λ.·) X` is itself a redex,
+-- so a checker that only fires when the function is *syntactically* a `lam`
+-- would leave such applied type families stuck.
+partial def DTerm.whnf (t : DTerm) : DTerm :=
+  match t with
+  | .app f a =>
+    match f.whnf with
+    | .lam _ body => (DTerm.subst 0 a body).whnf
+    | f'          => .app f' a
+  | e => e
 
 -- Definitional equality: are two terms the same after reduction?
 partial def DTerm.beq (a b : DTerm) : Bool :=
@@ -5485,8 +5566,11 @@ Now the type checker itself. The context maps variable indices to their types
 
 \begin{minted}{lean}
 partial def dTypeCheck (ctx : List DTerm) : DTerm → Option DTerm
-  -- Variable: look up its type in the context
-  | .bvar n    => ctx.get? n
+  -- Variable: look up its type in the context, then SHIFT it into the
+  -- current scope. The annotation was stored under fewer binders than are
+  -- now in scope, so a variable at index n needs its looked-up type shifted
+  -- up by n+1 (past all the binders crossed since it was recorded).
+  | .bvar n    => (ctx[n]?).map (·.shift (Int.ofNat (n+1)) 0)
   -- Universe: Type has type Type (simplified; real systems use a hierarchy)
   | .univ      => some .univ
   -- Pi type: Π(x:A).B is valid if A : Type and B : Type (with x:A in scope)
@@ -5509,14 +5593,15 @@ partial def dTypeCheck (ctx : List DTerm) : DTerm → Option DTerm
     | .pi dom cod =>
       let argTy ← dTypeCheck ctx e₂
       guard (dom.beq argTy)                  -- argument type must match domain
-      some (cod.subst 0 e₂)                 -- CRUCIAL: substitute the actual
+      some (DTerm.subst 0 e₂ cod)            -- CRUCIAL: substitute the actual
                                              -- argument into the codomain!
     | _ => none
 \end{minted}
 
 \begin{intuition}[The magic line]
 The most important line in the entire type checker is in the application case:
-\texttt{cod.subst 0 e₂}. This is where dependent types earn their name. In
+\texttt{DTerm.subst 0 e₂ cod} (substitute the argument \texttt{e₂} for
+index~0 in the codomain \texttt{cod}). This is where dependent types earn their name. In
 the STLC, applying $f : A \to B$ to $x : A$ gives type $B$---the return type
 is fixed. But in a dependent system, applying $f : \Pi(x{:}A).\, B$ to $a : A$
 gives type $B[x := a]$---the return type \emph{depends on the argument}. This
@@ -5622,6 +5707,9 @@ def kProof : DTerm :=
 -- Which IS the proposition A → B → A.
 -- The fact that type checking succeeded IS the proof verification.
 #eval dTypeCheck [] kProof
+-- some (DTerm.pi DTerm.univ (DTerm.pi DTerm.univ
+--        (DTerm.pi (DTerm.bvar 1) (DTerm.pi (DTerm.bvar 1) (DTerm.bvar 3)))))
+-- The final DTerm.bvar 3 reaches past the two inner Π binders to A.  ✓
 \end{minted}
 
 The key insight: when the type checker accepts a term $e$ at type $\tau$, it
@@ -5814,13 +5902,25 @@ def fail : Parser α := fun _ _ => none
 
 -- `char c`: succeeds if the next character is `c`
 def char (c : Char) : Parser Char := fun s pos =>
-  if s.get ⟨pos⟩ == c then some (c, pos + 1) else none
+  if pos < s.length && s.get ⟨pos⟩ == c then some (c, pos + 1) else none
 
 -- `satisfy p`: succeeds if the next character satisfies predicate `p`
 def satisfy (p : Char → Bool) : Parser Char := fun s pos =>
-  let c := s.get ⟨pos⟩
-  if p c then some (c, pos + 1) else none
+  if pos < s.length then
+    let c := s.get ⟨pos⟩
+    if p c then some (c, pos + 1) else none
+  else none
 \end{minted}
+
+\begin{warning}[Always bounds-check the position]
+Both combinators test \texttt{pos < s.length} \emph{before} reading. This is
+not optional. In current Lean, \texttt{s.get ⟨pos⟩} past the end of the string
+returns the \emph{default} character \texttt{'A'} rather than failing---and
+\texttt{'A'.isAlphanum} is \texttt{true}, so an unguarded
+\texttt{many (satisfy Char.isAlphanum)} would ``succeed'' forever and loop
+until the stack blows (``deep recursion''). The recursive-descent parser guards
+its reads the same way; combinators must too.
+\end{warning}
 
 Each one is tiny. The power comes from \emph{composition}.
 
@@ -5854,6 +5954,21 @@ def orElse (p q : Parser α) : Parser α := fun s pos =>
 This is \textbf{backtracking}: if $p$ fails, we rewind to the original
 position and try $q$. The parser explores alternatives without the programmer
 manually managing the position.
+
+\begin{warning}[Reading order vs.\ compilation order]
+The four functions above (\texttt{pure}, \texttt{fail}, \texttt{bind},
+\texttt{orElse}) are shown as \emph{standalone} definitions to demystify what
+the operators do. In the finished parser we \emph{drop} these standalone
+\texttt{def}s and instead register the \texttt{Functor}/\texttt{Applicative}/%
+\texttt{Monad}/\texttt{Alternative} instances (a few subsections down)---those
+instances are what make \texttt{>>=}, \texttt{do}-notation, and \texttt{<|>}
+available. Lean resolves those operators only \emph{after} the instances are in
+scope, so in an actual source file the instance block must come \emph{before}
+the combinators that use them (\texttt{many1}, \texttt{spaces}, \texttt{token},
+\texttt{ident}, \texttt{lamP}, \ldots). We present them in conceptual order
+here for readability; the compile-ready ordering is: instances first, then the
+repetition/whitespace helpers, then the grammar (in a \texttt{mutual} block).
+\end{warning}
 
 \subsubsection{Repetition}
 
@@ -6022,6 +6137,10 @@ def keyword (s : String) : Parser Unit := do
   let name ← ident
   if name == s then pure () else failure
 
+-- These four parsers are MUTUALLY recursive (lamP calls exprP, exprP calls
+-- appP, appP calls atomP, atomP calls exprP), so they must be wrapped in a
+-- `mutual ... end` block; otherwise Lean reports "unknown identifier exprP".
+mutual
 -- Parse a lambda: '\' ident+ '.' expr
 partial def lamP : Parser Term := do
   let _ ← symbol '\\'
@@ -6033,7 +6152,10 @@ partial def lamP : Parser Term := do
 -- Parse an application: atom+, left-associative
 partial def appP : Parser Term := do
   let atoms ← many1 atomP
-  pure (atoms.tail.foldl Term.app atoms.head)
+  -- `many1` guarantees at least one atom, but Lean can't see that, so
+  -- `atoms.head` would demand a nonemptiness proof. `head!` uses the
+  -- `Inhabited Term` instance for the (unreachable) empty case.
+  pure (atoms.tail.foldl Term.app atoms.head!)
 
 -- Parse an atom: parenthesized expression or identifier
 partial def atomP : Parser Term :=
@@ -6042,6 +6164,7 @@ partial def atomP : Parser Term :=
 
 -- Parse an expression: lambda or application
 partial def exprP : Parser Term := lamP <|> appP
+end
 \end{minted}
 
 Compare this to the recursive descent version. The manual state threading is
@@ -6122,7 +6245,7 @@ a list of names where each name's \emph{position} is its de Bruijn index.
 \begin{minted}{lean}
 def toDeBruijn (ctx : List String := []) : Term → Option Expr
   | Term.var x =>
-    match ctx.indexOf? x with
+    match ctx.idxOf? x with
     | some i => some (Expr.bvar i)    -- position IS the index
     | none   => none                  -- unbound variable
   | Term.lam x body =>
@@ -6259,6 +6382,21 @@ Each iteration of the REPL is a fresh function call with potentially different
 state. This pattern---looping via recursion, state via arguments---is the
 functional alternative to \texttt{while} loops with mutable variables.
 
+\begin{warning}[These two listings are illustrative sketches]
+The \texttt{pipeline} and \texttt{repl} listings above are written for
+readability, using suggestive names---\texttt{Defs}, \texttt{display},
+\texttt{printDefs}, \texttt{parseLetBinding}, \texttt{defs.insert}---that we
+have \emph{not} defined. They stand in for concrete pieces that the runnable
+implementation spells out differently. In the complete, compile-checked code
+of Appendix~\ref{app:code}: \texttt{Defs} is simply
+\texttt{List (String × Term)}; ``display'' is the \texttt{ToString} instance
+(so \texttt{s!"\{result\}"}); ``printDefs'' is a \texttt{for} loop over the
+list; ``parseLetBinding'' is \texttt{rest.splitOn " = "}; and
+``\texttt{defs.insert name term}'' is just consing \texttt{(name, term) ::
+defs}. Read this section for the \emph{shape} of the pipeline; read the
+appendix for code you can paste and run.
+\end{warning}
+
 \subsection{Example Session}
 
 \begin{minted}{text}
@@ -6268,29 +6406,32 @@ De Bruijn: (λ. 0)
 Result:    (λ. 0)
 
 λ> succ (succ (succ zero))
-Result:    (λ. (λ. (0 (0 (0 1)))))
+Result:    (λ. (λ. (1 (1 (1 0)))))
 
 λ> add (succ (succ zero)) (succ (succ (succ zero)))
-Result:    (λ. (λ. (0 (0 (0 (0 (0 1)))))))
+Result:    (λ. (λ. (1 (1 (1 (1 (1 0)))))))
 
 λ> :let two = succ (succ zero)
 two defined
 
 λ> mul two (succ two)
-Result:    (λ. (λ. (0 (0 (0 (0 (0 (0 1))))))))
+Result:    (λ. (λ. (1 (1 (1 (1 (1 (1 0))))))))
 
 λ> and true false
-Result:    (λ. (λ. 1))
+Result:    (λ. (λ. 0))
 
 λ> :let apply_twice = \f x. f (f x)
 apply_twice defined
 
 λ> apply_twice succ zero
-Result:    (λ. (λ. (0 (0 1))))
+Result:    (λ. (λ. (1 (1 0))))
 \end{minted}
 
-That last result---$(\lam.\, \lam.\, 0\;(0\;1))$---is the Church numeral
-$\church{2}$: applying successor twice to zero gives 2.
+That last result---$(\lam.\, \lam.\, 1\;(1\;0))$---is the Church numeral
+$\church{2}$: applying successor twice to zero gives 2. (Recall that the
+numeral $\church{n}$ is $\lam f.\, \lam x.\, f^n\,x$; in de Bruijn form the
+bound $f$ is index~1 and $x$ is index~0, so the applied head is~1 and the
+innermost argument is~0.)
 
 \subsection{Extending to a Typed REPL}
 
@@ -6328,6 +6469,18 @@ def typedPipeline (defs : Defs) (input : String) : Option String := do
 
 Now \texttt{(\textbackslash x. x x)} is rejected before evaluation---exactly
 what the STLC was designed to do.
+
+\begin{warning}[Schematic sketch --- not runnable as written]
+This \texttt{typedPipeline} is deliberately schematic. As written it would
+\emph{not} type-check: \texttt{toDeBruijn} produces the \emph{untyped}
+\texttt{Expr}, but \texttt{typeCheck} expects the \emph{annotated}
+\texttt{TExpr} (a lambda carries its parameter type). A real typed pipeline
+needs an annotated front end all the way through---a parser that reads
+$\lam(x{:}T).\,e$, a named-to-index conversion for the annotated AST, and only
+then \texttt{typeCheck}. The next subsections build exactly that annotated
+grammar; the point here is the \emph{shape} of the extended pipeline, not a
+drop-in definition.
+\end{warning}
 
 \subsubsection{Adding Type Annotations}
 
@@ -6382,7 +6535,10 @@ partial def typedParam : Parser (String × Ty) := do
   pure (name, ty)
 
 -- Parse a typed lambda: \(x : Nat)(y : Bool). body
--- Each parameter is parenthesized with its type
+-- Each parameter is parenthesized with its type.
+-- (`typedLamP` is mutually recursive with the typed analogues of appP/atomP/
+--  exprP — call them tappP/tatomP/texprP — and would sit in a `mutual` block
+--  with them, exactly like the untyped parser. We show only typedLamP here.)
 partial def typedLamP : Parser Term := do
   let _ ← symbol '\\'
   let params ← many1 (do
@@ -6391,7 +6547,7 @@ partial def typedLamP : Parser Term := do
     let _ ← symbol ')'
     pure p)
   let _ ← symbol '.'
-  let body ← exprP
+  let body ← texprP          -- the typed expression parser (typed analogue of exprP)
   pure (params.foldr (fun (name, ty) acc => .lam name ty acc) body)
 \end{minted}
 
@@ -6725,6 +6881,271 @@ CPS transform for real performance.
 \newpage
 %======================================================================
 \appendix
+\section{A Lean\,4 Primer}\label{app:primer}
+%======================================================================
+
+This book uses a handful of Lean\,4 conveniences that a reader coming from
+mainstream programming may not have met, and a couple of proof tactics. None of
+them are essential to the \emph{ideas}---they are ergonomic sugar over plain
+recursion and pattern matching. This appendix introduces each one and, where it
+matters, shows the ``desugared'' code it expands to. Everything here compiles on
+\texttt{leanprover/lean4:v4.31.0} (core, no imports).
+
+\subsection*{\texttt{deriving}: generated instances}
+
+When you write \texttt{deriving Repr, DecidableEq, Inhabited} after an inductive
+type, Lean \emph{synthesizes} the corresponding instances for you, so you don't
+hand-write them:
+
+\begin{minted}{lean}
+inductive Color where
+  | red | green | blue
+  deriving Repr, DecidableEq, Inhabited
+
+#eval (Color.red == Color.red)      -- true   (DecidableEq → BEq gives ==)
+#eval (default : Color)             -- Color.red  (Inhabited: first constructor)
+\end{minted}
+
+\texttt{Repr} gives a printable form (what \texttt{\#eval} shows);
+\texttt{DecidableEq} gives decidable equality (and hence \texttt{==});
+\texttt{Inhabited} names a default element (used by ``partial'' fallbacks like
+\texttt{List.head!}). You could write all three by hand; \texttt{deriving} just
+generates the obvious code.
+
+\subsection*{\texttt{structure} and \texttt{instance}: type classes}
+
+A \texttt{structure} is a record; an \texttt{instance} registers an
+implementation of a type class (an interface). Once registered, operators like
+\texttt{+}, \texttt{==}, \texttt{>>=}, \texttt{<|>} resolve to it automatically:
+
+\begin{minted}{lean}
+structure Point where
+  x : Nat
+  y : Nat
+
+instance : Add Point where
+  add p q := ⟨p.x + q.x, p.y + q.y⟩
+
+#eval (⟨1, 2⟩ + ⟨3, 4⟩ : Point)     -- ⟨4, 6⟩ — `+` found the Add instance
+\end{minted}
+
+This is exactly how the parser-combinator section makes \texttt{Parser} a
+\texttt{Monad} and \texttt{Alternative}: register the instances, then use
+\texttt{do} and \texttt{<|>}.
+
+\subsection*{\texttt{do} / \texttt{←}: the \texttt{Option} monad}
+
+The single most-used piece of sugar in this book. Inside a \texttt{do} block for
+\texttt{Option}, \verb|let a ← e| means ``if \texttt{e} is \texttt{some a},
+continue; if it is \texttt{none}, abandon the whole block and return
+\texttt{none}.'' It removes a staircase of nested \texttt{match}es. All three of
+these are the \emph{same} function:
+
+\begin{minted}{lean}
+-- (1) do-notation
+def firstTwo (xs : List Nat) : Option (Nat × Nat) := do
+  let a ← xs[0]?
+  let b ← xs[1]?
+  pure (a, b)
+
+-- (2) what it desugars to: Option.bind (written `.bind` here)
+def firstTwoBind (xs : List Nat) : Option (Nat × Nat) :=
+  xs[0]?.bind fun a =>
+  xs[1]?.bind fun b =>
+  pure (a, b)
+
+-- (3) what `bind` itself does: match and short-circuit on none
+def firstTwoMatch (xs : List Nat) : Option (Nat × Nat) :=
+  match xs[0]? with
+  | none   => none
+  | some a =>
+    match xs[1]? with
+    | none   => none
+    | some b => some (a, b)
+\end{minted}
+
+\verb|←| is \texttt{bind} plus a name; \texttt{pure x} is \texttt{some x};
+\texttt{bind} is ``match, propagate \texttt{none}.'' Whenever you see \texttt{do}
+in \texttt{toDeBruijn}, \texttt{typeCheck}, or the parser, mentally expand it to
+form (3).
+
+\subsection*{\texttt{guard}: a mid-block failure test}
+
+\texttt{guard p} succeeds (with \texttt{()}) when \texttt{p} holds and fails
+(\texttt{none}) otherwise. In a \texttt{do} block it is a guard clause:
+
+\begin{minted}{lean}
+def evenHalf (n : Nat) : Option Nat := do
+  guard (n % 2 == 0)      -- bail out with `none` unless n is even
+  pure (n / 2)
+
+-- desugared:
+def evenHalfManual (n : Nat) : Option Nat :=
+  if n % 2 == 0 then pure (n / 2) else none
+\end{minted}
+
+The dependent type checker uses \texttt{guard (dom.beq argTy)} the same way:
+``unless the argument type matches, reject.''
+
+\subsection*{\texttt{<|>}: choice (\texttt{Alternative})}
+
+\verb|p <|> q| means ``try \texttt{p}; if it fails, try \texttt{q}.'' For
+\texttt{Option} it is just:
+
+\begin{minted}{lean}
+def firstSome (a b : Option Nat) : Option Nat := a <|> b
+
+-- desugared:
+def orElseManual (a b : Option Nat) : Option Nat :=
+  match a with | some x => some x | none => b
+\end{minted}
+
+The parser combinators use \verb|lamP <|> appP| to mean ``a lambda, or else an
+application.''
+
+\subsection*{\texttt{\_ matches \_}: a pattern as a Bool}
+
+\verb|e matches pat| is \texttt{true} exactly when \texttt{e} fits the pattern.
+It desugars to a \texttt{match} that returns a \texttt{Bool}:
+
+\begin{minted}{lean}
+#eval (some 3 matches Option.some _)   -- true
+#eval (([] : List Nat) matches _ :: _) -- false
+
+-- `x matches some _` is literally:
+--   match x with | Option.some _ => true | _ => false
+\end{minted}
+
+The checker writes \texttt{aTy.whnf matches .univ} to ask ``did this reduce to
+\texttt{Type}?''
+
+\subsection*{\texttt{Id.run do} + \texttt{let mut}: imperative-looking folds}
+
+Lean has no mutable state, but \texttt{Id.run do} lets you \emph{write} code that
+looks imperative---\texttt{let mut} plus reassignment---and compiles it down to a
+pure fold. These two are equal:
+
+\begin{minted}{lean}
+def sumTo (n : Nat) : Nat := Id.run do
+  let mut acc := 0
+  for i in [0:n] do
+    acc := acc + i
+  return acc
+
+-- what it is under the hood: a left fold, no mutation
+def sumToFold (n : Nat) : Nat := (List.range n).foldl (· + ·) 0
+\end{minted}
+
+The Church-encoding definition lists (\texttt{Id.run do} \ldots\ \texttt{let mut
+ds := \ldots}) use this to build a list step by step; it is a fold in disguise.
+
+\subsection*{\texttt{partial} and \texttt{termination\_by}}
+
+Lean accepts a recursive \texttt{def} only once it is convinced the recursion
+\emph{stops}. It does this automatically when each recursive call is on a
+structural piece of an argument. When it cannot see why a function halts, you
+have two choices.
+
+\textbf{Opt out with \texttt{partial}.} This tells Lean ``trust me, this
+terminates'' and skips the check. It is what \texttt{freshVar}, \texttt{subst}
+(named version), \texttt{whnf}, and the parser use:
+
+\begin{minted}{lean}
+-- Collatz: nobody has proved this halts for all n, so we must use `partial`.
+partial def collatzLen (n : Nat) : Nat :=
+  if n ≤ 1 then 0
+  else 1 + collatzLen (if n % 2 == 0 then n / 2 else 3 * n + 1)
+\end{minted}
+
+\textbf{Prove it with \texttt{termination\_by}.} When there \emph{is} a measure
+that shrinks, name it, and discharge the ``it decreases'' goal (often
+\texttt{omega} suffices):
+
+\begin{minted}{lean}
+def log2 : Nat → Nat
+  | 0     => 0
+  | 1     => 0
+  | n + 2 => 1 + log2 ((n + 2) / 2)
+  termination_by n => n        -- the measure that decreases
+  decreasing_by omega          -- prove (n + 2) / 2 < n + 2
+
+#eval log2 8   -- 3
+\end{minted}
+
+The \texttt{fuel} parameter used for \texttt{eval} is a third option: make the
+recursion structural on a \texttt{Nat} that always counts down, so no proof is
+needed at all.
+
+\subsection*{\texttt{induction} / \texttt{cases} $\leftrightarrow$ the recursor}
+
+\texttt{induction} and \texttt{cases} are tactics, but they are not primitive:
+each compiles to a call of the type's automatically generated \emph{recursor}
+(\texttt{T.rec}). Here is a proof both ways---first with the tactic, then as the
+raw term it elaborates to:
+
+\begin{minted}{lean}
+-- with the `induction` tactic
+theorem zero_add_tac (n : Nat) : 0 + n = n := by
+  induction n with
+  | zero => rfl
+  | succ k ih => rw [Nat.add_succ, ih]
+
+-- the same proof as a term: Nat.rec with an explicit motive
+theorem zero_add_rec (n : Nat) : 0 + n = n :=
+  Nat.rec (motive := fun n => 0 + n = n)
+    rfl                                   -- base case: 0 + 0 = 0
+    (fun k ih => by rw [Nat.add_succ, ih]) -- step: uses the hypothesis `ih`
+    n
+\end{minted}
+
+\texttt{cases} is the same idea with no induction hypothesis---it just splits on
+the constructor:
+
+\begin{minted}{lean}
+theorem someOfNe {x : Option Nat} (h : x ≠ none) : ∃ y, x = some y := by
+  cases x with
+  | none   => exact absurd rfl h
+  | some y => exact ⟨y, rfl⟩
+\end{minted}
+
+\subsection*{\texttt{obtain ⟨…⟩} $\leftrightarrow$ \texttt{Exists.elim} / \texttt{match}}
+
+\texttt{obtain} destructures a hypothesis. For an existential it pulls out the
+witness and its property; underneath, that is \texttt{Exists.elim} (equivalently
+a \texttt{match}):
+
+\begin{minted}{lean}
+-- with obtain
+theorem obtainDemo (h : ∃ n : Nat, n > 5) : ∃ m : Nat, m > 4 := by
+  obtain ⟨n, hn⟩ := h
+  exact ⟨n, by omega⟩
+
+-- desugared: Exists.elim hands you (n, hn)
+theorem obtainDemoElim (h : ∃ n : Nat, n > 5) : ∃ m : Nat, m > 4 :=
+  Exists.elim h (fun n hn => ⟨n, by omega⟩)
+\end{minted}
+
+The anonymous-constructor brackets \verb|⟨n, hn⟩| build \emph{and} take apart
+structures (pairs, \texttt{And}, \texttt{Exists}, \texttt{Point}, \ldots).
+
+\subsection*{\texttt{by omega}: linear arithmetic, decided}
+
+\texttt{omega} is a decision procedure for linear arithmetic over \texttt{Nat}
+and \texttt{Int} (equalities, \verb|<|, \verb|≤|, \texttt{+}, constant multiples,
+and their Boolean combinations). It is \emph{not} magic and \emph{not} a general
+prover---it just happens to settle the small arithmetic goals we hit:
+
+\begin{minted}{lean}
+example (a b : Nat) (h : a + 1 = b) : a < b := by omega
+example : ∃ n : Nat, n > 5 := ⟨6, by omega⟩    -- proves 6 > 5
+\end{minted}
+
+When you see \texttt{by omega} in the book (e.g.\ the BHK \texttt{exists\_gt\_5}
+example), read it as ``the arithmetic here is routine---\texttt{omega} checks
+it.''
+
+\newpage
+%======================================================================
 \section{Quick Reference Card}\label{app:ref}
 %======================================================================
 
@@ -6837,11 +7258,22 @@ yourself before reading the solutions is strongly recommended.
 \textbf{6.1.}\; $(\lam x.\, x\;x)\;(\lam y.\, y) \;\reduce\; (\lam y.\, y)\;(\lam y.\, y) \;\reduce\; \lam y.\, y$. The normal form is the identity $\mathbf{I}$.
 
 \medskip
-\textbf{6.2.}\; Let $\omega = \lam y.\, y\;y$. Then:
+\textbf{6.2.}\; Let $\omega = \lam y.\, y\;y$. Then
 $(\lam f.\, \lam x.\, f\;(f\;x))\;\omega \;\reduce\; \lam x.\, \omega\;(\omega\;x)$.
-Now apply to some $a$:
-$\omega\;(\omega\;a) = (\lam y.\, y\;y)\;(\omega\;a) \reduce (\omega\;a)\;(\omega\;a)$, which grows without bound.
-The term is \emph{not} in normal form and does not terminate if we try to fully normalize the body.
+Normalizing the body (normal order) actually \emph{terminates} in three more steps:
+\[
+  \lam x.\, \omega\,(\omega\,x)
+  \reduce \lam x.\, (\omega\,x)\,(\omega\,x)
+  \reduce \lam x.\, (x\,x)\,(\omega\,x)
+  \reduce \lam x.\, (x\,x)\,(x\,x).
+\]
+The result $\lam x.\, (x\,x)\,(x\,x)$ \textbf{is a normal form}: its only
+applications are $x\,x$, and $x$ is a variable, not a $\lam$, so there is no
+redex to fire. The term does \emph{not} diverge on its own. Divergence appears
+only if you later \emph{apply} this normal form to an argument---feeding it,
+say, $\omega$ or itself re-creates $\Omega$-style self-application that loops.
+Having a normal form and looping-when-applied are different properties; see the
+box ``Normal form vs.\ diverges-when-applied'' in Section~\ref{sec:strategies}.
 
 \medskip
 \textbf{6.3.}\; Two redexes: (1) the outer application $(\lam x.\, x)\;((\lam y.\, y)\;z)$ is a redex (the whole expression), and (2) the inner application $(\lam y.\, y)\;z$ inside the argument is also a redex.
@@ -6850,7 +7282,7 @@ The term is \emph{not} in normal form and does not terminate if we try to fully 
 \textbf{6.4.}\; No, $\lam x.\, (\lam y.\, y)\;x$ is not in normal form---the body contains the redex $(\lam y.\, y)\;x$. Reducing: $(\lam y.\, y)\;x \reduce x$, giving $\lam x.\, x$. Then yes, we can $\eta$-reduce\ldots\ but $\lam x.\, x$ is already the identity; there is no $f$ to $\eta$-reduce to (the body is $x$, not $f\;x$ for some $f$ with $x \notin \FV(f)$). So the final normal form is $\lam x.\, x = \mathbf{I}$.
 
 \medskip
-\textbf{6.5.}\; We need $(\lam y.\, x\;y)[x := \lam y.\, y]$. This matches rule 5: we have $\lam y$ with $y \in \FV(\lam y.\, y) = \varnothing$\ldots\ actually $y \notin \FV(\lam y.\, y)$ since the $y$ in $\lam y.\, y$ is bound. So rule 4 applies (safe case): $\lam y.\, (x\;y)[x := \lam y.\, y] = \lam y.\, (\lam y.\, y)\;y$. Wait---this looks like capture! But it isn't: the substituted $\lam y.\, y$ has $\FV = \varnothing$, so $y \notin \FV(\lam y.\, y)$ and rule 4 is correct. The result $\lam y.\, (\lam y.\, y)\;y$ reduces to $\lam y.\, y$, which is correct ($\eta$-equivalent to the original).
+\textbf{6.5.}\; We need $(\lam y.\, x\;y)[x := \lam y.\, y]$. The binder is $\lam y$, so we check whether the replacement term $\lam y.\, y$ has $y$ free. It does not: $\FV(\lam y.\, y) = \varnothing$ (the $y$ inside $\lam y.\, y$ is bound by its own $\lam$). Since $y \notin \FV(\lam y.\, y)$, no capture is possible, so \textbf{rule 4 (the safe case) applies}---push the substitution under the binder unchanged: $\lam y.\, (x\;y)[x := \lam y.\, y] = \lam y.\, (\lam y.\, y)\;y$. The result $\lam y.\, (\lam y.\, y)\;y$ reduces to $\lam y.\, y$, which is correct ($\eta$-equivalent to the original).
 
 \subsection*{Church Encodings (Section~\ref{sec:church})}
 
@@ -6870,7 +7302,7 @@ The term is \emph{not} in normal form and does not terminate if we try to fully 
 
 \subsection*{Types (Section~\ref{sec:stlc})}
 
-\textbf{11.1.}\; The proof tree for the $\mathbf{S}$ combinator has type $(A \to B \to C) \to (A \to B) \to A \to C$. It requires three \textsc{Abs} rules (one for each $\lam$), two \textsc{App} rules (for $x\;z$ and $y\;z$ and combining them), and three \textsc{Var} axioms ($x$, $y$, $z$):
+\textbf{11.1.}\; The proof tree for the $\mathbf{S}$ combinator has type $(A \to B \to C) \to (A \to B) \to A \to C$. It requires three \textsc{Abs} rules (one for each $\lam$), three \textsc{App} rules (one for $x\;z$, one for $y\;z$, and one combining them into $x\;z\;(y\;z)$), and three \textsc{Var} axioms ($x$, $y$, $z$):
 
 \begin{center}
 \small
@@ -6906,7 +7338,7 @@ where $\Gamma = x : A {\to} B {\to} C,\; y : A {\to} B,\; z : A$.
 
 \subsection*{De Bruijn Substitution (Section~\ref{sec:dbimpl})}
 
-\textbf{23.}\; The na\"ive version fails on $\lam.\,\lam.\, 0\;1\;2$:
+\textbf{10.1.}\; The na\"ive version fails on $\lam.\,\lam.\, 0\;1\;2$:
 indices $0$ and $1$ are bound (by the inner and outer $\lam$s respectively),
 and index $2$ is the free variable that corresponds to external variable $0$.
 \texttt{substNaive} with $k=0$ incorrectly replaces \texttt{bvar 0} (which is
@@ -6914,7 +7346,7 @@ the innermost $\lam$'s own parameter) with $s$, while leaving the actual target
 (\texttt{bvar 2}) untouched.
 
 \medskip
-\textbf{24.}\; $\texttt{substV2}\;0\;(\texttt{bvar}\;0)\;(\lam.\, 1)$:
+\textbf{10.2.}\; $\texttt{substV2}\;0\;(\texttt{bvar}\;0)\;(\lam.\, 1)$:
 Named version is ``substitute $y$ for $x$ in $\lam z.\, x$.'' Result should
 be $\lam z.\, y$, i.e., $\lam.\, 1$ (index 1 skips past $z$'s binder to
 reach $y$). But $\texttt{substV2}$ produces $\lam.\, 0$---the replacement
@@ -6922,7 +7354,7 @@ $\texttt{bvar}\;0$ was dropped in unchanged, and inside the $\lam$ it points
 to $z$ instead of $y$. The fix: shift $s$ up when entering the $\lam$.
 
 \medskip
-\textbf{25.}\; (a) Replace with $s$ when $n = k$; leave as $\texttt{bvar}\;n$
+\textbf{10.3.}\; (a) Replace with $s$ when $n = k$; leave as $\texttt{bvar}\;n$
 when $n \neq k$.
 (b) Recurse: $\texttt{subst}\;k\;s$ into both sides independently.
 (c) Both fixes apply: the target $k$ increments to $k + 1$ (fix 1) because the
@@ -6935,13 +7367,13 @@ correctly but looks for the wrong variable inside the $\lam$ (would replace
 bound variables or miss the target, like stage 1).
 
 \medskip
-\textbf{26.}\; $k$ goes $0 \to 1 \to 2 \to 3$. Yes, index $3$ inside three binders refers to the same variable as index $0$ outside. The substitution fires correctly.
+\textbf{10.4.}\; $k$ goes $0 \to 1 \to 2 \to 3$. Yes, index $3$ inside three binders refers to the same variable as index $0$ outside. The substitution fires correctly.
 
 \medskip
-\textbf{27.}\; See the worked trace in the exercise box.
+\textbf{10.5.}\; See the worked trace in the exercise box.
 
 \medskip
-\textbf{28.}\; Body is $\lam.\, 1$, argument is $\texttt{bvar}\;0$.
+\textbf{10.6.}\; Body is $\lam.\, 1$, argument is $\texttt{bvar}\;0$.
 
 Step 1: $\texttt{shift}\;1\;0\;(\texttt{bvar}\;0) = \texttt{bvar}\;1$.
 
@@ -7018,13 +7450,13 @@ def freeVars : Term → List String
   | .lam x e   => (freeVars e).filter (· != x)
   | .app e₁ e₂ => (freeVars e₁ ++ freeVars e₂).eraseDups
 
-def freshVar (avoid : List String) (base : String := "x") : String :=
+partial def freshVar (avoid : List String) (base : String := "x") : String :=
   let rec go (n : Nat) : String :=
     let candidate := s!"{base}{n}"
     if candidate ∈ avoid then go (n + 1) else candidate
   if base ∉ avoid then base else go 0
 
-def subst (x : String) (s : Term) : Term → Term
+partial def subst (x : String) (s : Term) : Term → Term
   | .var y     => if y == x then s else .var y
   | .app e₁ e₂ => .app (subst x s e₁) (subst x s e₂)
   | .lam y e   =>
@@ -7131,50 +7563,51 @@ def eval (fuel : Nat) (e : Expr) : Expr :=
 \subsection*{Parser.lean --- Recursive Descent Parser}
 
 \begin{minted}{lean}
+-- We track the position as a plain Nat index into the input's
+-- character list. (Earlier editions indexed with `String.Pos`; that
+-- API was redesigned in recent Lean, so a Nat over `input.toList` is
+-- both simpler and stable. See the "String positions" note below.)
 structure PState where
-  input : String
-  pos   : String.Pos
+  input : List Char
+  pos   : Nat
   deriving Repr
 
 abbrev ParseResult (α : Type) := Option (α × PState)
 
-def skipWS (s : PState) : PState :=
-  let rec go (p : String.Pos) : String.Pos :=
-    if h : p < s.input.endPos then
-      let c := s.input.get' p h
-      if c == ' ' || c == '\t' then go (s.input.next' p h) else p
-    else p
-  { s with pos := go s.pos }
+def PState.peekC (s : PState) : Option Char := s.input[s.pos]?
 
-def peek (s : PState) : Option Char :=
-  if h : s.pos < s.input.endPos
-  then some (s.input.get' s.pos h) else none
+partial def skipWS (s : PState) : PState :=
+  match s.peekC with
+  | some c => if c == ' ' || c == '\t'
+              then skipWS { s with pos := s.pos + 1 } else s
+  | none => s
+
+def peek (s : PState) : Option Char := s.peekC
 
 def expect (s : PState) (c : Char) : ParseResult Unit :=
-  if h : s.pos < s.input.endPos then
-    if s.input.get' s.pos h == c
-    then some ((), skipWS { s with pos := s.input.next' s.pos h })
-    else none
-  else none
+  match s.peekC with
+  | some c' => if c' == c
+               then some ((), skipWS { s with pos := s.pos + 1 })
+               else none
+  | none => none
 
 def isIdentStart (c : Char) : Bool := c.isAlpha || c == '_'
 def isIdentCont (c : Char) : Bool := c.isAlphanum || c == '_' || c == '\''
 
-def parseIdent (s : PState) : ParseResult String :=
+partial def parseIdent (s : PState) : ParseResult String :=
   let s := skipWS s
-  if h : s.pos < s.input.endPos then
-    let c := s.input.get' s.pos h
+  match s.peekC with
+  | some c =>
     if isIdentStart c then
-      let rec go (p : String.Pos) : String.Pos :=
-        if h2 : p < s.input.endPos then
-          if isIdentCont (s.input.get' p h2)
-          then go (s.input.next' p h2) else p
-        else p
-      let endP := go (s.input.next' s.pos h)
-      let name := s.input.extract s.pos endP
+      let rec go (p : Nat) : Nat :=
+        match s.input[p]? with
+        | some c' => if isIdentCont c' then go (p + 1) else p
+        | none    => p
+      let endP := go (s.pos + 1)
+      let name := String.ofList (s.input.drop s.pos |>.take (endP - s.pos))
       some (name, skipWS { s with pos := endP })
     else none
-  else none
+  | none => none
 
 mutual
 partial def parseExpr (s : PState) : ParseResult Term :=
@@ -7235,7 +7668,7 @@ partial def parseAtom (s : PState) : ParseResult Term :=
 end
 
 def parse (input : String) : Option Term :=
-  let s : PState := skipWS { input := input, pos := 0 }
+  let s : PState := skipWS { input := input.toList, pos := 0 }
   match parseExpr s with
   | some (term, _) => some term
   | none           => none
@@ -7283,7 +7716,7 @@ def churchDefs : List (String × Term) :=
 
 def toDeBruijn (ctx : List String := []) : Term → Option Expr
   | Term.var x =>
-    match ctx.indexOf? x with
+    match ctx.idxOf? x with
     | some i => some (Expr.bvar i)
     | none   => none
   | Term.lam x body =>
@@ -7311,7 +7744,7 @@ inductive TExpr where
   deriving Repr
 
 def typeCheck (ctx : List Ty) : TExpr → Option Ty
-  | .bvar n          => ctx.get? n
+  | .bvar n          => ctx[n]?
   | .lam paramTy body =>
     match typeCheck (paramTy :: ctx) body with
     | some bodyTy => some (.arrow paramTy bodyTy)

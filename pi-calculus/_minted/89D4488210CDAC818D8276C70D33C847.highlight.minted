@@ -1,0 +1,15 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Participants}
+\PYG{k+kd}{inductive}\PYG{+w}{ }\PYG{n}{Role}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{client}\PYG{+w}{ }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{server}\PYG{+w}{ }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{database}
+\PYG{+w}{  }\PYG{n}{deriving}\PYG{+w}{ }\PYG{n}{DecidableEq}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{Repr}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Global types}
+\PYG{k+kd}{inductive}\PYG{+w}{ }\PYG{n}{GlobalType}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{msg}\PYG{+w}{    }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Role}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Role}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{BaseType}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{GlobalType}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{GlobalType}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{choice}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Role}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Role}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{String}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{GlobalType}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{GlobalType}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{done}\PYG{+w}{   }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{GlobalType}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{mu}\PYG{+w}{     }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{GlobalType}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{GlobalType}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{var}\PYG{+w}{    }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{GlobalType}
+\PYG{+w}{  }\PYG{n}{deriving}\PYG{+w}{ }\PYG{n}{Repr}
+\end{MintedVerbatim}

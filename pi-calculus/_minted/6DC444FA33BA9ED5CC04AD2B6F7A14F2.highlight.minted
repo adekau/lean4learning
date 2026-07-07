@@ -1,0 +1,7 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{theorem}\PYG{+w}{ }\PYG{n}{size\PYGZus{}pos\PYGZsq{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{t}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Tree}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{t.size}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n}{Tree.rec}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{motive}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{t.size}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{k+kd}{by}\PYG{+w}{ }\PYG{n}{decide}\PYG{o}{)}\PYG{+w}{                                  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} leaf case}
+\PYG{+w}{    }\PYG{o}{(}\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{l}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{n}{ihl}\PYG{+w}{ }\PYG{n}{ihr}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{k+kd}{by}\PYG{+w}{ }\PYG{n}{simp}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{Tree.size}\PYG{o}{]}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{omega}\PYG{o}{)}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} node case}
+\PYG{+w}{    }\PYG{n}{t}
+\end{MintedVerbatim}

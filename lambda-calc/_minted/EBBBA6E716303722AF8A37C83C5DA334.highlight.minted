@@ -1,0 +1,18 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Types: add type variables and universal quantification}
+\PYG{k+kd}{inductive}\PYG{+w}{ }\PYG{n}{FTy}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{tvar}\PYG{+w}{  }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{FTy}\PYG{+w}{                   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} type variable (de Bruijn)}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{base}\PYG{+w}{  }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{String}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{FTy}\PYG{+w}{                }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} base types like Nat, Bool}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{arrow}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{FTy}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{FTy}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{FTy}\PYG{+w}{             }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} τ₁ → τ₂}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{forall\PYGZus{}}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{FTy}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{FTy}\PYG{+w}{                 }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} ∀α. τ  (α is index 0 in τ)}
+\PYG{+w}{  }\PYG{n}{deriving}\PYG{+w}{ }\PYG{n}{Repr}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{DecidableEq}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Terms: add type abstraction and type application}
+\PYG{k+kd}{inductive}\PYG{+w}{ }\PYG{n}{FExpr}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{bvar}\PYG{+w}{  }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{FExpr}\PYG{+w}{                 }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} term variable (de Bruijn)}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{lam}\PYG{+w}{   }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{FTy}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{FExpr}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{FExpr}\PYG{+w}{         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} λ(x:τ). e}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{app}\PYG{+w}{   }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{FExpr}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{FExpr}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{FExpr}\PYG{+w}{       }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} e₁ e₂}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{tlam}\PYG{+w}{  }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{FExpr}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{FExpr}\PYG{+w}{               }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Λα. e  (type abstraction)}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{tapp}\PYG{+w}{  }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{FExpr}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{FTy}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{FExpr}\PYG{+w}{         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} e [τ]  (type application)}
+\PYG{+w}{  }\PYG{n}{deriving}\PYG{+w}{ }\PYG{n}{Repr}
+\end{MintedVerbatim}

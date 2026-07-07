@@ -1,0 +1,9 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{firstTwo}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{xs}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Nat}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{xs}\PYG{o}{[}\PYG{l+m+mi}{0}\PYG{o}{]}\PYG{n+nb+bp}{?}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{xs}\PYG{o}{[}\PYG{l+m+mi}{1}\PYG{o}{]}\PYG{n+nb+bp}{?}
+\PYG{+w}{  }\PYG{n}{pure}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{b}\PYG{o}{)}
+
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{firstTwo\PYGZsq{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{xs}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Nat}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n}{xs}\PYG{o}{[}\PYG{l+m+mi}{0}\PYG{o}{]}\PYG{n+nb+bp}{?}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZgt{}\PYGZgt{}=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{xs}\PYG{o}{[}\PYG{l+m+mi}{1}\PYG{o}{]}\PYG{n+nb+bp}{?}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZgt{}\PYGZgt{}=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{pure}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{b}\PYG{o}{)}
+\end{MintedVerbatim}

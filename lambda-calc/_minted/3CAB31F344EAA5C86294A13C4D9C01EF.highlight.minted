@@ -1,0 +1,5 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{n}{x} \PYG{o}{=} \PYG{l+m+mi}{5}
+\PYG{n}{f} \PYG{o}{=} \PYG{k}{lambda} \PYG{n}{x}\PYG{p}{:} \PYG{n}{x}    \PYG{c+c1}{\PYGZsh{} this x is a NEW x, shadowing the outer one}
+\PYG{n}{f}\PYG{p}{(}\PYG{l+m+mi}{10}\PYG{p}{)}               \PYG{c+c1}{\PYGZsh{} returns 10, not 5}
+\end{MintedVerbatim}

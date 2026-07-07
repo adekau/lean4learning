@@ -1,0 +1,33 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{structure}\PYG{+w}{ }\PYG{n}{TabuState}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n}{current}\PYG{+w}{   }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Build}
+\PYG{+w}{  }\PYG{n}{currentPen}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}
+\PYG{+w}{  }\PYG{n}{best}\PYG{+w}{      }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Build}
+\PYG{+w}{  }\PYG{n}{bestPen}\PYG{+w}{   }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}
+\PYG{+w}{  }\PYG{n}{tabuList}\PYG{+w}{  }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{GearSlot}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{StatCombo}\PYG{o}{)}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} recently changed}
+\PYG{+w}{  }\PYG{n}{tabuTenure}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{                          }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} how long moves stay tabu}
+
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{tabuStep}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{state}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{TabuState}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{targets}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatType}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{TabuState}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{candidates}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{allNeighbourMoves}\PYG{+w}{ }\PYG{n}{state.current}
+\PYG{+w}{    }\PYG{n+nb+bp}{|\PYGZgt{}.}\PYG{n}{filter}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{slot}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{combo}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{      }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Not tabu; aspiration (accept a tabu move that beats the global}
+\PYG{+w}{      }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} best) is left as an exercise.}
+\PYG{+w}{      }\PYG{n+nb+bp}{¬}\PYG{+w}{ }\PYG{n}{state.tabuList.contains}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{slot}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{combo}\PYG{o}{)}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{bestSlot}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{bestCombo}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{bestPen}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{candidates.foldl}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{init}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{((}\PYG{n}{GearSlot.headgear}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{defaultCombo}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{1000000000}\PYG{o}{)}
+\PYG{+w}{              }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{GearSlot}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{StatCombo}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{))}
+\PYG{+w}{    }\PYG{k}{fun}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{bs}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{bc}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{bp}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{slot}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{combo}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{build}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{setBuildSlot}\PYG{+w}{ }\PYG{n}{state.current}\PYG{+w}{ }\PYG{n}{slot}\PYG{+w}{ }\PYG{n}{combo}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{pen}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{totalPenalty}\PYG{+w}{ }\PYG{n}{build}\PYG{+w}{ }\PYG{n}{targets}\PYG{+w}{ }\PYG{n}{wMiss}\PYG{+w}{ }\PYG{n}{wOver}
+\PYG{+w}{      }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{pen}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{bp}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{slot}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{combo}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pen}\PYG{o}{)}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{bs}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{bc}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{bp}\PYG{o}{)}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{newBuild}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{setBuildSlot}\PYG{+w}{ }\PYG{n}{state.current}\PYG{+w}{ }\PYG{n}{bestSlot}\PYG{+w}{ }\PYG{n}{bestCombo}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{newTabu}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{((}\PYG{n}{bestSlot}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{state.current.gear}\PYG{+w}{ }\PYG{n}{bestSlot}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{::}\PYG{+w}{ }\PYG{n}{state.tabuList}\PYG{o}{)}
+\PYG{+w}{    }\PYG{n+nb+bp}{|\PYGZgt{}.}\PYG{n}{take}\PYG{+w}{ }\PYG{n}{state.tabuTenure}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} keep only recent entries}
+\PYG{+w}{  }\PYG{o}{\PYGZob{}}\PYG{+w}{ }\PYG{n}{current}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{newBuild}
+\PYG{+w}{    }\PYG{n}{currentPen}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{bestPen}
+\PYG{+w}{    }\PYG{n}{best}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{bestPen}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{state.bestPen}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{newBuild}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{n}{state.best}
+\PYG{+w}{    }\PYG{n}{bestPen}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{min}\PYG{+w}{ }\PYG{n}{bestPen}\PYG{+w}{ }\PYG{n}{state.bestPen}
+\PYG{+w}{    }\PYG{n}{tabuList}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{newTabu}
+\PYG{+w}{    }\PYG{n}{tabuTenure}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{state.tabuTenure}\PYG{+w}{ }\PYG{o}{\PYGZcb{}}
+\end{MintedVerbatim}

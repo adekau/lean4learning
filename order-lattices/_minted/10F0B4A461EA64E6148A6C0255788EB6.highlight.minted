@@ -1,0 +1,19 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Bool as a lattice: false \PYGZlt{} true.}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Core\PYGZsq{}s Bool.le\PYGZus{}antisymm / Bool.le\PYGZus{}trans take their element}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} arguments implicitly, so we eta\PYGZhy{}expand them to match our class}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} fields, which declare the elements explicitly.}
+\PYG{k+kn}{instance}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{OrderBook}\PYG{n+nb+bp}{.}\PYG{n}{Lattice}\PYG{+w}{ }\PYG{n}{Bool}\PYG{+w}{ }\PYG{k+kn}{where}
+\PYG{+w}{  }\PYG{n}{le}\PYG{+w}{          }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n+nb+bp}{·}\PYG{o}{)}\PYG{+w}{   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Bool has a built\PYGZhy{}in LE in core Lean 4}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}refl}\PYG{+w}{     }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Bool}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}refl}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}antisymm}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{Bool}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}antisymm}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}trans}\PYG{+w}{    }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{Bool}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}trans}
+\PYG{+w}{  }\PYG{n}{inf}\PYG{+w}{         }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZam{}\PYGZam{}}\PYG{+w}{ }\PYG{n+nb+bp}{·}\PYG{o}{)}
+\PYG{+w}{  }\PYG{n}{sup}\PYG{+w}{         }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n+nb+bp}{||}\PYG{+w}{ }\PYG{n+nb+bp}{·}\PYG{o}{)}
+\PYG{+w}{  }\PYG{n}{inf\PYGZus{}le\PYGZus{}left}\PYG{+w}{  }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}\PYG{+w}{ }\PYG{n}{decide}
+\PYG{+w}{  }\PYG{n}{inf\PYGZus{}le\PYGZus{}right}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}\PYG{+w}{ }\PYG{n}{decide}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}inf}\PYG{+w}{       }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}\PYG{+w}{ }\PYG{n}{decide}
+\PYG{+w}{  }\PYG{n}{sup\PYGZus{}le\PYGZus{}left}\PYG{+w}{  }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}\PYG{+w}{ }\PYG{n}{decide}
+\PYG{+w}{  }\PYG{n}{sup\PYGZus{}le\PYGZus{}right}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}\PYG{+w}{ }\PYG{n}{decide}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}sup}\PYG{+w}{       }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}\PYG{+w}{ }\PYG{n}{decide}
+\end{MintedVerbatim}

@@ -254,27 +254,27 @@ theorem MyNat.lt_succ_mp {n m : MyNat} : n.lt m.succ → n.le m := by
 theorem MyNat.strong_ind (P : MyNat → Prop)
   (step : ∀ n : MyNat, (∀ k : MyNat, k.lt n → P k) → P n) :
     ∀ n, P n := by
-suffices h : ∀ n, ∀ k, k ≤ n → P k from by
+  suffices h : ∀ n, ∀ k, k ≤ n → P k from by
+    intro n
+    have refl_eq := h n n
+    exact refl_eq (MyNat.le_refl n)
   intro n
-  have refl_eq := h n n
-  exact refl_eq (MyNat.le_refl n)
-intro n
-induction n with
-| zero =>
-  intro k hk
-  have hkz := MyNat.le_zero_mp k hk
-  subst hkz
-  have : ∀ (k : MyNat), k.lt zero → P k := fun k hlt => by
-    exact absurd hlt (MyNat.not_lt_zero k)
-  exact step .zero this
-| succ n ih =>
-  intro k hk
-  rcases MyNat.lt_or_eq_of_le hk with hlt | rfl
-  · have := MyNat.lt_succ_mp hlt
-    exact ih k this
-  · refine step n.succ (fun j hj => ?_)
-    have := MyNat.lt_succ_mp hj
-    exact ih j this
+  induction n with
+  | zero =>
+    intro k hk
+    have hkz := MyNat.le_zero_mp k hk
+    subst hkz
+    have : ∀ (k : MyNat), k.lt zero → P k := fun k hlt => by
+      exact absurd hlt (MyNat.not_lt_zero k)
+    exact step .zero this
+  | succ n ih =>
+    intro k hk
+    rcases MyNat.lt_or_eq_of_le hk with hlt | rfl
+    · have := MyNat.lt_succ_mp hlt
+      exact ih k this
+    · refine step n.succ (fun j hj => ?_)
+      have := MyNat.lt_succ_mp hj
+      exact ih j this
 
 theorem MyNat.succ_ne_self (n : MyNat) : n.succ ≠ n := by
   induction n with

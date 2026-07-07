@@ -1,0 +1,19 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Proposition: A → A  (\PYGZdq{}A implies A\PYGZdq{})}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Proof: λ(A : Type). λ(a : A). a  (the identity function!)}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Type checker confirms: this term has type Π(A:Type). A → A  ✓}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Therefore: the proposition \PYGZdq{}A implies A\PYGZdq{} is proved.}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Proposition: A → B → A  (\PYGZdq{}A implies (B implies A)\PYGZdq{})}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Proof: λ(A:Type). λ(B:Type). λ(a:A). λ(b:B). a}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{kProof}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{DTerm}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{univ}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{univ}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{bvar}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{bvar}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{bvar}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{))))}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} The type checker returns: Π(A:Type). Π(B:Type). Π(\PYGZus{}:A). Π(\PYGZus{}:B). A}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Which IS the proposition A → B → A.}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} The fact that type checking succeeded IS the proof verification.}
+\PYG{k}{\PYGZsh{}eval}\PYG{+w}{ }\PYG{n}{dTypeCheck}\PYG{+w}{ }\PYG{o}{[]}\PYG{+w}{ }\PYG{n}{kProof}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} some (DTerm.pi DTerm.univ (DTerm.pi DTerm.univ}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{}        (DTerm.pi (DTerm.bvar 1) (DTerm.pi (DTerm.bvar 1) (DTerm.bvar 3)))))}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} The final DTerm.bvar 3 reaches past the two inner Π binders to A.  ✓}
+\end{MintedVerbatim}

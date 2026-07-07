@@ -1,0 +1,9 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Haskell infers: Functor :: (Type \PYGZhy{}\PYGZgt{} Type) \PYGZhy{}\PYGZgt{} Constraint}
+\PYG{k+kr}{class}\PYG{+w}{ }\PYG{k+kt}{Functor}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{f}\PYG{+w}{ }\PYG{o+ow}{::}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{+w}{ }\PYG{o+ow}{\PYGZhy{}\PYGZgt{}}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{where}
+\PYG{+w}{  }\PYG{n}{fmap}\PYG{+w}{ }\PYG{o+ow}{::}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{a}\PYG{+w}{ }\PYG{o+ow}{\PYGZhy{}\PYGZgt{}}\PYG{+w}{ }\PYG{n}{b}\PYG{p}{)}\PYG{+w}{ }\PYG{o+ow}{\PYGZhy{}\PYGZgt{}}\PYG{+w}{ }\PYG{n}{f}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{o+ow}{\PYGZhy{}\PYGZgt{}}\PYG{+w}{ }\PYG{n}{f}\PYG{+w}{ }\PYG{n}{b}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Higher\PYGZhy{}kinded type variable: t has kind (Type \PYGZhy{}\PYGZgt{} Type) \PYGZhy{}\PYGZgt{} Type \PYGZhy{}\PYGZgt{} Type}
+\PYG{k+kr}{class}\PYG{+w}{ }\PYG{k+kt}{MonadTrans}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{t}\PYG{+w}{ }\PYG{o+ow}{::}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{Type}\PYG{+w}{ }\PYG{o+ow}{\PYGZhy{}\PYGZgt{}}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{p}{)}\PYG{+w}{ }\PYG{o+ow}{\PYGZhy{}\PYGZgt{}}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{+w}{ }\PYG{o+ow}{\PYGZhy{}\PYGZgt{}}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{p}{)}\PYG{+w}{ }\PYG{k+kr}{where}
+\PYG{+w}{  }\PYG{n}{lift}\PYG{+w}{ }\PYG{o+ow}{::}\PYG{+w}{ }\PYG{k+kt}{Monad}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{o+ow}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{o+ow}{\PYGZhy{}\PYGZgt{}}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{n}{a}
+\end{MintedVerbatim}

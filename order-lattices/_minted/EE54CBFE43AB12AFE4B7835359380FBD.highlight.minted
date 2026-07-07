@@ -1,0 +1,17 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{namespace}\PYG{+w}{ }\PYG{n}{OrderBook}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Bottom and top elements}
+\PYG{k+kn}{class}\PYG{+w}{ }\PYG{n}{Bot}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{)}\PYG{+w}{ }\PYG{k+kn}{where}\PYG{+w}{ }\PYG{n}{bot}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}
+\PYG{k+kn}{class}\PYG{+w}{ }\PYG{n}{Top}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{)}\PYG{+w}{ }\PYG{k+kn}{where}\PYG{+w}{ }\PYG{n}{top}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}
+
+\PYG{k+kn}{notation}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}⊥\PYGZdq{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{Bot}\PYG{n+nb+bp}{.}\PYG{n}{bot}
+\PYG{k+kn}{notation}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}⊤\PYGZdq{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{Top}\PYG{n+nb+bp}{.}\PYG{n}{top}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Being a bounded partial order}
+\PYG{k+kn}{class}\PYG{+w}{ }\PYG{n}{BoundedPartialOrder}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{)}\PYG{+w}{ }\PYG{k+kn}{extends}\PYG{+w}{ }\PYG{n}{PartialOrder}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{Bot}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{Top}\PYG{+w}{ }\PYG{n}{α}\PYG{+w}{ }\PYG{k+kn}{where}
+\PYG{+w}{  }\PYG{n}{bot\PYGZus{}le}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{),}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{⊥}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{a}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}top}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{),}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{⊤}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{)}
+
+\PYG{k+kn}{end}\PYG{+w}{ }\PYG{n}{OrderBook}
+\end{MintedVerbatim}

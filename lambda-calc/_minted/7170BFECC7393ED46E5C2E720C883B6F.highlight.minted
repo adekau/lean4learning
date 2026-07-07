@@ -1,0 +1,15 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Parse a base type: Nat, Bool, or (type)}
+\PYG{n}{partial}\PYG{+w}{ }\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{atomTyP}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{Ty}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{o}{(}\PYG{k}{do}\PYG{+w}{ }\PYG{n}{keyword}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}Nat\PYGZdq{}}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{pure}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{nat}\PYG{o}{)}
+\PYG{+w}{  }\PYG{n+nb+bp}{\PYGZlt{}|\PYGZgt{}}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{do}\PYG{+w}{ }\PYG{n}{keyword}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}Bool\PYGZdq{}}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{pure}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{bool}\PYG{o}{)}
+\PYG{+w}{  }\PYG{n+nb+bp}{\PYGZlt{}|\PYGZgt{}}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{do}\PYG{+w}{ }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{symbol}\PYG{+w}{ }\PYG{l+s+sc}{\PYGZsq{}(\PYGZsq{}}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{typeP}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{symbol}\PYG{+w}{ }\PYG{l+s+sc}{\PYGZsq{})\PYGZsq{}}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{pure}\PYG{+w}{ }\PYG{n}{t}\PYG{o}{)}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Parse a function type: base \PYGZhy{}\PYGZgt{} base \PYGZhy{}\PYGZgt{} ... (right\PYGZhy{}associative)}
+\PYG{n}{partial}\PYG{+w}{ }\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{typeP}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{Ty}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{lhs}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{atomTyP}
+\PYG{+w}{  }\PYG{o}{(}\PYG{k}{do}\PYG{+w}{ }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{token}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{char}\PYG{+w}{ }\PYG{l+s+sc}{\PYGZsq{}\PYGZhy{}\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZgt{}\PYGZgt{}=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{char}\PYG{+w}{ }\PYG{l+s+sc}{\PYGZsq{}\PYGZgt{}\PYGZsq{}}\PYG{o}{)}\PYG{+w}{ }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} parse \PYGZdq{}\PYGZhy{}\PYGZgt{}\PYGZdq{}}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{rhs}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{typeP}\PYG{+w}{                                 }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} right\PYGZhy{}recursive!}
+\PYG{+w}{      }\PYG{n}{pure}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{arr}\PYG{+w}{ }\PYG{n}{lhs}\PYG{+w}{ }\PYG{n}{rhs}\PYG{o}{))}
+\PYG{+w}{  }\PYG{n+nb+bp}{\PYGZlt{}|\PYGZgt{}}\PYG{+w}{ }\PYG{n}{pure}\PYG{+w}{ }\PYG{n}{lhs}
+\end{MintedVerbatim}

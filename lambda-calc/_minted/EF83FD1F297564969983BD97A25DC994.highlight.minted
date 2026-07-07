@@ -1,0 +1,8 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Parse a pair: (expr, expr)}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{pairP}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Term}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Term}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{o}{(}\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{b}\PYG{o}{))}\PYG{+w}{          }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} how to combine results}
+\PYG{+w}{    }\PYG{n+nb+bp}{\PYGZlt{}\PYGZdl{}\PYGZgt{}}\PYG{+w}{ }\PYG{n}{symbol}\PYG{+w}{ }\PYG{l+s+sc}{\PYGZsq{}(\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}*\PYGZgt{}}\PYG{+w}{ }\PYG{n}{exprP}\PYG{+w}{         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} ( expr}
+\PYG{+w}{    }\PYG{n+nb+bp}{\PYGZlt{}*\PYGZgt{}}\PYG{+w}{ }\PYG{n}{symbol}\PYG{+w}{ }\PYG{l+s+sc}{\PYGZsq{},\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}*\PYGZgt{}}\PYG{+w}{ }\PYG{n}{exprP}\PYG{+w}{         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} , expr}
+\PYG{+w}{    }\PYG{n+nb+bp}{\PYGZlt{}*\PYGZgt{}}\PYG{+w}{ }\PYG{n}{symbol}\PYG{+w}{ }\PYG{l+s+sc}{\PYGZsq{})\PYGZsq{}}\PYG{+w}{                   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} )}
+\end{MintedVerbatim}

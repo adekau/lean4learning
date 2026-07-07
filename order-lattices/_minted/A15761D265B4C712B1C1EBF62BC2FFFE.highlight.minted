@@ -1,0 +1,84 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{namespace}\PYG{+w}{ }\PYG{n}{Sudoku}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Note the loop syntax: `for h : i in [:9]` binds, alongside i, a}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} proof `h` that i lies in the range; `h.upper : i \PYGZlt{} 9` is exactly}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} what the `Fin 9` constructor ⟨i, \PYGZus{}⟩ needs.}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} If cell (r,c) is determined to be d, remove d from all other cells in row r}
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{rowPropagator}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{grid}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Grid}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{r}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Fin}\PYG{+w}{ }\PYG{l+m+mi}{9}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{PropStep}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{cands}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{grid}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{n}{c}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Check if this cell is a singleton}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{det}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{n}{Digit}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Id}\PYG{n+nb+bp}{.}\PYG{n}{run}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{mut}\PYG{+w}{ }\PYG{n}{found}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{n}{Digit}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{none}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{mut}\PYG{+w}{ }\PYG{n}{count}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{l+m+mi}{0}
+\PYG{+w}{    }\PYG{n}{for}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{k}{in}\PYG{+w}{ }\PYG{o}{[:}\PYG{l+m+mi}{9}\PYG{o}{]}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{i\PYGZsq{}}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Digit}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{i}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{h}\PYG{n+nb+bp}{.}\PYG{n}{upper}\PYG{n+nb+bp}{⟩}
+\PYG{+w}{      }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{cands}\PYG{n+nb+bp}{.}\PYG{n}{present}\PYG{+w}{ }\PYG{n}{i\PYGZsq{}}\PYG{+w}{ }\PYG{k}{then}
+\PYG{+w}{        }\PYG{n}{found}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{i\PYGZsq{}}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{count}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{count}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{l+m+mi}{1}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{count}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{found}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{n}{none}
+\PYG{+w}{  }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{det}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{false}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{d}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{mut}\PYG{+w}{ }\PYG{n}{changed}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{false}
+\PYG{+w}{    }\PYG{n}{for}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{j}\PYG{+w}{ }\PYG{k}{in}\PYG{+w}{ }\PYG{o}{[:}\PYG{l+m+mi}{9}\PYG{o}{]}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{j\PYGZsq{}}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Fin}\PYG{+w}{ }\PYG{l+m+mi}{9}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{j}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{h}\PYG{n+nb+bp}{.}\PYG{n}{upper}\PYG{n+nb+bp}{⟩}
+\PYG{+w}{      }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{j\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{≠}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{k}{then}
+\PYG{+w}{        }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} We re\PYGZhy{}read and merge}
+\PYG{+w}{        }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{old}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{grid}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{n}{j\PYGZsq{}}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{        }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{upd}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{n+nb+bp}{.}\PYG{n}{inter}\PYG{+w}{ }\PYG{n}{old}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{+w}{ }\PYG{n}{present}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n+nb+bp}{!}\PYG{o}{(}\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{n}{d}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{\PYGZcb{}}
+\PYG{+w}{        }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{grid}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{n}{j\PYGZsq{}}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{n}{upd}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{changed}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{true}
+\PYG{+w}{    }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{changed}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Analogous: column propagator}
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{colPropagator}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{grid}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Grid}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{r}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Fin}\PYG{+w}{ }\PYG{l+m+mi}{9}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{PropStep}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{cands}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{grid}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{n}{c}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{det}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{n}{Digit}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Id}\PYG{n+nb+bp}{.}\PYG{n}{run}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{mut}\PYG{+w}{ }\PYG{n}{found}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{n}{Digit}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{none}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{mut}\PYG{+w}{ }\PYG{n}{count}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{l+m+mi}{0}
+\PYG{+w}{    }\PYG{n}{for}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{k}{in}\PYG{+w}{ }\PYG{o}{[:}\PYG{l+m+mi}{9}\PYG{o}{]}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{i\PYGZsq{}}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Digit}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{i}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{h}\PYG{n+nb+bp}{.}\PYG{n}{upper}\PYG{n+nb+bp}{⟩}
+\PYG{+w}{      }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{cands}\PYG{n+nb+bp}{.}\PYG{n}{present}\PYG{+w}{ }\PYG{n}{i\PYGZsq{}}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{found}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{i\PYGZsq{}}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{count}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{count}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{l+m+mi}{1}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{count}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{found}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{n}{none}
+\PYG{+w}{  }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{det}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{false}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{d}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{mut}\PYG{+w}{ }\PYG{n}{changed}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{false}
+\PYG{+w}{    }\PYG{n}{for}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{k}{in}\PYG{+w}{ }\PYG{o}{[:}\PYG{l+m+mi}{9}\PYG{o}{]}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{i\PYGZsq{}}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Fin}\PYG{+w}{ }\PYG{l+m+mi}{9}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{i}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{h}\PYG{n+nb+bp}{.}\PYG{n}{upper}\PYG{n+nb+bp}{⟩}
+\PYG{+w}{      }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{i\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{≠}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{k}{then}
+\PYG{+w}{        }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{old}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{grid}\PYG{+w}{ }\PYG{n}{i\PYGZsq{}}\PYG{+w}{ }\PYG{n}{c}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{        }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{upd}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{n+nb+bp}{.}\PYG{n}{inter}\PYG{+w}{ }\PYG{n}{old}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{+w}{ }\PYG{n}{present}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{k}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n+nb+bp}{!}\PYG{o}{(}\PYG{n}{k}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{n}{d}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{\PYGZcb{}}
+\PYG{+w}{        }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{ch}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{grid}\PYG{+w}{ }\PYG{n}{i\PYGZsq{}}\PYG{+w}{ }\PYG{n}{c}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{n}{upd}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{ch}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{changed}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{true}
+\PYG{+w}{    }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{changed}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Box propagator (which 3×3 box contains (r,c)?)}
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{boxPropagator}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{grid}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Grid}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{r}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Fin}\PYG{+w}{ }\PYG{l+m+mi}{9}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{PropStep}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{cands}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{grid}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{n}{c}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{det}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{n}{Digit}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Id}\PYG{n+nb+bp}{.}\PYG{n}{run}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{mut}\PYG{+w}{ }\PYG{n}{found}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{n}{Digit}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{none}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{mut}\PYG{+w}{ }\PYG{n}{count}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{l+m+mi}{0}
+\PYG{+w}{    }\PYG{n}{for}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{k}{in}\PYG{+w}{ }\PYG{o}{[:}\PYG{l+m+mi}{9}\PYG{o}{]}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{i\PYGZsq{}}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Digit}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{i}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{h}\PYG{n+nb+bp}{.}\PYG{n}{upper}\PYG{n+nb+bp}{⟩}
+\PYG{+w}{      }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{cands}\PYG{n+nb+bp}{.}\PYG{n}{present}\PYG{+w}{ }\PYG{n}{i\PYGZsq{}}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{found}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{i\PYGZsq{}}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{count}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{count}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{l+m+mi}{1}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{count}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{found}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{n}{none}
+\PYG{+w}{  }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{det}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{false}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{d}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{boxR}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{r}\PYG{n+nb+bp}{.}\PYG{n}{val}\PYG{+w}{ }\PYG{n+nb+bp}{/}\PYG{+w}{ }\PYG{l+m+mi}{3}\PYG{+w}{ }\PYG{n+nb+bp}{*}\PYG{+w}{ }\PYG{l+m+mi}{3}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{boxC}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{c}\PYG{n+nb+bp}{.}\PYG{n}{val}\PYG{+w}{ }\PYG{n+nb+bp}{/}\PYG{+w}{ }\PYG{l+m+mi}{3}\PYG{+w}{ }\PYG{n+nb+bp}{*}\PYG{+w}{ }\PYG{l+m+mi}{3}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{mut}\PYG{+w}{ }\PYG{n}{changed}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{false}
+\PYG{+w}{    }\PYG{n}{for}\PYG{+w}{ }\PYG{n}{hr}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{dr}\PYG{+w}{ }\PYG{k}{in}\PYG{+w}{ }\PYG{o}{[:}\PYG{l+m+mi}{3}\PYG{o}{]}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{      }\PYG{n}{for}\PYG{+w}{ }\PYG{n}{hc}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{dc}\PYG{+w}{ }\PYG{k}{in}\PYG{+w}{ }\PYG{o}{[:}\PYG{l+m+mi}{3}\PYG{o}{]}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{        }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{r\PYGZsq{}}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Fin}\PYG{+w}{ }\PYG{l+m+mi}{9}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{boxR}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{n}{dr}\PYG{o}{,}\PYG{+w}{ }\PYG{k}{by}\PYG{+w}{ }\PYG{k}{have}\PYG{+w}{ }\PYG{n}{h1}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{dr}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{l+m+mi}{3}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{hr}\PYG{n+nb+bp}{.}\PYG{n}{upper}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{k}{have}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{r}\PYG{n+nb+bp}{.}\PYG{n}{isLt}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{omega}\PYG{n+nb+bp}{⟩}
+\PYG{+w}{        }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{c\PYGZsq{}}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Fin}\PYG{+w}{ }\PYG{l+m+mi}{9}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{boxC}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{n}{dc}\PYG{o}{,}\PYG{+w}{ }\PYG{k}{by}\PYG{+w}{ }\PYG{k}{have}\PYG{+w}{ }\PYG{n}{h2}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{dc}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{l+m+mi}{3}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{hc}\PYG{n+nb+bp}{.}\PYG{n}{upper}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{k}{have}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{c}\PYG{n+nb+bp}{.}\PYG{n}{isLt}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{omega}\PYG{n+nb+bp}{⟩}
+\PYG{+w}{        }\PYG{k}{if}\PYG{+w}{ }\PYG{n+nb+bp}{!}\PYG{o}{(}\PYG{n}{r\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZam{}\PYGZam{}}\PYG{+w}{ }\PYG{n}{c\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{c}\PYG{o}{)}\PYG{+w}{ }\PYG{k}{then}
+\PYG{+w}{          }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{old}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{grid}\PYG{+w}{ }\PYG{n}{r\PYGZsq{}}\PYG{+w}{ }\PYG{n}{c\PYGZsq{}}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{read}
+\PYG{+w}{          }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{upd}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{n+nb+bp}{.}\PYG{n}{inter}\PYG{+w}{ }\PYG{n}{old}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{+w}{ }\PYG{n}{present}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{k}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n+nb+bp}{!}\PYG{o}{(}\PYG{n}{k}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{n}{d}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{\PYGZcb{}}
+\PYG{+w}{          }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{ch}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{grid}\PYG{+w}{ }\PYG{n}{r\PYGZsq{}}\PYG{+w}{ }\PYG{n}{c\PYGZsq{}}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{n}{upd}
+\PYG{+w}{          }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{ch}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{changed}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{true}
+\PYG{+w}{    }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{changed}
+
+\PYG{k+kn}{end}\PYG{+w}{ }\PYG{n}{Sudoku}
+\end{MintedVerbatim}

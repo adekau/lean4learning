@@ -1,0 +1,7 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} `p \PYGZgt{}\PYGZgt{}= f`: run p, feed its result to f, run the resulting parser}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{bind}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{p}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{f}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{β}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{β}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{  }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{p}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pos\PYGZsq{}}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{f}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos\PYGZsq{}}\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} p succeeded: continue with f}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{           }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{          }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} p failed: propagate failure}
+\end{MintedVerbatim}

@@ -1,0 +1,17 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} The supremum of two elements (binary version)}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} (We\PYGZsq{}ll generalise to arbitrary subsets in Chapter 4.)}
+\PYG{k+kn}{structure}\PYG{+w}{ }\PYG{n}{IsSupOf}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{\PYGZcb{}}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{OrderBook}\PYG{n+nb+bp}{.}\PYG{n}{PartialOrder}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{]}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{sup}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Prop}\PYG{+w}{ }\PYG{k+kn}{where}
+\PYG{+w}{  }\PYG{n}{ge\PYGZus{}a}\PYG{+w}{  }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{sup}
+\PYG{+w}{  }\PYG{n}{ge\PYGZus{}b}\PYG{+w}{  }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{sup}
+\PYG{+w}{  }\PYG{n}{least}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{u}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{),}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{u}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{u}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{sup}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{u}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Uniqueness of the binary sup}
+\PYG{k+kn}{theorem}\PYG{+w}{ }\PYG{n}{sup\PYGZus{}unique}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{\PYGZcb{}}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{OrderBook}\PYG{n+nb+bp}{.}\PYG{n}{PartialOrder}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{]}
+\PYG{+w}{    }\PYG{o}{\PYGZob{}}\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{hs}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{IsSupOf}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{s}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{ht}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{IsSupOf}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{t}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}
+\PYG{+w}{  }\PYG{n}{apply}\PYG{+w}{ }\PYG{n}{PartialOrder}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}antisymm}
+\PYG{+w}{  }\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n}{exact}\PYG{+w}{ }\PYG{n}{hs}\PYG{n+nb+bp}{.}\PYG{n}{least}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{n}{ht}\PYG{n+nb+bp}{.}\PYG{n}{ge\PYGZus{}a}\PYG{+w}{ }\PYG{n}{ht}\PYG{n+nb+bp}{.}\PYG{n}{ge\PYGZus{}b}
+\PYG{+w}{  }\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n}{exact}\PYG{+w}{ }\PYG{n}{ht}\PYG{n+nb+bp}{.}\PYG{n}{least}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{hs}\PYG{n+nb+bp}{.}\PYG{n}{ge\PYGZus{}a}\PYG{+w}{ }\PYG{n}{hs}\PYG{n+nb+bp}{.}\PYG{n}{ge\PYGZus{}b}
+\end{MintedVerbatim}

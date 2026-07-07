@@ -1,0 +1,15 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{structure}\PYG{+w}{ }\PYG{n}{UndoEntry}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n}{slot}\PYG{+w}{     }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Fin}\PYG{+w}{ }\PYG{l+m+mi}{14}
+\PYG{+w}{  }\PYG{n}{oldDomain}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Domain}
+
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} Save the current domain before a branch. \PYGZhy{}/}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{saveState}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{domains}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Array}\PYG{+w}{ }\PYG{n}{Domain}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{slot}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Fin}\PYG{+w}{ }\PYG{l+m+mi}{14}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{UndoEntry}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{o}{⟨}\PYG{n}{slot}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{domains}\PYG{o}{[}\PYG{n}{slot}\PYG{o}{]}\PYG{n+nb+bp}{!}\PYG{o}{⟩}
+
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} Restore domain after backtracking. \PYGZhy{}/}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{restoreState}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{domains}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Array}\PYG{+w}{ }\PYG{n}{Domain}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{entry}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{UndoEntry}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Array}\PYG{+w}{ }\PYG{n}{Domain}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n}{domains.set}\PYG{n+nb+bp}{!}\PYG{+w}{ }\PYG{n}{entry.slot}\PYG{+w}{ }\PYG{n}{entry.oldDomain}
+\end{MintedVerbatim}

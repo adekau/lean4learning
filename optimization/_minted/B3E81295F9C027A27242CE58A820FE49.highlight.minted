@@ -1,0 +1,31 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} `enumerate` lists a domain\PYGZsq{}s combos (Finset.toList is noncomputable,}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} so a runnable solver filters a reference list by membership, or keeps}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} list\PYGZhy{}backed domains); `propagateToFixpoint`, `extractBuild`, `fixSlot`}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} are the strengthened\PYGZhy{}network helpers from Chapter 3.}
+
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} Backtracking search with propagation at each node. \PYGZhy{}/}
+\PYG{n}{partial}\PYG{+w}{ }\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{backtrack}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{domains}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{GearSlot}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Finset}\PYG{+w}{ }\PYG{n}{StatCombo}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{assigned}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{GearSlot}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{StatCombo}\PYG{o}{))}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{best}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Build}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{))}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} incumbent}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{targets}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatType}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Build}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} 1. Propagate}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{domains\PYGZsq{}}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{propagateToFixpoint}\PYG{+w}{ }\PYG{n}{domains}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} 2. Check for empty domain (contradiction)}
+\PYG{+w}{  }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{GearSlot.all.any}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{domains\PYGZsq{}}\PYG{+w}{ }\PYG{n}{s}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{card}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{o}{)}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{best}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} 3. Check if all assigned}
+\PYG{+w}{  }\PYG{k}{else}\PYG{+w}{ }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{GearSlot.all.all}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{domains\PYGZsq{}}\PYG{+w}{ }\PYG{n}{s}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{card}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{)}\PYG{+w}{ }\PYG{k}{then}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{build}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{extractBuild}\PYG{+w}{ }\PYG{n}{domains\PYGZsq{}}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{pen}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{totalPenalty}\PYG{+w}{ }\PYG{n}{build}\PYG{+w}{ }\PYG{n}{targets}\PYG{+w}{ }\PYG{n}{wMiss}\PYG{+w}{ }\PYG{n}{wOver}
+\PYG{+w}{    }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{best}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{build}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pen}\PYG{o}{)}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{\PYGZus{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{bestPen}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{      }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{pen}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{bestPen}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{build}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pen}\PYG{o}{)}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{n}{best}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} 4. Branch on smallest domain (fail\PYGZhy{}first)}
+\PYG{+w}{  }\PYG{k}{else}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{slot}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{selectSlotFailFirst}\PYG{+w}{ }\PYG{n}{domains\PYGZsq{}}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{enumerate}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{domains\PYGZsq{}}\PYG{+w}{ }\PYG{n}{slot}\PYG{o}{))}\PYG{n+nb+bp}{.}\PYG{n}{foldl}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{init}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{best}\PYG{o}{)}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{acc}\PYG{+w}{ }\PYG{n}{combo}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{domains\PYGZsq{}\PYGZsq{}}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{fixSlot}\PYG{+w}{ }\PYG{n}{domains\PYGZsq{}}\PYG{+w}{ }\PYG{n}{slot}\PYG{+w}{ }\PYG{n}{combo}
+\PYG{+w}{      }\PYG{n}{backtrack}\PYG{+w}{ }\PYG{n}{domains\PYGZsq{}\PYGZsq{}}\PYG{+w}{ }\PYG{o}{((}\PYG{n}{slot}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{combo}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{::}\PYG{+w}{ }\PYG{n}{assigned}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{acc}\PYG{+w}{ }\PYG{n}{targets}
+\end{MintedVerbatim}

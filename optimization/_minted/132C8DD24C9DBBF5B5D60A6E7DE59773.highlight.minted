@@ -1,0 +1,6 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{example}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{p}\PYG{+w}{ }\PYG{n}{q}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Prop}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{hp}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{p}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{hq}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{q}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{p}\PYG{+w}{ }\PYG{n+nb+bp}{∧}\PYG{+w}{ }\PYG{n}{q}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k+kd}{by}
+\PYG{+w}{  }\PYG{n}{constructor}
+\PYG{+w}{  }\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n}{exact}\PYG{+w}{ }\PYG{n}{hp}
+\PYG{+w}{  }\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n}{exact}\PYG{+w}{ }\PYG{n}{hq}
+\end{MintedVerbatim}

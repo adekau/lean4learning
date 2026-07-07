@@ -1,0 +1,7 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{theorem}\PYG{+w}{ }\PYG{n}{symm\PYGZus{}antisymm\PYGZus{}eq}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{\PYGZcb{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{r}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Rel}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{hs}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Symmetric}\PYG{+w}{ }\PYG{n}{r}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{ha}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Antisymm}\PYG{+w}{ }\PYG{n}{r}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}
+\PYG{+w}{    }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}
+\PYG{+w}{  }\PYG{n}{intro}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{h}
+\PYG{+w}{  }\PYG{n}{exact}\PYG{+w}{ }\PYG{n}{ha}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{hs}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{h}\PYG{o}{)}
+\end{MintedVerbatim}

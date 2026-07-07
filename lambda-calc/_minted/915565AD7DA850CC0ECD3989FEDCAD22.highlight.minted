@@ -1,0 +1,5 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+substV2 0 (bvar 1) (λ. 1)
+  = λ. (substV2 1 (bvar 1) (bvar 1))
+  = λ. (bvar 1)                            ✗ WRONG!
+\end{MintedVerbatim}

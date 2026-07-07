@@ -1,0 +1,36 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{open}\PYG{+w}{ }\PYG{n}{OrderBook}\PYG{+w}{ }\PYG{k}{in}
+\PYG{k+kn}{instance}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{PartialOrder}\PYG{+w}{ }\PYG{n}{DvdNat}\PYG{+w}{ }\PYG{k+kn}{where}
+
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} The order itself: divisibility.}
+\PYG{+w}{  }\PYG{n}{le}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Dvd\PYGZsq{}}
+
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Reflexivity: n | n via witness k = 1, since n.val = n.val * 1.}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}refl}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{n+nb+bp}{⟨}\PYG{l+m+mi}{1}\PYG{o}{,}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{mul\PYGZus{}one}\PYG{+w}{ }\PYG{n}{n}\PYG{n+nb+bp}{.}\PYG{n}{val}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{symm}\PYG{n+nb+bp}{⟩}
+
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Antisymmetry: expose the divisibility witnesses, then case\PYGZhy{}split}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} on whether n.val is zero or positive, delegating to Lemma 1 or}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Lemma 3 respectively.}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}antisymm}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{n}{hnm}\PYG{+w}{ }\PYG{n}{hmn}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{k}{by}
+\PYG{+w}{    }\PYG{k}{obtain}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{k}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{hk}\PYG{n+nb+bp}{⟩}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{hnm}
+\PYG{+w}{    }\PYG{k}{obtain}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{j}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{hj}\PYG{n+nb+bp}{⟩}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{hmn}
+\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Reduce  n = m  (DvdNat equality) to  a = b  on the .val fields:}
+\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} cases exposes the fields, congr 1 splits the constructor.}
+\PYG{+w}{    }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{n}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{m}
+\PYG{+w}{    }\PYG{n}{congr}\PYG{+w}{ }\PYG{l+m+mi}{1}
+\PYG{+w}{    }\PYG{n}{rename\PYGZus{}i}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}
+\PYG{+w}{    }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{eq\PYGZus{}zero\PYGZus{}or\PYGZus{}pos}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{inl}\PYG{+w}{ }\PYG{n}{ha}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{      }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} a = 0: b = 0 * k = 0 by Lemma 1, and a = 0, so a = b.}
+\PYG{+w}{      }\PYG{n}{subst}\PYG{+w}{ }\PYG{n}{ha}
+\PYG{+w}{      }\PYG{n}{exact}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{dvd\PYGZus{}zero\PYGZus{}left}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{b}\PYG{n+nb+bp}{⟩}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{k}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{hk}\PYG{n+nb+bp}{⟩}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{symm}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{inr}\PYG{+w}{ }\PYG{n}{ha}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{      }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} a \PYGZgt{} 0: use Lemma 3 directly.}
+\PYG{+w}{      }\PYG{n}{exact}\PYG{+w}{ }\PYG{n}{dvd\PYGZus{}antisymm\PYGZus{}pos}\PYG{+w}{ }\PYG{n}{ha}\PYG{+w}{ }\PYG{n}{k}\PYG{+w}{ }\PYG{n}{hk}\PYG{+w}{ }\PYG{n}{j}\PYG{+w}{ }\PYG{n}{hj}
+
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Transitivity: compose witnesses.  b.val = a.val * k and}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} c.val = b.val * j, so c.val = a.val * (k * j).}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}trans}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{k}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{hk}\PYG{n+nb+bp}{⟩}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{j}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{hj}\PYG{n+nb+bp}{⟩}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{n+nb+bp}{⟨}\PYG{n}{k}\PYG{+w}{ }\PYG{n+nb+bp}{*}\PYG{+w}{ }\PYG{n}{j}\PYG{o}{,}\PYG{+w}{ }\PYG{k}{by}\PYG{+w}{ }\PYG{n}{rw}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{hj}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{hk}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{mul\PYGZus{}assoc}\PYG{o}{]}\PYG{n+nb+bp}{⟩}
+\end{MintedVerbatim}

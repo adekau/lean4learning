@@ -1,0 +1,7 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} `p \PYGZlt{}|\PYGZgt{} q`: try p; if it fails, try q (backtracking)}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{orElse}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{p}\PYG{+w}{ }\PYG{n}{q}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{  }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{p}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{        }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} p succeeded}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{q}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{pos}\PYG{+w}{       }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} p failed: try q at the same position}
+\end{MintedVerbatim}

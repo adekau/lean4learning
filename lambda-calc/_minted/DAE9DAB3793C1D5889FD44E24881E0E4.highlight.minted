@@ -1,0 +1,19 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Fix A and B as propositions so `modus\PYGZus{}ponens` is itself a proposition.}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} (Without this, Lean auto\PYGZhy{}binds A B : Sort \PYGZus{}, and rejects modus\PYGZus{}ponens}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{}  with \PYGZdq{}type of theorem modus\PYGZus{}ponens is not a proposition\PYGZdq{}. The ∧/∨/∃}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{}  lines happen to survive because those connectives force Prop.)}
+\PYG{k+kd}{variable}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{n}{A}\PYG{+w}{ }\PYG{n}{B}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Prop}\PYG{o}{\PYGZcb{}}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} \PYGZdq{}A and B\PYGZdq{} is a struct (pair)}
+\PYG{k+kd}{theorem}\PYG{+w}{ }\PYG{n}{and\PYGZus{}intro}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{ha}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{A}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{hb}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{B}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{A}\PYG{+w}{ }\PYG{n+nb+bp}{∧}\PYG{+w}{ }\PYG{n}{B}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{⟨}\PYG{n}{ha}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{hb}\PYG{o}{⟩}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} \PYGZdq{}A or B\PYGZdq{} is a tagged union (sum type)}
+\PYG{k+kd}{theorem}\PYG{+w}{ }\PYG{n}{or\PYGZus{}left}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{ha}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{A}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{A}\PYG{+w}{ }\PYG{n+nb+bp}{∨}\PYG{+w}{ }\PYG{n}{B}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Or.inl}\PYG{+w}{ }\PYG{n}{ha}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} \PYGZdq{}A implies B\PYGZdq{} is a function}
+\PYG{k+kd}{theorem}\PYG{+w}{ }\PYG{n}{modus\PYGZus{}ponens}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{hab}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{A}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{B}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{ha}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{A}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{B}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{hab}\PYG{+w}{ }\PYG{n}{ha}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} \PYGZdq{}there exists n such that n \PYGZgt{} 5\PYGZdq{} needs a witness}
+\PYG{k+kd}{theorem}\PYG{+w}{ }\PYG{n}{exists\PYGZus{}gt\PYGZus{}5}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∃}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZgt{}}\PYG{+w}{ }\PYG{l+m+mi}{5}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{⟨}\PYG{l+m+mi}{6}\PYG{o}{,}\PYG{+w}{ }\PYG{k+kd}{by}\PYG{+w}{ }\PYG{n}{omega}\PYG{o}{⟩}
+\end{MintedVerbatim}

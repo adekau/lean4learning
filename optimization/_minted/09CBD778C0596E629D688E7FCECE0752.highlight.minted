@@ -1,0 +1,20 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} The specific combo the player already owns:}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{berserkers}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatCombo}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{o}{⟨}\PYG{l+s+s2}{\PYGZdq{}Berserker\PYGZsq{}s\PYGZdq{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{triple}\PYG{o}{,}\PYG{+w}{ }\PYG{o}{[}\PYG{n+nb+bp}{.}\PYG{n}{power}\PYG{o}{],}\PYG{+w}{ }\PYG{o}{[}\PYG{n+nb+bp}{.}\PYG{n}{precision}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{ferocity}\PYG{o}{]⟩}
+
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} Fix specific slots to specific combos before solving. \PYGZhy{}/}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{applyWhatIf}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{domains}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{GearSlot}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Finset}\PYG{+w}{ }\PYG{n}{StatCombo}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{fixed}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{GearSlot}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{StatCombo}\PYG{o}{))}
+\PYG{+w}{    }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{GearSlot}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Finset}\PYG{+w}{ }\PYG{n}{StatCombo}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{slot}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{fixed.find}\PYG{n+nb+bp}{?}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{fun}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{s}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{n}{slot}\PYG{o}{)}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{\PYGZus{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{combo}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{n}{combo}\PYG{o}{\PYGZcb{}}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} singleton domain}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{domains}\PYG{+w}{ }\PYG{n}{slot}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Example: \PYGZdq{}I have Legendary Berserker armour\PYGZdq{}}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{legendaryBerserkerArmour}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{GearSlot}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{StatCombo}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{o}{[(}\PYG{n+nb+bp}{.}\PYG{n}{headgear}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{berserkers}\PYG{o}{),}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{shoulders}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{berserkers}\PYG{o}{),}
+\PYG{+w}{   }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{coat}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{berserkers}\PYG{o}{),}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{gloves}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{berserkers}\PYG{o}{),}
+\PYG{+w}{   }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{leggings}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{berserkers}\PYG{o}{),}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{boots}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{berserkers}\PYG{o}{)]}
+\end{MintedVerbatim}

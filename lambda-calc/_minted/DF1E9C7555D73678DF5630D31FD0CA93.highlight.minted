@@ -1,0 +1,6 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{theorem}\PYG{+w}{ }\PYG{n}{someOfNe}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{n}{x}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{\PYGZcb{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{ }\PYG{n+nb+bp}{≠}\PYG{+w}{ }\PYG{n}{none}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∃}\PYG{+w}{ }\PYG{n}{y}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{y}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k+kd}{by}
+\PYG{+w}{  }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{exact}\PYG{+w}{ }\PYG{n}{absurd}\PYG{+w}{ }\PYG{n}{rfl}\PYG{+w}{ }\PYG{n}{h}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{y}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{exact}\PYG{+w}{ }\PYG{o}{⟨}\PYG{n}{y}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{rfl}\PYG{o}{⟩}
+\end{MintedVerbatim}

@@ -1,0 +1,13 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{// These run \PYGZdq{}concurrently\PYGZdq{} \PYGZhy{}\PYGZhy{}\PYGZhy{} the event loop interleaves them}
+\PYG{k+kd}{const}\PYG{+w}{ }\PYG{n+nx}{fetchUser}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k}{async}\PYG{+w}{ }\PYG{p}{(}\PYG{n+nx}{id}\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{string}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{=\PYGZgt{}}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{  }\PYG{k+kd}{const}\PYG{+w}{ }\PYG{n+nx}{resp}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k}{await}\PYG{+w}{ }\PYG{n+nx}{fetch}\PYG{p}{(}\PYG{l+s+sb}{`/api/users/}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nx}{id}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+sb}{`}\PYG{p}{);}\PYG{+w}{  }\PYG{c+c1}{// yields to event loop}
+\PYG{+w}{  }\PYG{k}{return}\PYG{+w}{ }\PYG{n+nx}{resp}\PYG{p}{.}\PYG{n+nx}{json}\PYG{p}{();}
+\PYG{p}{\PYGZcb{};}
+
+\PYG{c+c1}{// Two concurrent fetches}
+\PYG{k+kd}{const}\PYG{+w}{ }\PYG{p}{[}\PYG{n+nx}{alice}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nx}{bob}\PYG{p}{]}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k}{await}\PYG{+w}{ }\PYG{n+nb}{Promise}\PYG{p}{.}\PYG{n+nx}{all}\PYG{p}{([}
+\PYG{+w}{  }\PYG{n+nx}{fetchUser}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}alice\PYGZdq{}}\PYG{p}{),}
+\PYG{+w}{  }\PYG{n+nx}{fetchUser}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}bob\PYGZdq{}}\PYG{p}{),}
+\PYG{p}{]);}
+\end{MintedVerbatim}

@@ -1,0 +1,8 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} STILL WRONG! But closer.}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{substV2}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{k}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{s}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Expr}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Expr}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Expr}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{bvar}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{    }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{n}{k}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{bvar}\PYG{+w}{ }\PYG{n}{n}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{app}\PYG{+w}{ }\PYG{n}{e₁}\PYG{+w}{ }\PYG{n}{e₂}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{app}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{substV2}\PYG{+w}{ }\PYG{n}{k}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{e₁}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{substV2}\PYG{+w}{ }\PYG{n}{k}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{e₂}\PYG{o}{)}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{n}{e}\PYG{+w}{     }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{substV2}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{k}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{)}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} FIX 1: target shifts}
+\PYG{+w}{                  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{}              \PYGZca{}\PYGZca{}\PYGZca{}\PYGZca{}\PYGZca{}}
+\end{MintedVerbatim}

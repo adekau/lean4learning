@@ -1,0 +1,12 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{structure}\PYG{+w}{ }\PYG{n}{OptProblem}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{V}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{D}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{V}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n}{constraints}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{v}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{D}\PYG{+w}{ }\PYG{n}{v}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{k+kt}{Prop}
+\PYG{+w}{  }\PYG{n}{objective}\PYG{+w}{   }\PYG{o}{:}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{v}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{D}\PYG{+w}{ }\PYG{n}{v}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Int}
+
+\PYG{k+kd}{structure}\PYG{+w}{ }\PYG{n}{Solution}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{P}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{OptProblem}\PYG{+w}{ }\PYG{n}{V}\PYG{+w}{ }\PYG{n}{D}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n}{assignment}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{v}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{D}\PYG{+w}{ }\PYG{n}{v}
+\PYG{+w}{  }\PYG{n}{feasible}\PYG{+w}{   }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{P.constraints}\PYG{+w}{ }\PYG{n}{assignment}
+
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{isOptimal}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{P}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{OptProblem}\PYG{+w}{ }\PYG{n}{V}\PYG{+w}{ }\PYG{n}{D}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{sol}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Solution}\PYG{+w}{ }\PYG{n}{P}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Prop}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{other}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Solution}\PYG{+w}{ }\PYG{n}{P}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{P.objective}\PYG{+w}{ }\PYG{n}{sol.assignment}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{P.objective}\PYG{+w}{ }\PYG{n}{other.assignment}
+\end{MintedVerbatim}

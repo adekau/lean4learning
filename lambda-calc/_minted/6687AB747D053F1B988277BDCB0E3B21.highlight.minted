@@ -1,0 +1,27 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+λ\PYGZgt{} \PYGZbs{}x. x
+Parsed:    (λx. x)
+De Bruijn: (λ. 0)
+Result:    (λ. 0)
+
+λ\PYGZgt{} succ (succ (succ zero))
+Result:    (λ. (λ. (1 (1 (1 0)))))
+
+λ\PYGZgt{} add (succ (succ zero)) (succ (succ (succ zero)))
+Result:    (λ. (λ. (1 (1 (1 (1 (1 0)))))))
+
+λ\PYGZgt{} :let two = succ (succ zero)
+two defined
+
+λ\PYGZgt{} mul two (succ two)
+Result:    (λ. (λ. (1 (1 (1 (1 (1 (1 0))))))))
+
+λ\PYGZgt{} and true false
+Result:    (λ. (λ. 0))
+
+λ\PYGZgt{} :let apply\PYGZus{}twice = \PYGZbs{}f x. f (f x)
+apply\PYGZus{}twice defined
+
+λ\PYGZgt{} apply\PYGZus{}twice succ zero
+Result:    (λ. (λ. (1 (1 0))))
+\end{MintedVerbatim}

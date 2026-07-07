@@ -1,0 +1,13 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{theorem}\PYG{+w}{ }\PYG{n}{zero\PYGZus{}add\PYGZus{}tac}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{n}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}
+\PYG{+w}{  }\PYG{n}{induction}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{zero}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{rfl}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{succ}\PYG{+w}{ }\PYG{n}{k}\PYG{+w}{ }\PYG{n}{ih}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{rw}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{add\PYGZus{}succ}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{ih}\PYG{o}{]}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} the same proof as an explicit Nat.rec term}
+\PYG{k+kn}{theorem}\PYG{+w}{ }\PYG{n}{zero\PYGZus{}add\PYGZus{}term}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{n}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{rec}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{motive}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{m}\PYG{o}{)}
+\PYG{+w}{    }\PYG{n}{rfl}
+\PYG{+w}{    }\PYG{o}{(}\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{k}\PYG{+w}{ }\PYG{n}{ih}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{congrArg}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{succ}\PYG{+w}{ }\PYG{n}{ih}\PYG{o}{)}
+\PYG{+w}{    }\PYG{n}{n}
+\end{MintedVerbatim}

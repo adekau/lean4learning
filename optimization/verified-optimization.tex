@@ -4,7 +4,13 @@
 \usepackage{fontspec}
 \setmainfont{Latin Modern Roman}
 \setsansfont{Latin Modern Sans}
-\setmonofont{DejaVu Sans Mono}[Scale=0.85]
+% Pin the FULL system DejaVu by path: the TeX-trimmed DejaVu shipped with
+% TinyTeX drops some math glyphs used in the Lean listings (e.g. the join
+% symbol U+2294 ⊔). The system TTF has them.
+\setmonofont{DejaVuSansMono.ttf}[
+  Path=/usr/share/fonts/truetype/dejavu/,
+  BoldFont=DejaVuSansMono-Bold.ttf,
+  Scale=0.85]
 
 % ── Core packages ────────────────────────────────────────────────────────────
 \usepackage[margin=2.5cm]{geometry}
@@ -12,7 +18,7 @@
 \usepackage{tikz}
 \usetikzlibrary{positioning, arrows.meta, calc, matrix, fit, backgrounds,
   decorations.pathreplacing, shapes.geometric}
-\usepackage[outputdir=build]{minted}
+\usepackage{minted}
 \setminted{
   fontsize=\small,
   breaklines=true,
@@ -153,6 +159,7 @@
 \newcommand{\LP}{\operatorname{LP}}
 \newcommand{\IP}{\operatorname{IP}}
 \DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand{\li}[1]{{\ttfamily\small\color{deepblue}#1}}
 
 % ── Chapter/section styling ──────────────────────────────────────────────────
 % ── Heading colors via sectsty ────────────────────────────────────────────────
@@ -194,7 +201,7 @@ It prunes beautifully. Now let's make it \textbf{solve}.\\[3em]}
 This book has an unusual origin.
 
 It began with a practical problem: building a gear optimizer for Guild Wars~2's
-World vs.\ World game mode.  You choose stat combinations for 16+ equipment
+World vs.\ World game mode.  You choose stat combinations for fourteen equipment
 slots, each drawn from a finite menu of options.  You have stat targets to meet,
 a rune constraint that couples all six armor pieces, and an infusion budget for
 fine-tuning.  The goal: find the loadout that gets as close to your targets as
@@ -219,21 +226,59 @@ This book picks up where propagation left off.  It gives the propagator engine
 a driver: systematic search to explore the pruned space, bounding techniques to
 skip parts of the search that provably can't beat what you've already found, and
 heuristic methods to find good starting solutions fast.  The result is a
-\emph{verified solver}---a Lean\,4 program that either returns an optimal build
-with a machine-checkable proof of optimality, or certifies that no feasible
-build exists.
+gear solver in Lean\,4, developed alongside a \emph{specification} of what it
+means for that solver to be correct---and, where the proofs are short enough,
+machine-checked verification of the pieces.
 
-The mathematics is real: linear programming, integer programming, branch and
-bound, constraint propagation, Pareto optimality, dynamic programming.  But
-every concept is motivated by the gear problem, implemented in Lean\,4, and
+\begin{warningbox}[title={An honest word about ``verified''}]
+This is a book about \emph{how to build and specify} a verified solver, not a
+finished verified artifact.  Several of the deepest correctness
+theorems---solver soundness, branch-and-bound invariant preservation, LP-bound
+validity, infusion-DP optimality---are stated precisely as \emph{specifications}
+and their proofs are left as extended exercises (shown in Lean with the
+\li{sorry} placeholder, which means ``unproven''---see
+Appendix~\ref{app:primer}).  We are careful never to present a \li{sorry}-backed
+theorem as though it were machine-checked.  What \emph{is} genuinely proved
+(irreflexivity and transitivity of Pareto dominance, decidability of dominance,
+the small worked lemmas) is called out as such.  Treat the capstone soundness
+theorem as a rigorously-stated contract with a proof sketch, in the spirit of a
+specification you would hand to a verification team---not as a closed proof.
+\end{warningbox}
+
+This is a book about \textbf{discrete (combinatorial)} optimisation: the gear
+problem picks one combo per slot from a finite menu, so there are no gradients
+to descend.  We survey the continuous world (convexity, linear programming) only
+where it feeds the discrete solver---LP relaxation as a bounding technique.
+Gradient descent and Newton's method are named for contrast and then set aside;
+they are not developed here.  The mathematics we \emph{do} develop is real:
+linear programming and duality, integer programming, branch and bound,
+constraint propagation, Lagrangian relaxation, Pareto optimality, and dynamic
+programming---each motivated by the gear problem, implemented in Lean\,4, and
 connected back to the lattice-theoretic foundations you already know.
 
-\subsection*{Prerequisites}
+\subsection*{Prerequisites and Lean setup}
 
-Comfort with Lean\,4 typeclasses, basic tactic proofs, and the material from
-\emph{Verified Order Theory}---especially partial orders, lattices,
+Comfort with reading Lean\,4 (typeclasses, basic tactic proofs) and the material
+from \emph{Verified Order Theory}---especially partial orders, lattices,
 join-semilattices, propagator cells, and the Knaster--Tarski fixed-point
-theorem.
+theorem.  No deep proof-assistant experience is required:
+Appendix~\ref{app:primer}, \emph{A Lean 4 Primer}, explains every construct and
+tactic this book uses (\li{intro}, \li{exact}, \li{constructor}, \li{obtain},
+\li{unfold}, \li{rfl}, \li{simp}, \li{omega}, \li{split}, and an honest account
+of \li{sorry}), each with a compiled example.
+
+\medskip\noindent\textbf{Toolchain and libraries.}  All Lean code targets
+toolchain \li{leanprover/lean4:v4.31.0}.  The book mixes two kinds of listing.
+Most of the core data model, the heuristics, the infusion DP, and the Pareto
+proofs are \textbf{plain core Lean} (no external packages).  But the propagators,
+the whole solver loop, and the A* skeleton depend on \textbf{Mathlib}
+(\li{Finset}, \li{SemilatticeSup}/\li{⊔}) and \textbf{Batteries}
+(\li{BinaryHeap}).  Section~\ref{sec:mathlib-setup} states this dependency
+explicitly and shows how to set up a Mathlib project.  Every listing is
+machine-checked: the core ones against a bare toolchain
+(\li{OptimizationVerification.lean}), the Mathlib ones against Mathlib
+v4.31.0 (\li{OptimizationMathlibVerification.lean}).  Where a listing
+deliberately leaves a \li{sorry}, the surrounding text says so.
 
 \subsection*{How to Read This Book}
 
@@ -453,6 +498,39 @@ def contribution (slot : GearSlot) (combo : StatCombo)
 \end{minted}
 \end{leanbox}
 
+Before defining a build, we need three enumerations---the list of all gear
+slots, the list of all stat types, and a menu of stat combos---plus a
+placeholder \li{Rune} type.  These are referenced throughout the book, so we
+give them once here (a fuller combo menu appears in Appendix~\ref{app:combos}):
+
+\begin{leanbox}[title={Lean 4 --- Enumerations and Runes}]
+\begin{minted}{lean}
+def GearSlot.all : List GearSlot :=
+  [.headgear, .shoulders, .coat, .gloves, .leggings, .boots,
+   .mainhand, .offhand,
+   .amulet, .ring1, .ring2, .accessory1, .accessory2, .backPiece]
+
+def StatType.all : List StatType :=
+  [.power, .precision, .ferocity, .toughness, .vitality,
+   .conditionDamage, .expertise, .concentration, .healingPower]
+
+/-- A rune (placeholder: runes couple the six armour slots; the rune
+    propagator lives in the lattice book). -/
+structure Rune where
+  name : String
+  deriving DecidableEq, Repr
+
+/-- A small illustrative combo menu (the full 40 are in Appendix A). -/
+def allCombos : List StatCombo :=
+  [⟨"Berserker's", .triple, [.power], [.precision, .ferocity]⟩,
+   ⟨"Knight's",    .triple, [.toughness], [.power, .precision]⟩,
+   ⟨"Marauder",    .quad, [.power, .precision], [.vitality, .ferocity]⟩,
+   ⟨"Minstrel's",  .quad, [.toughness, .healingPower],
+                          [.vitality, .concentration]⟩,
+   ⟨"Celestial",   .celestial, [], []⟩]
+\end{minted}
+\end{leanbox}
+
 A \emph{build} assigns a stat combo to each slot, a rune, and a distribution
 of infusions:
 
@@ -460,7 +538,7 @@ of infusions:
 \begin{minted}{lean}
 structure Build where
   gear      : GearSlot → StatCombo
-  rune      : Rune   -- to be defined later
+  rune      : Rune
   infusions : StatType → Nat
   -- Invariant: ∑ infusions = 18
 
@@ -471,6 +549,9 @@ def statTotal (b : Build) (s : StatType) : Nat :=
   gearTotal + 5 * b.infusions s
 \end{minted}
 \end{leanbox}
+
+There are 14 gear slots, so \li{GearSlot.all} has 14 entries; the search-space
+and termination bounds later in the book count from this list.
 
 \subsection{The Objective}
 
@@ -499,6 +580,10 @@ def totalPenalty (b : Build) (targets : StatType → Nat)
     (wMiss wOver : Nat) : Nat :=
   (StatType.all.map fun s =>
     penalty (targets s) (statTotal b s) wMiss wOver).sum
+
+-- Fixed penalty weights used throughout the book's listings.
+def wMiss : Nat := 10
+def wOver : Nat := 1
 \end{minted}
 \end{leanbox}
 
@@ -507,10 +592,34 @@ $\pen(b^*)$ subject to the rune constraint (all six armour runes identical),
 the weapon constraint (2H or 1H+1H, not a mix), and the infusion budget
 ($\sum_s \texttt{infusions}(s) = 18$).
 
+\begin{warningbox}[title={Soft objective vs.\ hard floors: a modelling decision}]
+The penalty above is a \emph{soft} objective: missing a target is penalised
+(heavily), not forbidden.  But the propagators and solver we build from
+Chapter~\ref{ch:stronger} onward treat each stat target as a \textbf{hard
+floor}: the \texttt{LinearGeq} propagator \emph{deletes} any combo that cannot
+reach a target.  These are two \emph{different} problems, and it matters which
+one we are solving:
+\begin{itemize}[nosep]
+  \item \textbf{Soft-penalty problem:} minimise $\pen(b)$ over \emph{all} builds.
+    Here a small shortfall on one stat may be the best outcome.
+  \item \textbf{Hard-floor problem (what the solver decides):} among builds that
+    meet \emph{every} target ($\statTotal(b,s) \geq T(s)$ for all $s$), minimise
+    the (overshoot) penalty; report infeasible if none exist.
+\end{itemize}
+The solver in Part~IV solves the \emph{hard-floor} problem, and its soundness
+theorem (Chapter~\ref{ch:correctness}) is stated against a feasibility predicate
+that includes the floors.  This is a legitimate and common choice (targets as
+requirements), but it is \textbf{not} the same as minimising the soft penalty:
+\texttt{LinearGeq} pruning can discard the soft-penalty optimum (a combo giving
+the \emph{smallest} shortfall---hence lowest penalty---may still fail to reach
+the floor and be pruned).  We flag this again where the propagator is defined,
+and the correctness theorem is stated precisely to match the code.
+\end{warningbox}
+
 \subsection{The Search Space}
 
-With 40 stat combos and approximately 16 gear slots, the raw search space
-is $40^{16} \approx 1.2 \times 10^{25}$ gear assignments---before
+With 40 stat combos and the 14 gear slots of our \li{GearSlot} type, the raw
+search space is $40^{14} \approx 6.9 \times 10^{22}$ gear assignments---before
 considering rune choices, sigils, and infusion distributions.  Brute force is
 out of the question.
 
@@ -566,7 +675,54 @@ Knaster--Tarski theorem (proven in the lattice book), this converges to the
 least fixed point of the propagator system---the maximal amount of pruning
 achievable by this set of propagators.
 
-\begin{leanbox}[title={Lean 4 --- Propagator Network (from the Lattice Book)}]
+\section{Which Parts Need Mathlib}\label{sec:mathlib-setup}
+
+The next listing is the first in the book to reach outside core Lean.  A
+\li{Cell} is parametrised by a \li{SemilatticeSup} (a join-semilattice), and a
+gear-slot domain is a \li{Finset StatCombo}---both from \textbf{Mathlib}, the
+Lean community's mathematics library.  Later, the A* skeleton of
+Chapter~\ref{ch:search} uses \li{BinaryHeap} from \textbf{Batteries}.  Core Lean
+knows none of these.  So the book's listings split into two groups:
+
+\begin{itemize}[nosep]
+  \item \textbf{Core Lean} (no packages): the data model, the penalty, the
+    heuristics (hill climbing, simulated annealing, tabu, GA), the infusion DP,
+    the Pareto dominance proofs, and the \li{BitVec} performance code.  These are
+    machine-checked in \li{OptimizationVerification.lean}.
+  \item \textbf{Mathlib/Batteries}: everything that mentions \li{Finset},
+    \li{SemilatticeSup}/\li{⊔}, or \li{BinaryHeap}---the propagators, the
+    backtracking/branch-and-bound solver, and A*.  These are machine-checked in
+    \li{OptimizationMathlibVerification.lean}.
+\end{itemize}
+
+\begin{intuitionbox}[title={Setting up a Mathlib project}]
+Create a project directory with a \li{lean-toolchain} file containing the single
+line \li{leanprover/lean4:v4.31.0}, and a \li{lakefile.toml}:
+
+\begin{minted}{toml}
+name = "gearsolver"
+defaultTargets = ["GearSolver"]
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.31.0"
+
+[[lean_lib]]
+name = "GearSolver"
+\end{minted}
+
+Then run \li{lake update} to resolve the dependency and \li{lake exe cache get}
+to download prebuilt \li{.olean} binaries---do not skip this, or your machine
+will spend hours compiling Mathlib from source.  All fetched packages and build
+artifacts live under the project's \li{.lake/} directory.  Begin the
+Mathlib-dependent files with \li{import Mathlib} (Batteries comes with it; the
+A* code additionally does \li{open Batteries}).  The core-Lean listings need no
+project at all---\li{lake env lean File.lean} against the bare toolchain
+suffices.
+\end{intuitionbox}
+
+\begin{leanbox}[title={Lean 4 (Mathlib) --- Propagator Network (from the Lattice Book)}]
 \begin{minted}{lean}
 -- Reusing infrastructure from Verified Order Theory
 structure Cell (L : Type) [SemilatticeSup L] where
@@ -591,7 +747,7 @@ partial def runToFixpoint (network : PropNetwork) : PropNetwork :=
 The propagator network does its job: domains shrink, impossible combos are
 eliminated, and infeasible problems are detected early.  But after convergence,
 you're left with \emph{pruned domains}---perhaps 8--15 combos remaining per
-slot instead of 40.  That's still $15^{16} \approx 6.5 \times 10^{18}$
+slot instead of 40.  That's still $15^{14} \approx 2.9 \times 10^{16}$
 possible builds.
 
 Three gaps remain:
@@ -670,7 +826,21 @@ def isOptimal (P : OptProblem V D) (sol : Solution P) : Prop :=
 
 The build editor is an instance: variables are gear slots, domains are
 stat combos, constraints are the rune and weapon and infusion rules, and
-the objective is the asymmetric penalty.
+the objective is the asymmetric penalty.  Concretely, a \emph{gear problem}
+bundles the stat targets, the per-slot initial domains, and (for the
+scalarisation sweep of Chapter~\ref{ch:extensions}) an optional per-stat
+miss-weight:
+
+\begin{leanbox}[title={Lean 4 (Mathlib) --- GearProblem}]
+\begin{minted}{lean}
+structure GearProblem where
+  targets        : StatType → Nat
+  initialDomains : GearSlot → Finset StatCombo
+  -- optional per-stat miss weight (defaults to the global wMiss = 10);
+  -- used only by the Pareto scalarisation sweep of Chapter 14
+  wMissPerStat   : StatType → Nat := fun _ => wMiss
+\end{minted}
+\end{leanbox}
 
 \section{Continuous vs.\ Discrete}
 
@@ -803,8 +973,14 @@ meet target $T(s)$---even if every other slot takes the best possible
 combo for $s$ and all infusions go to $s$.  Remove $c$ from $D_i$.
 \end{defbox}
 
-\begin{leanbox}[title={Lean 4 --- LinearGeq Propagator}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- LinearGeq Propagator}]
 \begin{minted}{lean}
+/-- Max contribution to `stat` achievable by any combo left in `domain`
+    on `slot` (0 if the domain is empty). -/
+def maxContribForStat (domain : Finset StatCombo) (slot : GearSlot)
+    (stat : StatType) : Nat :=
+  domain.fold max 0 (fun c => contribution slot c stat)
+
 /-- Remove combos from slot i that can't contribute enough to stat s. -/
 def linearGeqPropagate
     (domains : GearSlot → Finset StatCombo)
@@ -819,6 +995,18 @@ def linearGeqPropagate
       myContrib + othersMax + infusionBudget ≥ targets stat
 \end{minted}
 \end{leanbox}
+
+\begin{warningbox}[title={LinearGeq is sound for hard floors, not for the soft penalty}]
+\texttt{LinearGeq} removes $c$ from $D_i$ exactly when combo $c$ cannot reach
+$T(s)$ even granting slot $i$ the whole 90-point infusion budget and every other
+slot its best combo.  This is a valid \emph{necessary} condition for the
+\textbf{hard-floor} problem: any build meeting all floors keeps every combo it
+uses (this is the honest restatement \texttt{propagation\_preserves\_feasible}
+of Chapter~\ref{ch:correctness}).  It is \emph{not} sound for the pure
+soft-penalty objective: the very combo that misses a floor by the smallest
+amount may be the soft-penalty minimiser, yet \texttt{LinearGeq} deletes it.
+Throughout, the solver commits to the hard-floor reading.
+\end{warningbox}
 
 \begin{propbox}[title={Monotonicity of LinearGeq}]
 The \texttt{LinearGeq} propagator is monotone: if domains shrink
@@ -858,8 +1046,14 @@ This is weaker (since the overshoot penalty weight is low), but still helps
 when a stat is close to its target.
 \end{defbox}
 
-\begin{leanbox}[title={Lean 4 --- LinearLeq Propagator}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- LinearLeq Propagator}]
 \begin{minted}{lean}
+/-- Min contribution to `stat` over the combos left in `domain`
+    (0 when the domain is empty; see the caveat below). -/
+def minContribForStat (domain : Finset StatCombo) (slot : GearSlot)
+    (stat : StatType) : Nat :=
+  (domain.image (fun c => contribution slot c stat)).min.getD 0
+
 /-- Remove combos from slot i that would force unavoidable overshoot
     on some stat beyond the allowed threshold. -/
 def linearLeqPropagate
@@ -876,19 +1070,30 @@ def linearLeqPropagate
 \end{minted}
 \end{leanbox}
 
-\begin{propbox}[title={Monotonicity of LinearLeq}]
-\texttt{LinearLeq} is monotone: if domains shrink, the propagator removes
-at least as many combos.
+\begin{propbox}[title={Monotonicity of LinearLeq (nonempty domains)}]
+\texttt{LinearLeq} is monotone \emph{as long as no domain is empty}: if the
+domains shrink but stay nonempty, the propagator removes at least as many combos.
 \end{propbox}
 
 \begin{proof}
-When domains shrink ($D'_j \subseteq D_j$), the minimum contribution from
-other slots can only \emph{increase} (the minimum over a smaller set is
-$\geq$ the minimum over a larger set):
+When a \emph{nonempty} domain shrinks ($\emptyset \neq D'_j \subseteq D_j$), the
+minimum contribution from other slots can only \emph{increase} (the minimum over
+a smaller nonempty set is $\geq$ the minimum over a larger one):
 $\minContrib'(j, s) \geq \minContrib(j, s)$.
-So $L'(i, c, s) \geq L(i, c, s)$.  Any combo removed by the old propagator
-(because $L(i, c, s) > T(s) + \text{threshold}$) is still removed.
+So $L'(i, c, s) \geq L(i, c, s)$, and any combo removed by the old propagator
+is still removed.
 \end{proof}
+
+\begin{warningbox}
+The minimum of an \emph{empty} set has no natural value.  We use the convention
+$\minContrib(\emptyset, s) = 0$ (via \li{.getD 0} above), which makes
+\li{minContribForStat} total, but it breaks the ``min over a smaller set is
+larger'' step: an empty domain reports $0$, the \emph{smallest} possible value.
+Since an empty domain already signals infeasibility (handled separately by the
+solver), this is harmless in practice; but the monotonicity claim genuinely
+needs the nonempty hypothesis stated above.  This is a real gap the earlier
+edition glossed over.
+\end{warningbox}
 
 Note that \texttt{LinearLeq} is most useful for stats where the player
 explicitly \emph{doesn't want} too much.  In WvW, this might occur when
@@ -913,7 +1118,7 @@ choices and the infusion budget.  It can detect infeasibility that no
 single-stat propagator would catch: each stat's deficit might be small
 enough to fill, but the total across all stats exceeds the budget.
 
-\begin{leanbox}[title={Lean 4 --- Infusion Budget Propagator}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- Infusion Budget Propagator}]
 \begin{minted}{lean}
 /-- Check whether the total stat deficit across all stats exceeds
     the infusion budget (18 slots × 5 = 90 points). -/
@@ -945,16 +1150,16 @@ Combining all propagators into a single network:
 \begin{thmbox}[title={Termination of the Strengthened Network}]
 The strengthened propagator network terminates in at most
 $\sum_i |D_i^{(0)}|$ steps, where $D_i^{(0)}$ is the initial domain
-of slot $i$.  With 40 combos and 16 slots, this is at most 640 steps.
+of slot $i$.  With 40 combos and 14 slots, this is at most 560 steps.
 \end{thmbox}
 
 \begin{proof}
 Each propagation step either removes at least one combo from at least one
 domain (strictly decreasing the lattice height) or is a no-op (fixpoint
 reached).  The lattice height is $\sum_i |D_i|$, initially at most
-$40 \times 16 = 640$.  Since the height is a natural number that strictly
+$40 \times 14 = 560$.  Since the height is a natural number that strictly
 decreases at each non-trivial step, the process terminates in at most
-640 steps.
+560 steps.
 \end{proof}
 
 \begin{exercisebox}
@@ -990,14 +1195,28 @@ and the best solution to a linear problem is at a corner.}{}
 \[
   \min_{x \in \R^n} \; c^\top x
   \quad\text{subject to}\quad
-  Ax \leq b, \quad x \geq 0.
+  Ax \geq b, \quad x \geq 0.
 \]
 Here $c \in \R^n$ is the cost vector, $A \in \R^{m \times n}$ is the
-constraint matrix, and $b \in \R^m$ is the right-hand side.
+constraint matrix, and $b \in \R^m$ is the right-hand side.  We use the
+\emph{greater-than} form $Ax \geq b$ because the gear problem's stat targets are
+\emph{floors} ($\statTotal \geq T$); it is equivalent to the $\leq$ form by
+negating rows.
 \end{defbox}
 
-The feasible region $\{x \mid Ax \leq b, x \geq 0\}$ is a convex
-\emph{polytope}---the intersection of finitely many half-spaces.
+\begin{intuitionbox}[title={Transpose and inner-product notation}]
+For column vectors $c, x \in \R^n$, the \emph{transpose} $c^\top$ is the row
+vector $(c_1,\dots,c_n)$, so $c^\top x = \sum_{i=1}^n c_i x_i$ is the ordinary
+\emph{dot (inner) product}---a single number, the weighted total cost.  For a
+matrix $A \in \R^{m\times n}$, the transpose $A^\top \in \R^{n\times m}$ swaps
+rows and columns, and the identity $(A^\top y)^\top x = y^\top (A x)$ (both equal
+$\sum_{i,j} A_{ij}\,x_j\,y_i$) is the one algebraic fact the duality proof below
+leans on.  If you have not met this notation, read $c^\top x$ as ``dot product of
+$c$ and $x$'' and $A^\top y$ as ``$A$ with rows and columns flipped, times $y$''.
+\end{intuitionbox}
+
+The feasible region $\{x \mid Ax \geq b, x \geq 0\}$ is a convex
+\emph{polyhedron}---an intersection of finitely many half-spaces.
 
 \begin{thmbox}[title={Fundamental Theorem of Linear Programming}]
 If an LP has an optimal solution, then it has an optimal solution at a
@@ -1068,9 +1287,11 @@ partial def simplex (T : Tableau) : SimplexResult :=
 
 \section{Duality}
 
-Every LP has a \emph{dual} problem.  If the primal is
-$\min\; c^\top x$ s.t.\ $Ax \leq b, x \geq 0$,
-the dual is $\max\; b^\top y$ s.t.\ $A^\top y \geq c, y \geq 0$.
+Every LP has a \emph{dual} problem.  For the primal
+$\min\; c^\top x$ s.t.\ $Ax \geq b, x \geq 0$,
+the dual is $\max\; b^\top y$ s.t.\ $A^\top y \leq c, y \geq 0$.
+(One constraint direction flips relative to the other because the dual
+lower-bounds a minimisation.)
 
 \begin{thmbox}[title={Weak Duality}]
 For any primal feasible $x$ and dual feasible $y$:
@@ -1078,9 +1299,12 @@ $c^\top x \geq b^\top y$.
 \end{thmbox}
 
 \begin{proof}
-$c^\top x \leq (A^\top y)^\top x = y^\top A x \leq y^\top b = b^\top y$.
-The first inequality uses dual feasibility ($A^\top y \geq c$ and $x \geq 0$);
-the second uses primal feasibility ($Ax \leq b$ and $y \geq 0$).
+$c^\top x \geq (A^\top y)^\top x = y^\top A x \geq y^\top b = b^\top y$.
+The first inequality uses dual feasibility ($A^\top y \leq c$ and $x \geq 0$, so
+$(A^\top y)^\top x \leq c^\top x$); the second uses primal feasibility
+($Ax \geq b$ and $y \geq 0$, so $y^\top A x \geq y^\top b$).  Thus every dual
+feasible $y$ gives a \emph{lower} bound $b^\top y$ on the primal minimum
+$c^\top x$---exactly what a bounding technique needs.
 \end{proof}
 
 \begin{thmbox}[title={Strong Duality}]
@@ -1243,23 +1467,31 @@ combos, branching on it creates 2 children.  If another has 15, branching
 creates 15 children.  Fail-first focuses effort where the problem is most
 constrained.
 
-\begin{leanbox}[title={Lean 4 --- Fail-First Variable Selection}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- Fail-First Variable Selection}]
 \begin{minted}{lean}
 /-- Select the unfixed slot with the smallest remaining domain. -/
 def selectSlotFailFirst
     (domains : GearSlot → Finset StatCombo) : GearSlot :=
   let unfixed := GearSlot.all.filter fun s => (domains s).card > 1
-  unfixed.foldl (init := unfixed.head!) fun best slot =>
-    if (domains slot).card < (domains best).card then slot else best
+  match unfixed with
+  | []            => .headgear   -- no unfixed slot: caller is at a leaf
+  | first :: rest =>
+    rest.foldl (init := first) fun best slot =>
+      if (domains slot).card < (domains best).card then slot else best
 \end{minted}
 \end{leanbox}
+
+Note the explicit \li{match}: the earlier edition wrote \li{unfixed.head!},
+which \emph{panics at runtime} when every domain is already a singleton
+(\li{unfixed} empty).  Pattern-matching makes the "all fixed" case total and
+lets the caller detect a leaf.
 
 \paragraph{Best-first value ordering.}
 Within a slot, try combos in order of their contribution to the
 \emph{tightest} stat target first.  Define ``tightest'' as the stat with
 the largest remaining deficit (target minus current best achievable):
 
-\begin{leanbox}[title={Lean 4 --- Value Ordering by Tightest Deficit}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- Value Ordering by Tightest Deficit}]
 \begin{minted}{lean}
 /-- Find the stat with the largest remaining deficit. -/
 def tightestStat (domains : GearSlot → Finset StatCombo)
@@ -1273,16 +1505,31 @@ def tightestStat (domains : GearSlot → Finset StatCombo)
       maxContribForStat (domains s) s best).sum else 0
     if deficit > bestDeficit then stat else best
 
-/-- Order combos by contribution to the tightest stat (descending). -/
-def orderCombos (slot : GearSlot) (combos : Finset StatCombo)
+/-- Order combos by contribution to the tightest stat (descending).
+    NOTE: domains are enumerated as LISTS here. `Finset.toList` is
+    noncomputable in Mathlib, so a runnable solver either keeps
+    list-backed domains (as below) or uses `Finset.sort`. -/
+def orderCombos (slot : GearSlot) (combos : List StatCombo)
     (tightest : StatType) : List StatCombo :=
-  combos.toList.mergeSort fun a b =>
+  combos.mergeSort fun a b =>
     contribution slot a tightest > contribution slot b tightest
 \end{minted}
 \end{leanbox}
 
 This increases the chance of finding a good solution early in the search,
 improving the incumbent and enabling more LP-based pruning.
+
+\begin{warningbox}[title={Finsets are for reasoning; lists are for running}]
+Mathlib's \li{Finset.toList} is \li{noncomputable} (it picks a representative via
+choice), so any solver that enumerates a \li{Finset} domain with \li{.toList}
+\emph{cannot execute}.  We keep \li{Finset} in the propagator listings because it
+is the right object for the monotonicity proofs, but the executable solver
+represents each domain as a \emph{sorted list} of surviving combos (equivalently,
+enumerate a \li{Finset} with \li{Finset.sort}).  The one fully runnable
+end-to-end component in this book---the infusion DP of
+Chapter~\ref{ch:infusion}---is written in core Lean over lists and arrays, and
+we \li{\#eval} it on a concrete instance there.
+\end{warningbox}
 
 \subsection{Symmetry Breaking}
 
@@ -1296,21 +1543,32 @@ require $\texttt{combo}(\texttt{ring}_1) \leq \texttt{combo}(\texttt{ring}_2)$.
 This halves the search space for each symmetric pair without eliminating any
 essentially different builds.
 
-\begin{leanbox}[title={Lean 4 --- Symmetry Breaking}]
+\begin{leanbox}[title={Lean 4 --- Symmetry Breaking (specification)}]
 \begin{minted}{lean}
+/-- Any total order on combos will do; here, by name length then name. -/
+def comboOrd (c : StatCombo) : Nat := c.name.length
+
 /-- A build is canonical if symmetric slot pairs are ordered. -/
 def Build.isCanonical (b : Build) : Prop :=
   comboOrd (b.gear .ring1) ≤ comboOrd (b.gear .ring2) ∧
   comboOrd (b.gear .accessory1) ≤ comboOrd (b.gear .accessory2)
 
-/-- Every build has a canonical equivalent with the same penalty. -/
+-- SPECIFICATION (proof left as an extended exercise): every build has a
+-- canonical equivalent with the same penalty. `sorry` marks it UNPROVEN.
 theorem canonical_exists (b : Build) :
     ∃ b', b'.isCanonical ∧ totalPenalty b' = totalPenalty b := by
-  -- Swap rings/accessories if needed; stat totals are unchanged
-  -- since contribution depends only on the slot type, not the index
-  sorry -- exercise for the reader
+  -- Swap rings/accessories if needed; stat totals are unchanged because
+  -- contribution depends only on the slot type, not the index
+  -- (coefficients .ring1 = coefficients .ring2).
+  sorry
 \end{minted}
 \end{leanbox}
+
+This theorem is stated as a \emph{specification}: the \li{sorry} means it is
+\textbf{unproven} in this book (see Appendix~\ref{app:primer}).  The proof is a
+good exercise---the key fact is \li{coefficients .ring1 = coefficients .ring2},
+so swapping the two rings leaves every \li{statTotal} and hence the penalty
+unchanged.
 
 \begin{exercisebox}
 Prove the \texttt{canonical\_exists} theorem.  Hint: you need the fact that
@@ -1330,8 +1588,13 @@ gives the same values for both ring slots).
 The simplest complete search strategy: choose a variable (slot), try each
 value (combo), propagate, recurse.
 
-\begin{leanbox}[title={Lean 4 --- Backtracking Search}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- Backtracking Search}]
 \begin{minted}{lean}
+-- `enumerate` lists a domain's combos (Finset.toList is noncomputable,
+-- so a runnable solver filters a reference list by membership, or keeps
+-- list-backed domains); `propagateToFixpoint`, `extractBuild`, `fixSlot`
+-- are the strengthened-network helpers from Chapter 3.
+
 /-- Backtracking search with propagation at each node. -/
 partial def backtrack
     (domains : GearSlot → Finset StatCombo)
@@ -1341,7 +1604,7 @@ partial def backtrack
   -- 1. Propagate
   let domains' := propagateToFixpoint domains
   -- 2. Check for empty domain (contradiction)
-  if GearSlot.all.any (fun s => (domains' s).isEmpty) then best
+  if GearSlot.all.any (fun s => (domains' s).card = 0) then best
   -- 3. Check if all assigned
   else if GearSlot.all.all (fun s => (domains' s).card = 1) then
     let build := extractBuild domains'
@@ -1352,12 +1615,17 @@ partial def backtrack
       if pen < bestPen then some (build, pen) else best
   -- 4. Branch on smallest domain (fail-first)
   else
-    let slot := selectSlot domains'  -- smallest non-singleton domain
-    (domains' slot).fold best fun acc combo =>
+    let slot := selectSlotFailFirst domains'
+    (enumerate (domains' slot)).foldl (init := best) fun acc combo =>
       let domains'' := fixSlot domains' slot combo
       backtrack domains'' ((slot, combo) :: assigned) acc targets
 \end{minted}
 \end{leanbox}
+
+Two fixes over the earlier edition: Mathlib's \li{Finset} has no \li{isEmpty}
+field (test \li{card = 0}), and \li{Finset.fold} folds a
+\emph{commutative--associative} operation, not a general accumulator loop---so
+branching enumerates the domain to a list and uses \li{List.foldl}.
 
 \subsection{Worked Example: A Tiny Gear Problem}
 
@@ -1380,37 +1648,57 @@ Boots    & 47  & 40  & 22 \\
 \end{tabular}
 \end{center}
 
-\paragraph{Step 1: Propagation.}
-The \texttt{LinearGeq} propagator checks each slot.  For boots with Celestial:
-the maximum Power from the other two slots is $141 + 94 = 235$, plus
-Celestial boots gives $22$, total $257 < 300$.  Even with infusions (say,
-no infusions in this simplified version), Celestial on boots is infeasible
-if we need Power $\geq 300$.  Remove it.
+First, a sanity check that decides everything below.  The largest Power the
+three slots can produce \emph{from gear alone} is $141 + 94 + 47 = 282 < 300$.
+So the target is unreachable without infusions, and reachable only because the
+propagator credits each combo with the full $90$-point infusion budget.  Let us
+run the propagator exactly as defined (recall $U(i,c,\text{Power}) =
+\texttt{contribution}(i,c,\text{Power}) + \sum_{j\neq i}\maxContrib(j,\text{Power})
++ 90$; keep $c$ iff $U \geq 300$).  These numbers are machine-checked
+(\li{ch6Survivors} in \li{OptimizationVerification.lean}).
 
-Similarly, Celestial on leggings gives at most $141 + 44 + 47 = 232 < 300$.
-Remove.  Celestial on coat: $67 + 94 + 47 = 208 < 300$.  Remove.
+\paragraph{Step 1a: No infusions ($+0$).}
+If we drop the $+90$ term, every combo on every slot fails.  The best any slot
+can do is its own max plus the other two slots' maxes: coat sees
+$141 + 94 + 47 = 282 < 300$, and every other combo/slot is smaller.  So
+\texttt{LinearGeq} empties \emph{every} domain, and the instance is reported
+\textbf{infeasible}.  (The earlier edition's claim that propagation leaves
+$\{\text{Berserker's}, \text{Marauder}\}$ on each slot is wrong---nothing
+survives.)
 
-After propagation: every slot has domain $\{\text{Berserker's}, \text{Marauder}\}$.
-The search space dropped from $3^3 = 27$ to $2^3 = 8$.
+\paragraph{Step 1b: With the $+90$ infusion budget (as the propagator is
+actually defined).}
+Now compute $U$ per slot:
+\begin{itemize}[nosep]
+  \item \textbf{Coat} ($\maxContrib$ of others $= 94 + 47 = 141$):
+    Berserker's $141+141+90 = 372$; Marauder $121+141+90 = 352$;
+    Celestial $67+141+90 = 298 < 300$.  \emph{Remove Celestial from coat}; keep
+    Berserker's and Marauder.
+  \item \textbf{Leggings} (others $= 141 + 47 = 188$): Berserker's
+    $94+188+90 = 372$; Marauder $81+188+90=359$; Celestial
+    $44+188+90 = 322 \geq 300$.  \emph{All three survive.}
+  \item \textbf{Boots} (others $= 141 + 94 = 235$): Berserker's
+    $47+235+90=372$; Marauder $40+235+90=365$; Celestial
+    $22+235+90 = 347 \geq 300$.  \emph{All three survive.}
+\end{itemize}
+So LinearGeq removes exactly one combo---Celestial on the coat---and the search
+space drops from $3^3 = 27$ to $2 \cdot 3 \cdot 3 = 18$.
 
 \paragraph{Step 2: Search.}
-All domains have size~2 (tie for fail-first).  Pick coat.  Try Berserker's:
-$141 + \max(94, 81) + \max(47, 40) = 141 + 94 + 47 = 282 < 300$?  No---we
-haven't checked the actual assignment, just the maximum.  Fix coat to
-Berserker's, propagate again.  Now leggings with Marauder gives
-$141 + 81 + 47 = 269 < 300$ (still checking maximums of remaining).
-We need to actually evaluate: Berserker's on all three gives
-$141 + 94 + 47 = 282$; Berserker/Berserker/Marauder gives
-$141 + 94 + 40 = 275$; and so on.  The best is all-Berserker's at $282$,
-which still falls short of $300$.
-
-In the full problem, infusions would close this gap ($18 \times 5 = 90$
-free points).  But the example illustrates the propagate-then-search pattern.
+Propagation alone did not decide the problem, so we branch.  The coat has the
+smallest domain (2), so fail-first picks it.  Fixing the coat and evaluating
+leaves the solver to distribute the $90$ infusion points to clear the residual
+Power deficit and minimise overshoot on the other stats---which is exactly the
+infusion subproblem of Chapter~\ref{ch:infusion}.  For instance,
+all-Berserker's gear gives $282$ Power, needing $\lceil (300-282)/5\rceil = 4$
+infusions on Power to reach the floor, leaving $14$ for the other targets.
 
 \paragraph{Step 3: Result.}
-If $282 + 90 = 372 \geq 300$ (with infusion budget), the build is feasible.
-The solver would continue searching to find the build with minimum total
-penalty across all stats.
+The instance is feasible \emph{only} once the $90$-point infusion budget is
+credited: gear tops out at $282$, and $282 + 90 = 372 \geq 300$.  The solver
+returns the floor-meeting build of minimum penalty.  The lesson: the $+90$ term
+in \texttt{LinearGeq} is not optional bookkeeping---remove it and this very
+instance flips from feasible to infeasible.
 
 \section{A* and Best-First Search}
 
@@ -1444,25 +1732,30 @@ f(n^*) = g(n^*)$ (since $h(n^*) = 0$ for a complete assignment).
 Therefore $n^*$ is optimal.
 \end{proof}
 
-\begin{leanbox}[title={Lean 4 --- A* Search Skeleton}]
+\begin{leanbox}[title={Lean 4 (Batteries) --- A* Search Skeleton}]
 \begin{minted}{lean}
+open Batteries  -- BinaryHeap lives in Batteries
+
 structure SearchNode where
   domains  : GearSlot → Finset StatCombo
   assigned : List (GearSlot × StatCombo)
   gCost    : Nat   -- penalty from fixed slots
   hCost    : Nat   -- LP bound on remaining
-  deriving Repr
+  -- (no `deriving Repr`: `domains` is a function, so Repr cannot be derived)
 
 def SearchNode.fCost (n : SearchNode) : Nat := n.gCost + n.hCost
 
-/-- A* search for the optimal gear build. -/
+/-- A* search for the optimal gear build.  We want the SMALLEST fCost first,
+    and `BinaryHeap.extractMax` pops the largest element, so the comparator
+    must be REVERSED (`>`): the "max" under `>` is the min fCost. -/
 partial def aStarSearch
-    (queue : BinaryHeap SearchNode (·.fCost < ·.fCost))
+    (queue : BinaryHeap SearchNode (·.fCost > ·.fCost))
     (incumbent : Option (Build × Nat))
     (targets : StatType → Nat) : Option (Build × Nat) :=
-  match queue.extractMin with
-  | none => incumbent  -- queue empty: incumbent is optimal
-  | some (node, queue') =>
+  -- extractMax returns `(Option node, heap)`, NOT `Option (node, heap)`
+  match queue.extractMax with
+  | (none, _) => incumbent  -- queue empty: incumbent is optimal
+  | (some node, queue') =>
     -- Pruning: if f(node) ≥ incumbent, skip
     match incumbent with
     | some (_, bestPen) =>
@@ -1474,7 +1767,14 @@ partial def aStarSearch
 
 This is a standard result from AI search theory.  The LP relaxation satisfies
 admissibility because relaxing integrality constraints can only improve
-(lower) the objective.
+(lower) the objective.  Three subtleties the earlier edition got wrong:
+\li{SearchNode} cannot \li{deriving Repr} (its \li{domains} field is a function);
+Batteries' \li{BinaryHeap} offers only \li{extractMax}, returning a
+\emph{pair} (an \li{Option} node and the rest of the heap) rather than an
+\li{Option} of a pair; and
+because \li{extractMax} pops the \emph{largest} element, the comparator must be
+\emph{reversed} (\li{·.fCost > ·.fCost}) so that ``largest under $>$'' is the
+smallest $f$-cost that best-first search actually wants.
 
 \begin{histbox}
 A* was invented by Peter Hart, Nils Nilsson, and Bertram Raphael in 1968
@@ -1512,18 +1812,27 @@ def isNogoodHit (nogoods : List Nogood) (assigned : List (GearSlot × StatCombo)
     ng.assignments.all fun (slot, combo) =>
       assigned.any fun (s, c) => s == slot && c == combo
 
-/-- Extract a nogood from a failed propagation.
-    Analyse which assignments contributed to the empty domain. -/
+/-- Extract a nogood from a failed propagation.  The whole failing partial
+    assignment is a SOUND (if not minimal) nogood: that exact combination
+    drove propagation to the empty domain. -/
 def extractNogood (assigned : List (GearSlot × StatCombo))
     (failedSlot : GearSlot) (failedStat : StatType)
     : Nogood :=
-  -- Keep only assignments whose contribution to failedStat
-  -- was necessary for the failure
-  let relevant := assigned.filter fun (slot, combo) =>
-    contribution slot combo failedStat > 0
-  ⟨relevant⟩
+  ⟨assigned⟩
 \end{minted}
 \end{leanbox}
+
+\begin{warningbox}[title={Minimising a nogood soundly is subtle}]
+The earlier edition kept only assignments with
+\li{contribution slot combo failedStat > 0}.  That is \textbf{unsound} for a
+stat-\emph{floor} (LinearGeq) failure: the culprits of a floor miss are exactly
+the slots contributing \emph{too little}---often those contributing \emph{zero}
+to the failed stat---so dropping them can yield a set that is \emph{not}
+inconsistent, wrongly pruning feasible branches.  The safe extractor above keeps
+the entire failing assignment.  Shrinking a nogood soundly (retaining only a
+minimal inconsistent core) requires re-checking that the retained subset still
+forces the floor miss---a QuickXplain-style minimisation, left as an exercise.
+\end{warningbox}
 
 \begin{crossrefbox}
 This is the same pattern as CDCL (conflict-driven clause learning)
@@ -1600,33 +1909,56 @@ method:
 
 \begin{leanbox}[title={Lean 4 --- Subgradient Method for Lagrangian Dual}]
 \begin{minted}{lean}
+/-- All unordered pairs from a list (used for the C(6,2) rune couplings). -/
+def List.pairs : List α → List (α × α)
+  | []      => []
+  | x :: xs => (xs.map fun y => (x, y)) ++ pairs xs
+
 /-- One iteration of subgradient optimisation. -/
 def subgradientStep (lambda : Array Float) (stepSize : Float)
     (solution : GearSlot → StatCombo) : Array Float :=
   -- Subgradient: violation of the rune constraint
   -- g_ij = 1 if rune(i) ≠ rune(j), else 0
-  let armourSlots := [.headgear, .shoulders, .coat, .gloves, .leggings, .boots]
-  let violations := armourSlots.pairs.map fun (i, j) =>
+  let armourSlots : List GearSlot :=
+    [.headgear, .shoulders, .coat, .gloves, .leggings, .boots]
+  let violations := (List.pairs armourSlots).map fun (i, j) =>
     if runeOf (solution i) == runeOf (solution j) then 0.0 else 1.0
-  -- Update: λ' = max(0, λ + stepSize * g)
-  lambda.zipWith violations.toArray fun li gi =>
-    Float.max 0.0 (li + stepSize * gi)
+  -- Update: λ' = max(0, λ + stepSize * g).  In v4.31 `Array.zipWith`
+  -- takes the FUNCTION first, and it is `max`, not `Float.max`.
+  Array.zipWith (fun li gi => max 0.0 (li + stepSize * gi))
+    lambda violations.toArray
 
 /-- Run the subgradient method for a fixed number of iterations. -/
 def lagrangianDual (problem : GearProblem) (iters : Nat := 100)
     : Float × (GearSlot → StatCombo) :=
-  let init_lambda := Array.mkArray 15 0.0  -- C(6,2) = 15 pairs
-  (List.range iters).foldl (init := (0.0, init_lambda, none)) fun (bestBound, lambda, bestSol) _ =>
-    -- Solve Lagrangian subproblem (per-slot enumeration)
-    let solution := solveRelaxedPerSlot lambda problem.targets
-    let bound := lagrangianObjective solution lambda problem.targets
-    let stepSize := 1.0 / (1.0 + iters.toFloat)  -- diminishing step
-    let lambda' := subgradientStep lambda stepSize solution
-    let bestBound' := Float.max bestBound bound
-    (bestBound', lambda', some solution)
-  |>.map fun (bound, _, sol) => (bound, sol.getD defaultSolution)
+  let init_lambda := Array.replicate 15 0.0  -- C(6,2) = 15 pairs
+  let result := (List.range iters).foldl
+    (init := ((0.0 : Float), init_lambda,
+              (none : Option (GearSlot → StatCombo))))
+    fun (bestBound, lambda, _bestSol) k =>
+      -- Solve Lagrangian subproblem (per-slot enumeration)
+      let solution := solveRelaxedPerSlot lambda problem.targets
+      let bound := lagrangianObjective solution lambda problem.targets
+      -- DIMINISHING step: depends on the CURRENT iteration index k,
+      -- so t_k → 0 as k grows (a genuine diminishing schedule).
+      let stepSize := 1.0 / (1.0 + k.toFloat)
+      let lambda' := subgradientStep lambda stepSize solution
+      let bestBound' := max bestBound bound
+      (bestBound', lambda', some solution)
+  match result with
+  | (bound, _, sol) => (bound, sol.getD defaultSolution)
 \end{minted}
 \end{leanbox}
+
+Five corrections over the earlier edition: there is no \li{List.pairs} in the
+library (we define it); in v4.31 \li{Array.zipWith} takes the \emph{function
+first}; \li{Float.max} is spelled \li{max}; \li{Array.mkArray} was renamed
+\li{Array.replicate}; and the fold's 3-tuple result is unpacked with a
+\li{match} (the old \li{|>.map} used \li{Prod.map}, which needs two functions).
+Crucially, the step size now uses the \emph{current} index \li{k}, not the fixed
+total \li{iters}---the earlier \li{1.0 / (1.0 + iters.toFloat)} was
+\textbf{constant} across all iterations, contradicting the ``diminishing''
+comment and prose.
 
 \begin{histbox}
 Lagrangian relaxation was pioneered by Marshall Fisher and Michael Held
@@ -1638,7 +1970,7 @@ structure: in our case, the rune constraint is the only thing preventing
 each slot from being optimised independently.
 \end{histbox}
 
-\section{Reduced-Cost Fixing}
+\section{Reduced-Cost Fixing}\label{sec:reduced}
 
 \begin{defbox}[title={Reduced-Cost Fixing}]
 After solving the LP relaxation, each non-basic variable $x_{i,c}$ has a
@@ -1652,7 +1984,7 @@ This is \emph{propagation informed by relaxation}: the LP relaxation feeds
 information back into the propagator network, tightening domains beyond what
 pure constraint reasoning can achieve.
 
-\begin{leanbox}[title={Lean 4 --- Reduced-Cost Fixing}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- Reduced-Cost Fixing}]
 \begin{minted}{lean}
 /-- Remove combos whose reduced cost proves they can't be in
     any solution better than the incumbent. -/
@@ -1733,12 +2065,12 @@ can prune more aggressively from the start.
 \begin{defbox}[title={Neighbourhood for Gear Builds}]
 Two builds are \emph{neighbours} if they differ in exactly one slot's stat
 combo.  The \emph{neighbourhood} $N(b)$ of build $b$ is the set of all
-builds reachable by changing one slot.  $|N(b)| \leq 16 \times 39 = 624$.
+builds reachable by changing one slot.  $|N(b)| \leq 14 \times 39 = 546$.
 \end{defbox}
 
 The neighbourhood defines the ``moves'' available to local search.  Its
 size is a tradeoff: a larger neighbourhood (e.g., changing two slots at once,
-giving $|N| \approx 16^2 \times 39^2 \approx 250{,}000$) explores more
+giving $|N| \approx 14^2 \times 39^2 \approx 300{,}000$) explores more
 options per step but takes longer per step.  The single-slot neighbourhood
 is the standard choice for gear optimisation because it's large enough to
 escape many local optima but small enough that evaluating all neighbours is
@@ -1748,7 +2080,7 @@ fast.
 \begin{minted}{lean}
 /-- Generate all single-slot neighbours of a build. -/
 def allNeighbours (b : Build) : List Build :=
-  GearSlot.all.bind fun slot =>
+  GearSlot.all.flatMap fun slot =>   -- `List.bind` was removed in v4.31
     allCombos.filter (· ≠ b.gear slot) |>.map fun combo =>
       { b with gear := fun s => if s == slot then combo else b.gear s }
 
@@ -1760,13 +2092,15 @@ structure Move where
 /-- Generate all moves with their resulting penalties (for sorting). -/
 def allMoves (b : Build) (targets : StatType → Nat)
     : List (Move × Nat) :=
-  GearSlot.all.bind fun slot =>
+  GearSlot.all.flatMap fun slot =>
     allCombos.filter (· ≠ b.gear slot) |>.map fun combo =>
       let b' := { b with gear := fun s =>
         if s == slot then combo else b.gear s }
       (⟨slot, combo⟩, totalPenalty b' targets wMiss wOver)
 \end{minted}
 \end{leanbox}
+
+(In Lean v4.31 \li{List.bind} was renamed \li{List.flatMap}.)
 
 \section{Hill Climbing}
 
@@ -1792,16 +2126,23 @@ partial def hillClimb (current : Build) (currentPen : Nat)
 /-- Restart hill climbing multiple times, keep the best. -/
 def hillClimbRestarts (nRestarts : Nat) (rng : StdGen)
     (targets : StatType → Nat) : Build × Nat :=
-  (List.range nRestarts).foldl (init := (defaultBuild, Nat.max, rng))
+  let r := (List.range nRestarts).foldl
+    (init := (defaultBuild, 1000000000, rng))
     fun (best, bestPen, rng) _ =>
-      let (init, rng) := randomBuild rng
-      let initPen := totalPenalty init targets wMiss wOver
-      let (local, localPen) := hillClimb init initPen targets
-      if localPen < bestPen then (local, localPen, rng)
+      let (start, rng) := randomBuild rng
+      let initPen := totalPenalty start targets wMiss wOver
+      let (localBest, localPen) := hillClimb start initPen targets
+      if localPen < bestPen then (localBest, localPen, rng)
       else (best, bestPen, rng)
-  |>.fst
+  (r.1, r.2.1)
 \end{minted}
 \end{leanbox}
+
+Three fixes: \li{Nat} has no maximal element, so the ``worst possible''
+sentinel is a large literal, not \li{Nat.max} (which is the binary \li{max}
+\emph{function}); \li{local} is a reserved keyword, renamed \li{localBest}; and
+the accumulator is a triple, so we project \li{(build, penalty)} explicitly
+rather than \li{|>.fst} (which would drop the penalty the signature promises).
 
 \section{Simulated Annealing}
 
@@ -1838,9 +2179,9 @@ initial temperature $T_0$ set so that the initial acceptance probability
 for a move with $\Delta = 100$ is about $0.8$ works well.  This gives
 $T_0 = -100 / \ln(0.8) \approx 448$.
 
-\begin{leanbox}[title={Lean 4 --- Simulated Annealing}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- Simulated Annealing}]
 \begin{minted}{lean}
-/-- One step of simulated annealing. -/
+/-- One step of simulated annealing (core Lean). -/
 def saStep (current : Build) (currentPen : Nat) (temp : Float)
     (rng : StdGen) (targets : StatType → Nat)
     : Build × Nat × StdGen :=
@@ -1853,32 +2194,39 @@ def saStep (current : Build) (currentPen : Nat) (temp : Float)
   if neighPen ≤ currentPen then
     (neighbour, neighPen, rng)  -- always accept improvements
   else
-    let delta := (neighPen - currentPen : Float)
+    -- core Lean has NO Nat→Float coercion; use `.toFloat` explicitly
+    let delta := (neighPen - currentPen).toFloat
     let (r, rng) := randomFloat rng  -- r ∈ [0, 1)
     if r < Float.exp (-delta / temp) then
       (neighbour, neighPen, rng)  -- accept with probability
     else
       (current, currentPen, rng)  -- reject
 
-/-- Full simulated annealing run. -/
+/-- Full simulated annealing run (domains are Finset ⇒ Mathlib). -/
 def simulatedAnnealing (domains : GearSlot → Finset StatCombo)
     (targets : StatType → Nat) (rng : StdGen)
     (maxIters : Nat := 10000) : Build × Nat :=
-  let (init, rng) := randomFeasibleBuild domains rng
-  let initPen := totalPenalty init targets wMiss wOver
+  let (start, rng) := randomFeasibleBuild domains rng
+  let initPen := totalPenalty start targets wMiss wOver
   let t0 : Float := 448.0    -- initial temperature
   let alpha : Float := 0.997  -- cooling rate
-  (List.range maxIters).foldl
-    (init := (init, initPen, init, initPen, t0, rng))
+  let r := (List.range maxIters).foldl
+    (init := (start, initPen, start, initPen, t0, rng))
     fun (current, currentPen, best, bestPen, temp, rng) _ =>
       let (current', pen', rng') := saStep current currentPen temp rng targets
       let temp' := alpha * temp
       let (best', bestPen') :=
         if pen' < bestPen then (current', pen') else (best, bestPen)
       (current', pen', best', bestPen', temp', rng')
-  |>.map fun (_, _, best, bestPen, _, _) => (best, bestPen)
+  match r with
+  | (_, _, best, bestPen, _, _) => (best, bestPen)
 \end{minted}
 \end{leanbox}
+
+Two fixes: core Lean has no automatic \li{Nat}$\to$\li{Float} coercion, so the
+gap is converted with \li{.toFloat}; and the six-tuple accumulator is unpacked
+with a \li{match} (the old \li{|>.map} used \li{Prod.map}, which takes two
+functions, not one).
 
 \begin{histbox}
 Simulated annealing was independently invented by Scott Kirkpatrick (IBM, 1983)
@@ -1912,10 +2260,13 @@ def tabuStep (state : TabuState) (targets : StatType → Nat)
     : TabuState :=
   let candidates := allNeighbourMoves state.current
     |>.filter fun (slot, combo) =>
-      -- Allow if not tabu, OR if it produces a new global best
+      -- Not tabu; aspiration (accept a tabu move that beats the global
+      -- best) is left as an exercise.
       ¬ state.tabuList.contains (slot, combo)
   let (bestSlot, bestCombo, bestPen) := candidates.foldl
-    (init := (.headgear, defaultCombo, Nat.max)) fun (bs, bc, bp) (slot, combo) =>
+    (init := ((GearSlot.headgear, defaultCombo, 1000000000)
+              : GearSlot × StatCombo × Nat))
+    fun (bs, bc, bp) (slot, combo) =>
       let build := setBuildSlot state.current slot combo
       let pen := totalPenalty build targets wMiss wOver
       if pen < bp then (slot, combo, pen) else (bs, bc, bp)
@@ -1933,8 +2284,8 @@ def tabuStep (state : TabuState) (targets : StatType → Nat)
 
 The tabu tenure (how long a move stays forbidden) is a key parameter.  Too
 short and the search cycles; too long and it can't revisit promising regions.
-A typical value for the gear problem: tenure $\approx \sqrt{16} \approx 4$
-(the square root of the number of variables).
+A typical value for the gear problem: tenure $\approx \sqrt{14} \approx 4$
+(the square root of the number of variables, rounded).
 
 \section{Genetic Algorithms}
 
@@ -2054,8 +2405,16 @@ $\statTotal(a, s_1) > \statTotal(c, s_1)$, giving the required strict
 inequality.
 \end{proof}
 
-\begin{leanbox}[title={Lean 4 --- Pareto Dominance and Frontier}]
+This is one of the few results we \textbf{genuinely prove} in this book (no
+\li{sorry}): irreflexivity, transitivity, and decidability of dominance all
+close.
+
+\begin{leanbox}[title={Lean 4 --- Pareto Dominance and Frontier (fully proved)}]
 \begin{minted}{lean}
+/-- Every `StatType` appears in the enumeration `StatType.all`. -/
+theorem StatType.mem_all (s : StatType) : s ∈ StatType.all := by
+  cases s <;> decide
+
 /-- Build a dominates build b. -/
 def dominates (a b : Build) : Prop :=
   (∀ s : StatType, statTotal a s ≥ statTotal b s) ∧
@@ -2071,27 +2430,43 @@ theorem dominates_trans {a b c : Build}
     (hab : dominates a b) (hbc : dominates b c) : dominates a c := by
   constructor
   · intro s
-    exact Nat.le_trans (hbc.1 s) (hab.1 s) |>.symm
-    -- actually: a ≥ b ≥ c
-    sorry -- full proof uses Nat.le_trans
-  · obtain ⟨s, hs⟩ := hab.2
-    exact ⟨s, Nat.lt_of_lt_of_le hs (hbc.1 s) |>.symm⟩
-    sorry -- exercise
+    exact Nat.le_trans (hbc.1 s) (hab.1 s)   -- a ≥ b ≥ c
+  · obtain ⟨s, hs⟩ := hab.2                   -- a s > b s ≥ c s
+    exact ⟨s, Nat.lt_of_le_of_lt (hbc.1 s) hs⟩
 
-/-- The Pareto frontier: all non-dominated builds. -/
+/-- A boolean dominance test, used to derive `Decidable`. -/
+def dominatesBool (a b : Build) : Bool :=
+  (StatType.all.all fun s => statTotal b s ≤ statTotal a s) &&
+  (StatType.all.any fun s => statTotal b s < statTotal a s)
+
+/-- Dominance is decidable (and computes). -/
+instance : Decidable (dominates a b) :=
+  decidable_of_iff (dominatesBool a b = true) (by
+    unfold dominatesBool dominates
+    rw [Bool.and_eq_true, List.all_eq_true, List.any_eq_true]
+    constructor
+    · rintro ⟨h1, h2⟩
+      refine ⟨fun s => ?_, ?_⟩
+      · have := h1 s (StatType.mem_all s); simpa using this
+      · obtain ⟨s, _, hs⟩ := h2; exact ⟨s, by simpa using hs⟩
+    · rintro ⟨h1, s, hs⟩
+      exact ⟨fun s _ => by simpa using h1 s,
+             ⟨s, StatType.mem_all s, by simpa using hs⟩⟩)
+
+/-- The Pareto frontier: all non-dominated builds.  (The Decidable
+    instance above must precede this, since `List.any` needs a Bool.) -/
 def paretoFrontier (builds : List Build) : List Build :=
   builds.filter fun b =>
     ¬ builds.any fun a => dominates a b
-
-/-- Decidable dominance for computation. -/
-instance : Decidable (dominates a b) :=
-  if h1 : StatType.all.all (fun s => statTotal a s ≥ statTotal b s) then
-    if h2 : StatType.all.any (fun s => statTotal a s > statTotal b s) then
-      isTrue ⟨by sorry, by sorry⟩
-    else isFalse (by sorry)
-  else isFalse (by sorry)
 \end{minted}
 \end{leanbox}
+
+The earlier edition's \li{dominates\_trans} was broken (it wrote
+\li{Nat.le\_trans …|>.symm}, but $\leq$ has no \li{.symm}, and a stray tactic
+followed \li{exact}), and its \li{Decidable} instance was four \li{sorry}s.  Both
+are now genuine proofs; the instance is derived from the boolean test
+\li{dominatesBool} via \li{decidable\_of\_iff}, so \li{dominates} not only
+type-checks but \emph{runs}.
 
 \subsection{Worked Example: Damage vs.\ Survivability}
 
@@ -2156,7 +2531,7 @@ handles this.
 Fix all objectives except one as constraints: ``optimise Power subject to
 Vitality $\geq V_{\min}$.''  Sweep $V_{\min}$ to trace the frontier.
 
-\begin{leanbox}[title={Lean 4 --- $\varepsilon$-Constraint Sweep}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- $\varepsilon$-Constraint Sweep}]
 \begin{minted}{lean}
 /-- Trace the Pareto frontier by sweeping an epsilon constraint. -/
 def epsilonConstraintSweep
@@ -2220,26 +2595,50 @@ with $r$ infusions remaining.  The recurrence:
 Base case: $\texttt{dp}[0][r] = 0$ for all $r$.
 \end{defbox}
 
-\begin{leanbox}[title={Lean 4 --- Infusion DP}]
+\begin{leanbox}[title={Lean 4 --- Infusion DP (runnable core Lean)}]
 \begin{minted}{lean}
-/-- Optimally distribute infusions to minimise remaining penalty. -/
+/-- Optimally distribute infusions to minimise remaining penalty.
+    `dp[r]` = (minPenalty, allocation) for the stats processed so far,
+    indexed by the budget r remaining AFTER them. -/
 def infusionDP (gearStats : StatType → Nat)
     (targets : StatType → Nat) (budget : Nat := 18)
     : StatType → Nat :=
   let stats := StatType.all.toArray
-  -- dp[i][r] = (minPenalty, allocation for stats 0..i)
-  let dp := Array.mkArray (stats.size + 1) (Array.mkArray (budget + 1) (0, #[]))
-  let dp := stats.foldl (init := dp) fun dp i stat =>
-    Array.mkArray (budget + 1) (0, #[]) |>.mapIdx fun r _ =>
-      let best := (List.range (r.val + 1)).foldl (init := (Nat.max, #[])) fun acc ni =>
+  let init : Array (Nat × Array Nat) := Array.replicate (budget + 1) (0, #[])
+  let dp := stats.foldl (init := init) fun dp stat =>
+    (Array.range (budget + 1)).map fun r =>
+      (List.range (r + 1)).foldl (init := (1000000000, #[])) fun acc ni =>
         let penHere := penalty (targets stat) (gearStats stat + 5 * ni) wMiss wOver
-        let (penRest, allocRest) := dp[i]![r.val - ni]!
+        let (penRest, allocRest) := dp[r - ni]!
         let total := penHere + penRest
         if total < acc.1 then (total, allocRest.push ni) else acc
-      best
-  -- Extract the allocation from dp[k][budget]
-  let (_, alloc) := dp[stats.size]![budget]!
-  fun stat => alloc[stats.indexOf stat]!
+  let (_, alloc) := dp[budget]!
+  fun stat => alloc[stats.idxOf stat]!
+\end{minted}
+\end{leanbox}
+
+This is the one component we run end-to-end.  The earlier edition had seven
+distinct bugs here: \li{Array.mkArray} (renamed \li{Array.replicate}); a
+three-argument \li{foldl} step (it takes two); a fold body returning a row while
+the accumulator was the whole table; \li{.mapIdx} whose index is a \li{Nat}, not
+a \li{Fin} with \li{.val}; the \li{Nat.max} sentinel (a function); \li{indexOf}
+(renamed \li{idxOf}); and a reversed allocation.  The repaired version above
+compiles and executes.  On a two-stat toy instance (no gear, targets
+Power~40 and Precision~50, budget~18) it returns the optimum---8 infusions to
+Power (=40) and 10 to Precision (=50)---with penalty~0:
+
+\begin{leanbox}[title={Lean 4 --- Running the DP}]
+\begin{minted}{lean}
+def toyGear : StatType → Nat := fun _ => 0
+def toyTargets : StatType → Nat
+  | .power => 40 | .precision => 50 | _ => 0
+def toyAlloc : StatType → Nat := infusionDP toyGear toyTargets 18
+
+#eval StatType.all.map toyAlloc
+-- [8, 10, 0, 0, 0, 0, 0, 0, 0]
+#eval (StatType.all.map fun s =>
+  penalty (toyTargets s) (toyGear s + 5 * toyAlloc s) wMiss wOver).sum
+-- 0   (both floors met exactly; 8 + 10 = 18 infusions used)
 \end{minted}
 \end{leanbox}
 
@@ -2308,57 +2707,77 @@ We now wire together every component into a single solver.
 
 \section{The Solver Loop}
 
-\begin{leanbox}[title={Lean 4 --- The Complete Solver}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- The Complete Solver}]
 \begin{minted}{lean}
 inductive SolverResult where
   | optimal    : Build → Nat → SolverResult   -- build + penalty
   | infeasible : SolverResult
+
+/-- Does the build meet every HARD stat floor? (the solver's contract) -/
+def meetsFloors (b : Build) (targets : StatType → Nat) : Bool :=
+  StatType.all.all fun s => targets s ≤ statTotal b s
 
 def solve (problem : GearProblem) : SolverResult :=
   -- Phase 1: Initial propagation
   let domains := propagateToFixpoint problem.initialDomains
   if anyDomainEmpty domains then .infeasible
   else
-  -- Phase 2: Warm start with simulated annealing
-  let warmBuild := simulatedAnnealing domains problem.targets
-  let incumbent := (warmBuild, totalPenalty warmBuild problem.targets wMiss wOver)
+  -- Phase 2: Warm start (SA); adopt it as the incumbent ONLY if it
+  -- meets the hard floors, otherwise start with no incumbent.
+  let (warm, _) := simulatedAnnealing domains problem.targets (mkStdGen 0)
+  let warmInc : Option (Build × Nat) :=
+    if meetsFloors warm problem.targets
+    then some (warm, totalPenalty warm problem.targets wMiss wOver)
+    else none
   -- Phase 3: Branch and bound
-  let result := branchAndBound domains problem.targets incumbent
-  match result with
-  | none => .infeasible
+  match branchAndBound domains problem.targets warmInc with
+  | none            => .infeasible   -- no floor-meeting build exists
   | some (build, pen) => .optimal build pen
 
-/-- Branch and bound with propagation + LP bounding at each node. -/
+/-- Branch and bound with propagation + LP bounding at each node.
+    The incumbent is an `Option`: `none` means "no floor-meeting build
+    found yet", so returning `none` genuinely reports infeasibility. -/
 partial def branchAndBound
     (domains : GearSlot → Finset StatCombo)
     (targets : StatType → Nat)
-    (incumbent : Build × Nat)
+    (incumbent : Option (Build × Nat))
     : Option (Build × Nat) :=
-  -- Propagate at this node
   let domains := propagateToFixpoint domains
-  if anyDomainEmpty domains then some incumbent
-  -- All singleton? → Evaluate (with infusion DP)
+  if anyDomainEmpty domains then incumbent      -- dead subtree
   else if allSingleton domains then
+    -- Leaf: fill infusions optimally, then CHECK the hard floors.
     let build := extractBuild domains
-    let infAlloc := infusionDP (gearStats build) targets
-    let fullBuild := { build with infusions := infAlloc }
-    let pen := totalPenalty fullBuild targets wMiss wOver
-    if pen < incumbent.2 then some (fullBuild, pen)
-    else some incumbent
-  -- LP bound check
+    let full := { build with infusions := infusionDP (gearStats build) targets }
+    if meetsFloors full targets then
+      let pen := totalPenalty full targets wMiss wOver
+      match incumbent with
+      | none          => some (full, pen)
+      | some (_, best) => if pen < best then some (full, pen) else incumbent
+    else incumbent                              -- leaf misses a floor: reject
   else
-    let lpBound := solveLPRelaxation domains targets
-    if lpBound ≥ incumbent.2 then some incumbent  -- prune
+    -- LP-bound prune (only meaningful once we have an incumbent)
+    let pruned := match incumbent with
+      | some (_, best) => decide (solveLPRelaxation domains targets ≥ best)
+      | none           => false
+    if pruned then incumbent
     else
-      -- Branch: fail-first variable ordering
       let slot := smallestDomainSlot domains
-      (domains slot).fold incumbent fun best combo =>
-        let domains' := fixSlot domains slot combo
-        match branchAndBound domains' targets best with
-        | none => best
-        | some result => result
+      (enumerate (domains slot)).foldl (init := incumbent) fun best combo =>
+        branchAndBound (fixSlot domains slot combo) targets best
 \end{minted}
 \end{leanbox}
+
+Several fixes make this both compile and be \emph{sound} for the hard-floor
+problem.  \li{simulatedAnnealing} now receives its \li{rng} and its returned
+pair is destructured (not treated as a \li{Build}).  The incumbent is an
+\li{Option}: a leaf is accepted only after \li{meetsFloors} confirms it meets
+every target, so \li{branchAndBound} returns \li{none} exactly when no
+floor-meeting build exists---making \li{solve}'s \li{.infeasible} arm
+\emph{live} rather than dead code.  Branching enumerates the domain to a list
+(\li{Finset.toList} is noncomputable) and folds with \li{List.foldl} (not
+\li{Finset.fold}).  \li{solveLPRelaxation} here returns a bare \li{Nat} lower
+bound; a richer \li{Float}-valued variant (with reduced costs, for
+Section~\ref{sec:reduced} and dual certificates) is a separate interface.
 
 % ────────────────────────────────────────────────────────────────────────────
 \chapter{The Correctness Theorem}
@@ -2367,14 +2786,38 @@ partial def branchAndBound
 
 \epigraph{Trust, but verify.}{}
 
-The verified core.  We state and prove the main theorem: the solver is
-\emph{sound} (if it says optimal, it is; if it says infeasible, no build
-works).
+This chapter states the solver's correctness \emph{contract} precisely.  We are
+honest about status: the top-level theorem and its four component lemmas are
+presented as \textbf{specifications}---their Lean statements are exact, but their
+proofs are left as extended exercises and appear with \li{sorry} (which means
+UNPROVEN; see Appendix~\ref{app:primer}).  We do \emph{not} claim the solver is
+machine-checked end-to-end.  What \emph{is} proved elsewhere is called out
+(Pareto dominance in Chapter~\ref{ch:pareto}; the runnable infusion DP in
+Chapter~\ref{ch:infusion}).
 
-\section{The Main Theorem}
+\section{Feasibility and the Main Theorem}
 
-\begin{thmbox}[title={Solver Soundness}]
+First we pin down \emph{feasibility}.  Because the solver treats stat targets as
+hard floors (Chapter~\ref{ch:stronger}), the feasibility predicate must include
+those floors---otherwise the \li{.infeasible} arm would be false (every
+budget-respecting build trivially ``feasible'') and \li{LinearGeq} pruning could
+delete the claimed optimum.
+
+\begin{leanbox}[title={Lean 4 (Mathlib) --- Feasibility (with hard floors)}]
 \begin{minted}{lean}
+/-- A build is feasible for `p` when its gear lies in the initial domains,
+    it spends exactly the 18-infusion budget, AND it meets every hard floor. -/
+def Build.feasible (b : Build) (p : GearProblem) : Prop :=
+  (∀ slot, b.gear slot ∈ p.initialDomains slot) ∧
+  ((StatType.all.map b.infusions).sum = 18) ∧
+  (∀ s, statTotal b s ≥ p.targets s)   -- HARD stat floors
+\end{minted}
+\end{leanbox}
+
+\begin{thmbox}[title={Solver Soundness (specification)}]
+\begin{minted}{lean}
+-- SPECIFICATION (proof left as an extended exercise): with the hard-floor
+-- `feasible` above, this statement is faithful to what `solve` computes.
 theorem solver_sound (problem : GearProblem) :
     match solve problem with
     | .optimal build pen =>
@@ -2383,66 +2826,87 @@ theorem solver_sound (problem : GearProblem) :
         ∀ b, b.feasible problem →
           totalPenalty b problem.targets wMiss wOver ≥ pen
     | .infeasible =>
-        ∀ b : Build, ¬ b.feasible problem
+        ∀ b : Build, ¬ b.feasible problem := by
+  sorry
 \end{minted}
 \end{thmbox}
 
+\begin{warningbox}[title={Soft vs.\ hard, restated}]
+This theorem does \textbf{not} say the solver minimises the soft penalty of
+Chapter~\ref{ch:problem} over \emph{all} builds.  It says: among builds meeting
+every hard floor, the solver returns one of minimum penalty, or reports
+\li{.infeasible} when none exists.  The soft-penalty minimiser may miss a floor
+and hence lie outside this feasible set---\li{LinearGeq} would prune it.  If you
+truly want the soft objective, drop the floor conjunct from \li{feasible} and
+replace \li{LinearGeq} pruning by penalty-dominance pruning (only delete combos
+provably dominated in \emph{penalty}); the theorems below would then need
+restating for that model.
+\end{warningbox}
+
 \section{Proof Structure}
 
-The proof composes four lemmas.  We present each with its Lean formalisation
+The proof composes four lemmas.  We present each with its Lean specification
 and proof sketch.
 
 \subsection{Propagation Soundness}
 
-\begin{lembox}[title={Propagation Preserves Optimal Solutions}]
-If a combo $c$ is removed from slot $i$'s domain during propagation, then
-no optimal solution uses $c$ on slot $i$.
+\begin{lembox}[title={Propagation Preserves Feasible Solutions}]
+If a combo $c$ is removed from slot $i$'s domain by \texttt{LinearGeq}, then no
+\emph{floor-feasible} build (one meeting every hard target within the budget)
+uses $c$ on slot $i$.  Equivalently: propagation preserves every feasible build.
 \end{lembox}
 
 \begin{proof}
-By the monotonicity of each propagator (proven in Chapter~\ref{ch:stronger}).
-The \texttt{LinearGeq} propagator removes $c$ from $D_i$ only when
+\texttt{LinearGeq} removes $c$ from $D_i$ only when, for some stat $s$,
 \[
-  \texttt{contribution}(i, c, s) + \sum_{j \neq i} \maxContrib(j, s) + 90 < T(s)
+  \texttt{contribution}(i, c, s) + \sum_{j \neq i} \maxContrib(j, s) + 90 < T(s).
 \]
-for some stat $s$.  This means no assignment using $c$ on slot $i$ can meet
-target $T(s)$, even with all other slots maximised and all infusions devoted
-to $s$.  Any build using $c$ on slot $i$ violates the target, so its penalty
-is strictly positive.  If a zero-penalty build exists, it doesn't use $c$ on
-slot $i$.  If no zero-penalty build exists, the propagator is still sound:
-it may remove suboptimal choices, but never the optimal one (since the optimal
-choice must be at least as good as $c$ on the pruned stat).
+Take any build $b$ with $b.\text{gear}(i) = c$ whose other gear also lies in the
+domains and whose infusions respect the 18-slot budget (so $5\cdot\text{inf}(s)
+\leq 90$).  Then
+\[
+  \statTotal(b,s) = \texttt{contribution}(i,c,s) + \!\!\sum_{j \neq i}\!\!
+  \texttt{contribution}(j, b.\text{gear}(j), s) + 5\cdot\text{inf}(s)
+  \;\leq\; \texttt{contribution}(i,c,s) + \!\!\sum_{j\neq i}\!\!\maxContrib(j,s) + 90
+  \;<\; T(s).
+\]
+So $b$ \emph{misses} floor $s$ and is infeasible.  Hence no feasible build uses
+$c$ on slot $i$, and the combos of a feasible build all survive.  (Note the
+bound uses $+90$ \emph{once}, as a cap on the shared infusion budget---not per
+stat.)
 \end{proof}
 
-\begin{leanbox}[title={Lean 4 --- Propagation Soundness}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- Propagation Soundness (specification)}]
 \begin{minted}{lean}
-/-- If LinearGeq removes combo c from slot i, then any build using c
-    on slot i has penalty > 0 on some stat. -/
+/-- CORRECTED (the earlier `+ 90` in the conclusion double-counted the
+    infusions, since `statTotal` already includes them). If LinearGeq
+    removes `combo` from `slot`, then any build using it there---with its
+    other gear in the domains and a budget-respecting infusion split---
+    MISSES some floor. -/
 theorem linearGeq_sound
     (domains : GearSlot → Finset StatCombo)
     (targets : StatType → Nat)
     (slot : GearSlot) (combo : StatCombo)
     (h_removed : combo ∉ linearGeqPropagate domains targets slot)
     (h_was_in : combo ∈ domains slot)
-    (b : Build) (h_uses : b.gear slot = combo) :
-    ∃ s : StatType, statTotal b s + 90 < targets s := by
-  -- h_removed gives us: ∃ stat, contribution + othersMax + 90 < target
-  -- Since statTotal b s ≤ contribution(slot, combo, s) + othersMax(s),
-  -- the result follows
-  sorry -- full proof uses the definition of linearGeqPropagate
+    (b : Build) (h_uses : b.gear slot = combo)
+    (h_others : ∀ j, b.gear j ∈ domains j)
+    (h_budget : (StatType.all.map b.infusions).sum ≤ 18) :
+    ∃ s : StatType, statTotal b s < targets s := by
+  sorry
 
-/-- Propagation to fixpoint preserves all optimal solutions. -/
-theorem propagation_preserves_optimal
+/-- Propagation to fixpoint preserves every FEASIBLE build (this REPLACES
+    the earlier `propagation_preserves_optimal`, which was false for the
+    soft objective: LinearGeq can prune the soft optimum). -/
+theorem propagation_preserves_feasible
     (domains₀ : GearSlot → Finset StatCombo)
     (targets : StatType → Nat)
-    (b_opt : Build)
-    (h_opt : isOptimal problem b_opt)
-    (h_in : ∀ s, b_opt.gear s ∈ domains₀ s) :
+    (b : Build)
+    (h_floors : ∀ s, statTotal b s ≥ targets s)
+    (h_budget : (StatType.all.map b.infusions).sum ≤ 18)
+    (h_in : ∀ s, b.gear s ∈ domains₀ s) :
     let domains' := propagateToFixpoint domains₀
-    ∀ s, b_opt.gear s ∈ domains' s := by
-  -- By induction on the number of propagation steps
-  -- At each step, the combo removed can't be part of b_opt
-  -- (by linearGeq_sound and h_opt)
+    ∀ s, b.gear s ∈ domains' s := by
   sorry
 \end{minted}
 \end{leanbox}
@@ -2468,18 +2932,23 @@ fractional assignment, $F_{\IP}(n) \subseteq F_{\LP}(n)$.  Therefore:
 \]
 \end{proof}
 
-\begin{leanbox}[title={Lean 4 --- LP Bound Validity}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- LP Bound Validity (specification)}]
 \begin{minted}{lean}
+-- Two LP interfaces coexist: `solveLPRelaxation` (returns a bare Nat bound,
+-- used by branchAndBound's prune test) and `solveLPRelaxationF` (returns an
+-- LPResult record with `.objectiveValue : Float` and reduced costs, used
+-- for reduced-cost fixing and dual certificates). This lemma uses the
+-- record variant.
 /-- The LP relaxation value is a lower bound on any integer solution. -/
 theorem lp_bound_valid
     (node : BBNode)
     (lpResult : LPResult)
-    (h_lp : lpResult = solveLPRelaxation node.domains node.targets)
+    (h_lp : lpResult = solveLPRelaxationF node.domains node.targets)
     (b : Build)
     (h_feasible : ∀ s, b.gear s ∈ node.domains s) :
     lpResult.objectiveValue ≤ (totalPenalty b node.targets wMiss wOver).toFloat := by
-  -- The build b corresponds to a 0-1 assignment, which is feasible for the LP
-  -- The LP optimum ≤ any feasible LP solution
+  -- b is a 0-1 point feasible for the LP, and the LP optimum ≤ any feasible
+  -- LP value; the relaxation only enlarges the feasible set.
   sorry
 \end{minted}
 \end{leanbox}
@@ -2515,7 +2984,7 @@ In all cases, every feasible build is either evaluated or in an accounted
 node.
 \end{proof}
 
-\begin{leanbox}[title={Lean 4 --- B\&B Invariant}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- B\&B Invariant (specification)}]
 \begin{minted}{lean}
 /-- The B&B invariant: incumbent is feasible and dominates all pruned nodes. -/
 structure BBInvariant (state : BBState) where
@@ -2523,7 +2992,10 @@ structure BBInvariant (state : BBState) where
   pruned_bounded : ∀ node ∈ state.pruned,
     node.lpBound ≥ state.incumbent.penalty
   partition : ∀ b : Build, b.feasible state.problem →
-    (totalPenalty b ≥ state.incumbent.penalty) ∨
+    -- `totalPenalty` takes 4 arguments; the earlier `totalPenalty b ≥ …`
+    -- compared a partially-applied function to a Nat (a type error).
+    (totalPenalty b state.problem.targets wMiss wOver
+        ≥ state.incumbent.penalty) ∨
     (∃ node ∈ state.queue, b.inSubtree node)
 
 /-- Each step of B&B preserves the invariant. -/
@@ -2532,7 +3004,7 @@ theorem bb_step_preserves (state : BBState)
     (state' : BBState)
     (h_step : state' = bbStep state) :
     BBInvariant state' := by
-  sorry -- case split on branch/prune/evaluate
+  sorry -- SPECIFICATION: case split on branch/prune/evaluate
 \end{minted}
 \end{leanbox}
 
@@ -2563,7 +3035,7 @@ per-stat choices given a budget.  This is exactly the optimal substructure
 property that dynamic programming exploits.
 \end{proof}
 
-\begin{leanbox}[title={Lean 4 --- Infusion DP Optimality Proof}]
+\begin{leanbox}[title={Lean 4 --- Infusion DP Optimality (specification)}]
 \begin{minted}{lean}
 /-- The DP allocation minimises penalty among all valid allocations. -/
 theorem infusion_dp_optimal
@@ -2574,8 +3046,8 @@ theorem infusion_dp_optimal
       (StatType.all.map alloc).sum = budget →
       totalInfusionPenalty gearStats targets dpAlloc ≤
       totalInfusionPenalty gearStats targets alloc := by
-  -- By induction on StatType.all.length (= 9)
-  -- using the recurrence relation of the DP table
+  -- SPECIFICATION: induction on StatType.all.length (= 9) via the DP
+  -- recurrence. (The DP itself runs; see the #eval in Chapter 10.)
   sorry
 \end{minted}
 \end{leanbox}
@@ -2589,18 +3061,26 @@ When the B\&B search completes (queue empty), the invariant implies:
   \item Every other feasible build either was evaluated (and is no better)
     or lives in a pruned subtree (whose LP bound $\geq$ incumbent, by LP
     bound validity).
-  \item By propagation soundness, all pruned combos were provably suboptimal,
-    so the search space explored contains all optimal solutions.
-  \item Therefore, the incumbent is optimal.
+  \item By propagation soundness (\texttt{propagation\_preserves\_feasible}),
+    every pruned combo would force some floor to be missed, so no
+    \emph{feasible} build was pruned; the explored space contains all
+    feasible builds.
+  \item Therefore, the incumbent is a minimum-penalty feasible build.
 \end{enumerate}
 
-The infeasibility case: if initial propagation empties a domain, no
-assignment exists.  By propagation soundness, every pruned combo was
-provably useless, so the empty domain means \emph{no} feasible build exists.
+The infeasibility case: \li{solve} reports \li{.infeasible} either when initial
+propagation empties a domain, or when branch-and-bound finishes with no
+floor-meeting leaf (incumbent still \li{none}).  By
+\texttt{propagation\_preserves\_feasible}, any feasible build would have
+survived and been found, so \li{.infeasible} correctly means \emph{no} feasible
+build exists.
 
-\begin{leanbox}[title={Lean 4 --- Composing the Full Proof}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- Composing the Full Proof (specification)}]
 \begin{minted}{lean}
-/-- The complete solver soundness theorem. -/
+/-- The complete solver soundness theorem.  Its intended proof composes the
+    four lemmas above; we present it as a SPECIFICATION with `sorry`, because
+    the honest proof is an extended exercise (and the earlier printed proof
+    body was pseudo-Lean that did not elaborate). -/
 theorem solver_sound_proof (problem : GearProblem) :
     match solve problem with
     | .optimal build pen =>
@@ -2610,30 +3090,25 @@ theorem solver_sound_proof (problem : GearProblem) :
           totalPenalty b problem.targets wMiss wOver ≥ pen
     | .infeasible =>
         ∀ b : Build, ¬ b.feasible problem := by
-  unfold solve
-  -- Case 1: initial propagation finds empty domain
-  · -- by propagation_preserves_optimal, no feasible build existed
-    intro b hfeas
-    exact absurd (propagation_preserves_optimal ..) (domain_empty ..)
-  -- Case 2: B&B returns a solution
-  · constructor
-    -- feasibility: build was extracted from valid domains
-    · exact extractBuild_feasible ..
-    constructor
-    -- penalty matches: by definition of totalPenalty
-    · rfl
-    -- optimality: by B&B invariant + LP bound validity
-    · intro b hfeas
-      exact bb_invariant_at_termination .. |>.partition b hfeas |>.elim
-        (fun h => h)
-        (fun ⟨node, _, _⟩ => absurd .. (queue_empty ..))
+  sorry
 \end{minted}
 \end{leanbox}
 
-This is the central theorem of the book.  The \texttt{sorry}s in the
-component lemmas indicate where the reader should fill in the full
-proofs as exercises---each one is a substantial but tractable formalisation
-task that applies techniques from the lattice book.
+\begin{warningbox}[title={Why not a real proof here?}]
+The earlier edition printed a tactic proof at this spot that did not compile:
+\li{unfold solve} yields a single goal (no case bullets to split on), the
+``case~1'' \li{intro} acted on a \li{match} without a \li{split}, and four of
+the five helper lemmas it invoked (\li{domain\_empty}, \li{extractBuild\_feasible},
+\li{bb\_invariant\_at\_termination}, \li{queue\_empty}) were never defined.  We
+replace it with an explicit \li{sorry}.  A genuine proof would \li{split} on the
+result of \li{solve}, and in the \li{.optimal} arm chain
+\li{propagation\_preserves\_feasible} (every feasible build survives pruning),
+\li{lp\_bound\_valid} and \li{bb\_step\_preserves} (nothing better hides in a
+pruned subtree), and \li{infusion\_dp\_optimal} (the leaf's infusions are
+optimal); the \li{.infeasible} arm follows from
+\li{propagation\_preserves\_feasible} plus the leaf floor-check in
+\li{branchAndBound}.  Each piece is a substantial formalisation task.
+\end{warningbox}
 
 % ────────────────────────────────────────────────────────────────────────────
 \chapter{Performance Engineering}
@@ -2656,9 +3131,14 @@ abbrev Domain := BitVec 40
 
 def Domain.intersect (a b : Domain) : Domain := a &&& b
 def Domain.isEmpty (d : Domain) : Bool := d == 0
-def Domain.card (d : Domain) : Nat := d.popcount
+-- v4.31 spells population count `cpop`, and it returns a BitVec, so `.toNat`.
+def Domain.card (d : Domain) : Nat := d.cpop.toNat
 def Domain.remove (d : Domain) (i : Fin 40) : Domain :=
-  d &&& ~~~(1 <<< i.val)
+  -- the literal must be ascribed to `BitVec 40`, else `~~~` needs
+  -- `Complement Nat`, which does not exist.
+  d &&& ~~~((1 : BitVec 40) <<< i.val)
+
+#eval Domain.card (Domain.remove (BitVec.allOnes 40) ⟨7, by omega⟩)  -- 39
 \end{minted}
 \end{leanbox}
 
@@ -2715,15 +3195,17 @@ dirty cells.
 \begin{leanbox}[title={Lean 4 --- Incremental Propagation Queue}]
 \begin{minted}{lean}
 structure PropState where
-  domains    : Array Domain           -- one per slot (16 entries)
+  domains    : Array Domain           -- one per slot (14 entries)
   dirty      : Array Bool             -- which slots changed?
   domStats   : Array DomainStats      -- cached per-slot stats
   feasible   : Bool                   -- still feasible?
 
 /-- Propagate incrementally: only process dirty slots. -/
-def propagateIncremental (state : PropState)
+partial def propagateIncremental (state : PropState)
     (targets : StatType → Nat) : PropState :=
-  let dirtySlots := state.dirty.toList.enum.filter (·.2) |>.map (·.1)
+  -- v4.31: `List.enum` was removed; `zipIdx` yields (elem, idx), so the
+  -- projections swap relative to the old `.enum`.
+  let dirtySlots := state.dirty.toList.zipIdx.filter (·.1) |>.map (·.2)
   if dirtySlots.isEmpty then state  -- fixpoint reached
   else
     let state' := dirtySlots.foldl (init := { state with dirty := state.dirty.map (fun _ => false) })
@@ -2753,11 +3235,11 @@ When backtracking, pop the stack and restore.
 \begin{leanbox}[title={Lean 4 --- Undo Stack}]
 \begin{minted}{lean}
 structure UndoEntry where
-  slot     : Fin 16
+  slot     : Fin 14
   oldDomain : Domain
 
 /-- Save the current domain before a branch. -/
-def saveState (domains : Array Domain) (slot : Fin 16)
+def saveState (domains : Array Domain) (slot : Fin 14)
     : UndoEntry :=
   ⟨slot, domains[slot]!⟩
 
@@ -2768,26 +3250,36 @@ def restoreState (domains : Array Domain) (entry : UndoEntry)
 \end{minted}
 \end{leanbox}
 
-This eliminates the $O(16 \times 40)$ cost of copying domain arrays at each
+This eliminates the $O(14 \times 40)$ cost of copying domain arrays at each
 node, replacing it with $O(1)$ per save and restore.
 
 \section{Lean 4 Performance Annotations}
 
 \begin{leanbox}[title={Lean 4 --- Compiler Hints}]
 \begin{minted}{lean}
+-- Name drift fix: the table is `buildContribTable` from earlier.
+def contribTable : Array (Array (Array Nat)) := buildContribTable
+
 -- Force inlining of hot inner loops
 @[inline] def contribution' (slot : GearSlot) (comboIdx : Fin 40)
     (statIdx : Fin 9) : Nat :=
   contribTable[slot.toIdx]![comboIdx]![statIdx]!
 
+-- `Domain` is an `abbrev` for `BitVec 40`, NOT a class, so we cannot write
+-- `[Domain D]`. A real class + a Propagator type make the signature legal.
+class DomainLike (D : Type) where
+  isEmpty : D → Bool
+structure Propagator (D : Type) where
+  fire : Array D → Array D
+
 -- Specialise generic functions for our concrete types
-@[specialize] def propagateWith [BEq D] [Domain D]
+@[specialize] def propagateWith [BEq D] [DomainLike D]
     (domains : Array D) (props : Array (Propagator D)) : Array D :=
-  sorry
+  sorry  -- (implementation omitted)
 
 -- Use unboxed representations where possible
 structure PackedBuild where
-  slots     : BitVec 240  -- 16 slots × 6 bits each (enough for 40 combos)
+  slots     : BitVec 240  -- 14 slots, 6 bits each (with headroom for 40 combos)
   runeIdx   : UInt8
   infusions : BitVec 72   -- 9 stats × 8 bits each (max 18 per stat)
 \end{minted}
@@ -2804,7 +3296,7 @@ several target profiles.  Compare:
 \toprule
 \textbf{Method} & \textbf{Nodes explored} & \textbf{Time} & \textbf{Optimal?} \\
 \midrule
-Brute force & $40^{16}$ (infeasible) & --- & Yes \\
+Brute force & $40^{14}$ (infeasible) & --- & Yes \\
 Propagation + enumerate & $\sim 10^{12}$ & hours & Yes \\
 Propagation + B\&B (no LP) & $\sim 10^{6}$ & seconds & Yes \\
 Full solver (prop + B\&B + LP) & $\sim 10^{3}$ & milliseconds & Yes \\
@@ -2907,11 +3399,17 @@ def traitStatTotal (b : Build) (conversions : List TraitConversion)
   let base := (statTotal b s).toFloat
   let bonus := conversions.foldl (init := 0.0) fun acc conv =>
     if conv.targetStat == s then
-      conv.percentage * (statTotal b conv.sourceStat).toFloat
+      -- ACCUMULATE: several conversions into the same stat must ADD.
+      acc + conv.percentage * (statTotal b conv.sourceStat).toFloat
     else acc
   base + bonus
 \end{minted}
 \end{leanbox}
+
+The \li{then} branch adds to \li{acc}.  The earlier edition wrote
+\li{conv.percentage * \ldots} \emph{without} \li{acc +}, discarding the
+accumulator---so with two conversions into Power only the \emph{last} counted
+(two 10\% conversions yielding $4.0$ instead of the correct $9.0$).
 
 The difficulty: with trait conversions, adding Toughness gear increases Power
 (through the trait), which means the stat computation is no longer a simple
@@ -2954,8 +3452,12 @@ conversion: 7\% Toughness $\to$ Power.  How many iterations until convergence
 A player often has some gear already and wants to optimise the rest.
 ``What-if'' mode fixes some variables before the solver runs:
 
-\begin{leanbox}[title={Lean 4 --- What-If Mode}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- What-If Mode}]
 \begin{minted}{lean}
+-- The specific combo the player already owns:
+def berserkers : StatCombo :=
+  ⟨"Berserker's", .triple, [.power], [.precision, .ferocity]⟩
+
 /-- Fix specific slots to specific combos before solving. -/
 def applyWhatIf (domains : GearSlot → Finset StatCombo)
     (fixed : List (GearSlot × StatCombo))
@@ -2979,9 +3481,9 @@ exploit the fixed information.  The rune propagator, for instance, will
 see that all armour slots have the same rune (whatever rune Berserker armour
 uses) and skip rune selection entirely.
 
-The search space shrinks dramatically: if 6 of 16 slots are fixed, the
-remaining space is $40^{10} \approx 10^{16}$ instead of $40^{16} \approx
-10^{25}$---and propagation typically prunes this much further.
+The search space shrinks dramatically: if 6 of the 14 slots are fixed, the
+remaining space is $40^{8} \approx 6.6 \times 10^{12}$ instead of $40^{14}
+\approx 6.9 \times 10^{22}$---and propagation typically prunes this much further.
 
 \begin{exercisebox}
 Implement what-if mode.  Solve the following scenario: a Warrior with full
@@ -2997,9 +3499,10 @@ solver.  For each weight vector, solve the scalarised problem to
 optimality.  Output: the set of non-dominated builds across all weight
 vectors---an approximation of the Pareto frontier.
 
-\begin{leanbox}[title={Lean 4 --- Pareto Frontier Mode}]
+\begin{leanbox}[title={Lean 4 (Mathlib) --- Pareto Frontier Mode}]
 \begin{minted}{lean}
-/-- Generate the Pareto frontier by sweeping scalarisation weights. -/
+/-- Generate the Pareto frontier by sweeping scalarisation weights,
+    using the `wMissPerStat` field of GearProblem (Chapter 2). -/
 def paretoFrontierMode (problem : GearProblem)
     (statA statB : StatType) (nPoints : Nat := 20)
     : List (Build × Nat × Nat) :=
@@ -3007,9 +3510,10 @@ def paretoFrontierMode (problem : GearProblem)
     let w := (i.toFloat) / nPoints.toFloat  -- weight for statA miss
     let weightedProblem := { problem with
       wMissPerStat := fun s =>
-        if s == statA then (w * 100).toNat
-        else if s == statB then ((1.0 - w) * 100).toNat
-        else 50  -- default weight for other stats }
+        -- `Float.toNat` does not exist in v4.31; go via UInt64.
+        if s == statA then (w * 100).toUInt64.toNat
+        else if s == statB then ((1.0 - w) * 100).toUInt64.toNat
+        else 50 }  -- (the `}` used to sit INSIDE this comment!)
     match solve weightedProblem with
     | .optimal build pen =>
       some (build, statTotal build statA, statTotal build statB)
@@ -3023,6 +3527,13 @@ def filterDominated (results : List (Build × Nat × Nat))
       (a2 ≥ a1 ∧ b2 ≥ b1) ∧ (a2 > a1 ∨ b2 > b1)
 \end{minted}
 \end{leanbox}
+
+Two fixes: \li{Float.toNat} does not exist in v4.31 (route through
+\li{.toUInt64.toNat}), and the earlier edition's closing brace \li{\}} was
+\emph{inside} the trailing comment, so the record update never closed.  For
+\li{wMissPerStat} to actually steer the sweep, the scalarised \li{solve} and
+\li{totalPenalty} must read it in place of the global \li{wMiss}---a small
+extension left to the reader.
 
 Each point on the frontier represents a genuinely different gear philosophy.
 On the Power/Vitality frontier, one end is full Berserker (maximum damage,
@@ -3194,6 +3705,214 @@ Partial order &
 \bottomrule
 \end{longtable}
 \end{center}
+
+% ════════════════════════════════════════════════════════════════════════════
+\chapter{A Lean 4 Primer}\label{app:primer}
+
+This appendix is a zero-prerequisites tour of every Lean~4 construct and tactic
+this book uses.  Each entry says what it does, shows a small self-contained
+example (every example here is machine-checked---see the \li{Primer} namespace of
+\li{OptimizationVerification.lean}), and, where it illuminates, shows the
+lower-level term the tactic is sugar for.  Tactics are not magic: they are
+programs that build proof terms.
+
+\section{Declarations}
+
+\subsection*{\li{inductive} --- new types}
+An \li{inductive} declaration creates a type from a list of \emph{constructors}
+(the only ways to build its values).  Lean auto-generates an induction principle
+(the \emph{recursor}).
+
+\begin{leanbox}
+\begin{minted}{lean}
+inductive Colour where
+  | red | green | blue
+  deriving DecidableEq, Repr
+\end{minted}
+\end{leanbox}
+
+\li{deriving Repr} synthesises a printer (so \li{\#eval} can display values);
+\li{deriving DecidableEq} synthesises a decidable \li{=}.
+
+\subsection*{\li{def} and pattern matching}
+A \li{def} introduces a function or value, usually by \emph{pattern matching}:
+one equation per constructor.  Recursion is allowed when an argument
+structurally shrinks; otherwise you must write \li{partial def} (as the solver's
+search loops do) and forfeit the ability to reason about the function in proofs.
+
+\begin{leanbox}
+\begin{minted}{lean}
+def Colour.code : Colour → Nat
+  | .red => 0 | .green => 1 | .blue => 2
+\end{minted}
+\end{leanbox}
+
+The leading dot in \li{.red} means ``the constructor of the type being matched''.
+
+\subsection*{\li{structure} and \li{instance}}
+A \li{structure} is a record; a \emph{type class} is an interface and an
+\li{instance} registers an implementation.  The anonymous constructor
+\li{⟨\ldots⟩} builds a structure (and also proves \li{∧} and \li{∃}: \li{⟨w, h⟩}
+supplies a witness and a proof).
+
+\subsection*{\li{theorem}, \li{example}, \li{Prop}}
+In Lean, propositions are types (of sort \li{Prop}) and proofs are terms: to
+prove $P$ is to build a term of type $P$.  A \li{theorem} is a named proof; an
+\li{example} is anonymous.  A proof is either a direct term or a
+\emph{tactic block} introduced by \li{by}.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (p q : Prop) (hp : p) (h : p → q) : q := h hp   -- term style
+example (p q : Prop) : p → (p → q) → q := by            -- tactic style
+  intro hp h
+  exact h hp
+\end{minted}
+\end{leanbox}
+
+\section{Core Tactics}
+
+\subsection*{\li{intro} --- peel off hypotheses}
+If the goal is \li{p → q} (or \li{∀ x, P x}), \li{intro hp} moves the antecedent
+into context, leaving goal \li{q}.  It is the tactic form of \li{fun hp => …}.
+
+\subsection*{\li{exact} --- supply the proof term}
+\li{exact h} closes the goal with \li{h}, which must match exactly.
+
+\subsection*{\li{constructor} --- build a structure/conjunction goal}
+When the goal is a structure or \li{∧}, \li{constructor} splits it into one
+subgoal per field.  The two bullets \li{·} below discharge each conjunct.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (p q : Prop) (hp : p) (hq : q) : p ∧ q := by
+  constructor
+  · exact hp
+  · exact hq
+\end{minted}
+\end{leanbox}
+
+\subsection*{\li{obtain} --- destructure a hypothesis}
+\li{obtain ⟨n, hn⟩ := h} takes apart an \li{∃} or \li{∧}.  It desugars to
+\li{Exists.elim} (or a \li{match}):
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (P : Nat → Prop) (h : ∃ n, P n) : ∃ m, P m := by
+  obtain ⟨n, hn⟩ := h
+  exact ⟨n, hn⟩
+-- desugaring:
+example (P : Nat → Prop) (h : ∃ n, P n) : ∃ m, P m :=
+  Exists.elim h (fun n hn => ⟨n, hn⟩)
+\end{minted}
+\end{leanbox}
+
+\subsection*{\li{unfold} --- expand a definition}
+\li{unfold f} replaces \li{f} by its definition in the goal (then usually
+followed by \li{rfl} or \li{simp}).
+
+\begin{leanbox}
+\begin{minted}{lean}
+def sq (n : Nat) : Nat := n * n
+example : sq 3 = 9 := by unfold sq; rfl
+\end{minted}
+\end{leanbox}
+
+\subsection*{\li{rfl} --- true by computation}
+Proves \li{a = a} after both sides compute to the same normal form; definitional
+unfolding is free, so \li{2 + 3 = 5} is \li{rfl}.
+
+\subsection*{\li{simp} --- the simplifier}
+Rewrites with every \li{@[simp]} rule (plus any you pass in brackets) until
+nothing changes, then tries to close the goal.  \li{simpa using h} simplifies
+both the goal and \li{h} and closes with it (used in the \li{Decidable} instance
+for dominance).
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (n : Nat) : n + 0 = n := by simp
+\end{minted}
+\end{leanbox}
+
+\subsection*{\li{omega} --- linear arithmetic over \li{Nat}/\li{Int}}
+A decision procedure for linear integer/natural arithmetic (with $+$, $-$,
+$\leq$, $<$, and multiplication by literals).  It closes goals like the ones in
+this book's Pareto and LP-bound sanity checks.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (a b : Nat) (h : a + 1 < b) : a < b := by omega
+\end{minted}
+\end{leanbox}
+
+\subsection*{\li{split} --- case on an \li{if}/\li{match} in the goal}
+When the goal contains \li{if c then … else …} (or a \li{match}), \li{split}
+creates one subgoal per branch, adding the branch condition as a hypothesis.
+
+\begin{leanbox}
+\begin{minted}{lean}
+def clip (n : Nat) : Nat := if n < 10 then n else 10
+example (n : Nat) : clip n ≤ 10 := by
+  unfold clip
+  split
+  · omega   -- case n < 10
+  · omega   -- case ¬ (n < 10)
+\end{minted}
+\end{leanbox}
+
+\subsection*{\li{induction} / \li{cases} --- and their recursor desugaring}
+\li{induction n with} splits into one case per constructor, giving the step case
+an induction hypothesis.  Under the hood there is no primitive ``induction'':
+every \li{inductive} type \li{T} comes with a \emph{recursor} \li{T.rec} (a
+function stating the induction principle), and the tactic merely applies it.
+\li{cases} is the same without the induction hypothesis.
+
+\begin{leanbox}
+\begin{minted}{lean}
+theorem zero_add_nat (n : Nat) : 0 + n = n := by
+  induction n with
+  | zero => rfl
+  | succ n ih => rw [Nat.add_succ, ih]
+
+-- ...and its desugaring: applying the recursor directly.
+theorem zero_add_nat' (n : Nat) : 0 + n = n :=
+  Nat.rec (motive := fun n => 0 + n = n)
+    rfl                                       -- base case
+    (fun n ih => by                           -- step case
+      show 0 + (n + 1) = n + 1
+      rw [Nat.add_succ, ih])
+    n
+\end{minted}
+\end{leanbox}
+
+\section{\texorpdfstring{\li{sorry}}{sorry} --- ``unproven''}
+
+\begin{warningbox}
+\li{sorry} closes \emph{any} goal, unconditionally, by \emph{admitting} it
+without proof.  It is a placeholder, not a proof: Lean accepts the file but emits
+the warning \li{declaration uses 'sorry'}, and anything built on a \li{sorry} is
+logically unfounded.  In this book, a \li{sorry} always marks a
+\textbf{specification}---a precisely stated theorem whose proof is left as an
+extended exercise.  We never present a \li{sorry}-backed theorem as if it were
+machine-checked.  Whenever you see \li{sorry}, read it as ``this is asserted, not
+established''.
+\end{warningbox}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- Compiles, but emits `declaration uses 'sorry'`. NOT a real proof.
+theorem unproven (n : Nat) : n + 0 = n := by sorry
+\end{minted}
+\end{leanbox}
+
+\section{Library Notes}
+
+\li{Finset} (finite sets), \li{SemilatticeSup}/\li{⊔} (join-semilattices), and
+\li{BinaryHeap} (a binary heap, from Batteries) are \textbf{not} core Lean---they
+require \li{import Mathlib} (Batteries ships with it).  See
+Section~\ref{sec:mathlib-setup} for project setup.  \li{decidable\_of\_iff},
+\li{List.all\_eq\_true}, and \li{List.any\_eq\_true} (used to make dominance
+decidable) are core Lean.
 
 % ════════════════════════════════════════════════════════════════════════════
 \end{document}

@@ -1,0 +1,12 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} If 0 | m, then m.val = 0.}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Proof: the witness k gives m.val = 0 * k.}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} We then reduce 0 * k to 0 using Nat.zero\PYGZus{}mul.}
+\PYG{k+kn}{theorem}\PYG{+w}{ }\PYG{n}{dvd\PYGZus{}zero\PYGZus{}left}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{m}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{DvdNat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Dvd\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{l+m+mi}{0}\PYG{n+nb+bp}{⟩}\PYG{+w}{ }\PYG{n}{m}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{m}\PYG{n+nb+bp}{.}\PYG{n}{val}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}
+\PYG{+w}{  }\PYG{k}{obtain}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{k}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{hk}\PYG{n+nb+bp}{⟩}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{h}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} hk : m.val = DvdNat.mk(0).val * k}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} DvdNat.mk(0).val reduces to 0 by definition, so simp can see it}
+\PYG{+w}{  }\PYG{n}{simp}\PYG{+w}{ }\PYG{k}{at}\PYG{+w}{ }\PYG{n}{hk}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} hk is now: m.val = 0}
+\PYG{+w}{  }\PYG{n}{exact}\PYG{+w}{ }\PYG{n}{hk}
+\end{MintedVerbatim}

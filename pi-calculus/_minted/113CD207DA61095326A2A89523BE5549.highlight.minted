@@ -1,0 +1,10 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{// Main thread}
+\PYG{k+kd}{const}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{n+nx}{port1}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nx}{port2}\PYG{+w}{ }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{o+ow}{new}\PYG{+w}{ }\PYG{n+nx}{MessageChannel}\PYG{p}{();}\PYG{+w}{  }\PYG{c+c1}{// (νport1)(νport2)}
+
+\PYG{c+c1}{// Send port2 to the worker \PYGZhy{}\PYGZhy{}\PYGZhy{} scope extrusion!}
+\PYG{n+nx}{worker}\PYG{p}{.}\PYG{n+nx}{postMessage}\PYG{p}{(\PYGZob{}}\PYG{+w}{ }\PYG{n+nx}{port}\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{port2}\PYG{+w}{ }\PYG{p}{\PYGZcb{},}\PYG{+w}{ }\PYG{p}{[}\PYG{n+nx}{port2}\PYG{p}{]);}
+
+\PYG{c+c1}{// Now the worker has port2 and can communicate on it directly}
+\PYG{c+c1}{// The \PYGZdq{}private\PYGZdq{} channel has escaped its original scope}
+\end{MintedVerbatim}

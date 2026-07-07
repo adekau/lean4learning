@@ -1,0 +1,16 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} On natural numbers: gcd is meet, lcm is join under divisibility order}
+\PYG{k+kn}{instance}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{OrderBook}\PYG{n+nb+bp}{.}\PYG{n}{Lattice}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{k+kn}{where}
+\PYG{+w}{  }\PYG{n}{le}\PYG{+w}{          }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n+nb+bp}{∣}\PYG{+w}{ }\PYG{n+nb+bp}{·}\PYG{o}{)}\PYG{+w}{   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} divisibility}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}refl}\PYG{+w}{     }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{dvd\PYGZus{}refl}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}antisymm}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{dvd\PYGZus{}antisymm}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}trans}\PYG{+w}{    }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{dvd\PYGZus{}trans}
+\PYG{+w}{  }\PYG{n}{inf}\PYG{+w}{         }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{gcd}
+\PYG{+w}{  }\PYG{n}{sup}\PYG{+w}{         }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{lcm}
+\PYG{+w}{  }\PYG{n}{inf\PYGZus{}le\PYGZus{}left}\PYG{+w}{  }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{gcd\PYGZus{}dvd\PYGZus{}left}
+\PYG{+w}{  }\PYG{n}{inf\PYGZus{}le\PYGZus{}right}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{gcd\PYGZus{}dvd\PYGZus{}right}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}inf}\PYG{+w}{       }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{dvd\PYGZus{}gcd}
+\PYG{+w}{  }\PYG{n}{sup\PYGZus{}le\PYGZus{}left}\PYG{+w}{  }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{dvd\PYGZus{}lcm\PYGZus{}left}
+\PYG{+w}{  }\PYG{n}{sup\PYGZus{}le\PYGZus{}right}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{dvd\PYGZus{}lcm\PYGZus{}right}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}sup}\PYG{+w}{       }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n}{ha}\PYG{+w}{ }\PYG{n}{hb}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{lcm\PYGZus{}dvd}\PYG{+w}{ }\PYG{n}{ha}\PYG{+w}{ }\PYG{n}{hb}
+\end{MintedVerbatim}

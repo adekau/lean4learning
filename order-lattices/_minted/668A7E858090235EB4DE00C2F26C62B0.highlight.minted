@@ -1,0 +1,15 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{theorem}\PYG{+w}{ }\PYG{n}{pos\PYGZus{}of\PYGZus{}succ}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{n}{n}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{\PYGZcb{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∃}\PYG{+w}{ }\PYG{n}{k}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{k}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}
+\PYG{+w}{  }\PYG{k}{obtain}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{k}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{hk}\PYG{n+nb+bp}{⟩}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{h}
+\PYG{+w}{  }\PYG{n}{subst}\PYG{+w}{ }\PYG{n}{hk}
+\PYG{+w}{  }\PYG{n}{exact}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{succ\PYGZus{}pos}\PYG{+w}{ }\PYG{n}{k}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} as an application of the eliminator …}
+\PYG{k+kn}{theorem}\PYG{+w}{ }\PYG{n}{pos\PYGZus{}of\PYGZus{}succ\PYGZsq{}}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{n}{n}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{\PYGZcb{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∃}\PYG{+w}{ }\PYG{n}{k}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{k}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n}{Exists}\PYG{n+nb+bp}{.}\PYG{n}{elim}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{k}\PYG{+w}{ }\PYG{n}{hk}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{hk}\PYG{+w}{ }\PYG{n+nb+bp}{▸}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{succ\PYGZus{}pos}\PYG{+w}{ }\PYG{n}{k}\PYG{o}{)}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} … or as a match}
+\PYG{k+kn}{theorem}\PYG{+w}{ }\PYG{n}{pos\PYGZus{}of\PYGZus{}succ\PYGZsq{}\PYGZsq{}}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{n}{n}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{\PYGZcb{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∃}\PYG{+w}{ }\PYG{n}{k}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{k}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{⟨}\PYG{n}{k}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{hk}\PYG{n+nb+bp}{⟩}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{hk}\PYG{+w}{ }\PYG{n+nb+bp}{▸}\PYG{+w}{ }\PYG{n}{Nat}\PYG{n+nb+bp}{.}\PYG{n}{succ\PYGZus{}pos}\PYG{+w}{ }\PYG{n}{k}
+\end{MintedVerbatim}

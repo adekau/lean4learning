@@ -1,0 +1,11 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{// Encode protocol states as types}
+\PYG{k+kr}{type}\PYG{+w}{ }\PYG{n+nx}{Idle}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{n+nx}{state}\PYG{o}{:}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}idle\PYGZsq{}}\PYG{+w}{ }\PYG{p}{\PYGZcb{};}
+\PYG{k+kr}{type}\PYG{+w}{ }\PYG{n+nx}{Sent}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{n+nx}{state}\PYG{o}{:}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}sent\PYGZsq{}}\PYG{p}{;}\PYG{+w}{ }\PYG{n+nx}{taskId}\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{string}\PYG{+w}{ }\PYG{p}{\PYGZcb{};}
+\PYG{k+kr}{type}\PYG{+w}{ }\PYG{n+nx}{Done}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{n+nx}{state}\PYG{o}{:}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}done\PYGZsq{}}\PYG{p}{;}\PYG{+w}{ }\PYG{n+nx}{result}\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Result}\PYG{+w}{ }\PYG{p}{\PYGZcb{};}
+
+\PYG{c+c1}{// Type\PYGZhy{}safe transitions}
+\PYG{k+kd}{function}\PYG{+w}{ }\PYG{n+nx}{sendTask}\PYG{p}{(}\PYG{n+nx}{ch}\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Idle}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nx}{task}\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Task}\PYG{p}{)}\PYG{o}{:}\PYG{+w}{ }\PYG{n+nx}{Sent}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{p}{...}\PYG{+w}{ }\PYG{p}{\PYGZcb{}}
+\PYG{k+kd}{function}\PYG{+w}{ }\PYG{n+nx}{recvResult}\PYG{p}{(}\PYG{n+nx}{ch}\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Sent}\PYG{p}{)}\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb}{Promise}\PYG{o}{\PYGZlt{}}\PYG{n+nx}{Done}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{p}{...}\PYG{+w}{ }\PYG{p}{\PYGZcb{}}
+\PYG{c+c1}{// This won\PYGZsq{}t compile: function recvResult(ch: Idle): ... \PYGZhy{}\PYGZhy{} type error!}
+\end{MintedVerbatim}

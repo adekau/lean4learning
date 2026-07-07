@@ -1,0 +1,7 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+  λ(A : Type). λ(x : A). x
+  ↑ binder 1    ↑ binder 0  ↑ bvar 0 = nearest binder = x  ✓
+                ↑ the annotation A here is (.bvar 0),
+                  because at this point only the outer λ is in scope,
+                  so A (the outer λ\PYGZsq{}s variable) is index 0
+\end{MintedVerbatim}

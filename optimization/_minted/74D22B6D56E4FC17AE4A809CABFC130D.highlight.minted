@@ -1,0 +1,26 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{structure}\PYG{+w}{ }\PYG{n}{Tableau}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n}{m}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} number of constraints}
+\PYG{+w}{  }\PYG{n}{n}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} number of variables}
+\PYG{+w}{  }\PYG{n}{tab}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Array}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Array}\PYG{+w}{ }\PYG{n}{Float}\PYG{o}{)}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} (m+1) × (n+m+1) augmented matrix}
+\PYG{+w}{  }\PYG{n}{basis}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Array}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{          }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} indices of basic variables}
+
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} One pivot step: bring variable enterIdx into the basis. \PYGZhy{}/}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{pivot}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{T}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Tableau}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{enterIdx}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{n}{Tableau}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Minimum ratio test to find the leaving variable}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{leaveIdx}\PYG{n+nb+bp}{?}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{minRatioTest}\PYG{+w}{ }\PYG{n}{T}\PYG{+w}{ }\PYG{n}{enterIdx}
+\PYG{+w}{  }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{leaveIdx}\PYG{n+nb+bp}{?}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} unbounded}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{leaveIdx}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Gaussian elimination to pivot}
+\PYG{+w}{    }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{gaussianPivot}\PYG{+w}{ }\PYG{n}{T}\PYG{+w}{ }\PYG{n}{enterIdx}\PYG{+w}{ }\PYG{n}{leaveIdx}\PYG{o}{)}
+
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} Run simplex to completion. \PYGZhy{}/}
+\PYG{n}{partial}\PYG{+w}{ }\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{simplex}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{T}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Tableau}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{SimplexResult}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{blandEnteringVariable}\PYG{+w}{ }\PYG{n}{T}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{optimal}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{extractSolution}\PYG{+w}{ }\PYG{n}{T}\PYG{o}{)}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} no improving variable}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{enterIdx}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{pivot}\PYG{+w}{ }\PYG{n}{T}\PYG{+w}{ }\PYG{n}{enterIdx}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{unbounded}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{T\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{simplex}\PYG{+w}{ }\PYG{n}{T\PYGZsq{}}
+\end{MintedVerbatim}

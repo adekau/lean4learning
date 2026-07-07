@@ -1,0 +1,65 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{namespace}\PYG{+w}{ }\PYG{n}{Propagators}
+
+\PYG{k+kn}{inductive}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{+w}{ }\PYG{k+kn}{where}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{unknown}\PYG{+w}{      }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{+w}{         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} ⊥: no information}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{known}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{n}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{+w}{      }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} exactly n}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{conflict}\PYG{+w}{     }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{+w}{         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} ⊤: contradiction}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} We give the order a NAME rather than an anonymous match inside the}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} instance: later proofs can then unfold it with `simp [FlatNat.le]`,}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} and the rfl\PYGZhy{}lemma `le\PYGZus{}def` below lets simp see through `≤`.}
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Prop}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{a}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{unknown}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{      }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{True}\PYG{+w}{     }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} unknown ≤ everything}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{conflict}\PYG{+w}{     }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{True}\PYG{+w}{     }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} everything ≤ conflict}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{known}\PYG{+w}{ }\PYG{n}{m}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{known}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} known values only ≤ themselves}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{conflict}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{unknown}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{False}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{conflict}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{known}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{False}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{known}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{unknown}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{False}
+
+\PYG{k+kn}{instance}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{OrderBook}\PYG{n+nb+bp}{.}\PYG{n}{PartialOrder}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{+w}{ }\PYG{k+kn}{where}
+\PYG{+w}{  }\PYG{n}{le}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}refl}\PYG{+w}{  }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}\PYG{+w}{ }\PYG{n}{intro}\PYG{+w}{ }\PYG{n}{a}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{simp}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le}\PYG{o}{]}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}antisymm}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}
+\PYG{+w}{    }\PYG{n}{intro}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{hab}\PYG{+w}{ }\PYG{n}{hba}
+\PYG{+w}{    }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{simp\PYGZus{}all}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le}\PYG{o}{]}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}trans}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}
+\PYG{+w}{    }\PYG{n}{intro}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n}{hab}\PYG{+w}{ }\PYG{n}{hbc}
+\PYG{+w}{    }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{simp\PYGZus{}all}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le}\PYG{o}{]}
+
+\PYG{k+kn}{theorem}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}def}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{b}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{rfl}
+
+\PYG{k+kn}{instance}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{BoundedJoinSemilattice}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{+w}{ }\PYG{k+kn}{where}
+\PYG{+w}{  }\PYG{n}{le}\PYG{+w}{          }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}refl}\PYG{+w}{     }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{OrderBook}\PYG{n+nb+bp}{.}\PYG{n}{PartialOrder}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}refl}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}antisymm}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{OrderBook}\PYG{n+nb+bp}{.}\PYG{n}{PartialOrder}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}antisymm}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}trans}\PYG{+w}{    }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{OrderBook}\PYG{n+nb+bp}{.}\PYG{n}{PartialOrder}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}trans}
+\PYG{+w}{  }\PYG{n}{bot}\PYG{+w}{         }\PYG{o}{:=}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{unknown}
+\PYG{+w}{  }\PYG{n}{sup}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{a}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{unknown}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{      }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{x}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{x}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{unknown}\PYG{+w}{      }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{x}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{known}\PYG{+w}{ }\PYG{n}{m}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{known}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{known}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{conflict}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{             }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{conflict}
+\PYG{+w}{  }\PYG{n}{bot\PYGZus{}le}\PYG{+w}{      }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}\PYG{+w}{ }\PYG{n}{intro}\PYG{+w}{ }\PYG{n}{a}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{simp}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}def}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le}\PYG{o}{]}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}sup\PYGZus{}left}\PYG{+w}{  }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}
+\PYG{+w}{    }\PYG{n}{intro}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}
+\PYG{+w}{    }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{simp\PYGZus{}all}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}def}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le}\PYG{o}{]}
+\PYG{+w}{    }\PYG{n}{rename\PYGZus{}i}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{n}{n}
+\PYG{+w}{    }\PYG{n}{by\PYGZus{}cases}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{simp}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}def}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{h}\PYG{o}{]}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}sup\PYGZus{}right}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}
+\PYG{+w}{    }\PYG{n}{intro}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}
+\PYG{+w}{    }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{simp\PYGZus{}all}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}def}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le}\PYG{o}{]}
+\PYG{+w}{    }\PYG{n}{rename\PYGZus{}i}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{n}{n}
+\PYG{+w}{    }\PYG{n}{by\PYGZus{}cases}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{simp}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}def}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{h}\PYG{o}{]}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} The known/known case needs its own `if m = n` split at the end.}
+\PYG{+w}{  }\PYG{n}{sup\PYGZus{}le}\PYG{+w}{       }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{by}
+\PYG{+w}{    }\PYG{n}{intro}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n}{hac}\PYG{+w}{ }\PYG{n}{hbc}
+\PYG{+w}{    }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{simp\PYGZus{}all}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}def}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le}\PYG{o}{]}
+\PYG{+w}{    }\PYG{n}{rename\PYGZus{}i}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{n}{n}
+\PYG{+w}{    }\PYG{n}{by\PYGZus{}cases}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{m}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{n}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{};\PYGZgt{}}\PYG{+w}{ }\PYG{n}{simp}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{FlatNat}\PYG{n+nb+bp}{.}\PYG{n}{le}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{h}\PYG{o}{]}
+
+\PYG{n}{deriving}\PYG{+w}{ }\PYG{k+kn}{instance}\PYG{+w}{ }\PYG{n}{DecidableEq}\PYG{+w}{ }\PYG{n}{for}\PYG{+w}{ }\PYG{n}{FlatNat}
+
+\PYG{k+kn}{end}\PYG{+w}{ }\PYG{n}{Propagators}
+\end{MintedVerbatim}

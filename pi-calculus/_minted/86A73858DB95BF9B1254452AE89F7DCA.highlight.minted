@@ -1,0 +1,21 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Philosopher i picks up fork i, then fork (i+1) mod 5, eats, puts both down}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{philosopher}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{i}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Fin}\PYG{+w}{ }\PYG{l+m+mi}{5}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{CCS}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{li}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{s}\PYG{n+nb+bp}{!}\PYG{l+s+s2}{\PYGZdq{}pick\PYGZob{}i\PYGZcb{}\PYGZdq{}}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{ri}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{s}\PYG{n+nb+bp}{!}\PYG{l+s+s2}{\PYGZdq{}pick\PYGZob{}(i.val + 1) \PYGZpc{} 5\PYGZcb{}\PYGZdq{}}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{di}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{s}\PYG{n+nb+bp}{!}\PYG{l+s+s2}{\PYGZdq{}drop\PYGZob{}i\PYGZcb{}\PYGZdq{}}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{dri}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{s}\PYG{n+nb+bp}{!}\PYG{l+s+s2}{\PYGZdq{}drop\PYGZob{}(i.val + 1) \PYGZpc{} 5\PYGZcb{}\PYGZdq{}}
+\PYG{+w}{  }\PYG{n+nb+bp}{.}\PYG{n}{pre}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{inp}\PYG{+w}{ }\PYG{n}{li}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}|}\PYG{+w}{     }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} pick up left fork}
+\PYG{+w}{  }\PYG{n+nb+bp}{.}\PYG{n}{pre}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{inp}\PYG{+w}{ }\PYG{n}{ri}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}|}\PYG{+w}{     }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} pick up right fork}
+\PYG{+w}{  }\PYG{n+nb+bp}{.}\PYG{n}{pre}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{out}\PYG{+w}{ }\PYG{n}{di}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}|}\PYG{+w}{     }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} put down left fork}
+\PYG{+w}{  }\PYG{n+nb+bp}{.}\PYG{n}{pre}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{out}\PYG{+w}{ }\PYG{n}{dri}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}|}\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} put down right fork}
+\PYG{+w}{  }\PYG{n+nb+bp}{.}\PYG{n}{nil}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} The asymmetric fix: philosopher 4 picks up forks in reverse order}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{philosopher4\PYGZus{}fixed}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{CCS}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n+nb+bp}{.}\PYG{n}{pre}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{inp}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}pick0\PYGZdq{}}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}|}\PYG{+w}{     }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} right fork first!}
+\PYG{+w}{  }\PYG{n+nb+bp}{.}\PYG{n}{pre}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{inp}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}pick4\PYGZdq{}}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}|}\PYG{+w}{     }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} then left fork}
+\PYG{+w}{  }\PYG{n+nb+bp}{.}\PYG{n}{pre}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{out}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}drop0\PYGZdq{}}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}|}
+\PYG{+w}{  }\PYG{n+nb+bp}{.}\PYG{n}{pre}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{out}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}drop4\PYGZdq{}}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}|}
+\PYG{+w}{  }\PYG{n+nb+bp}{.}\PYG{n}{nil}
+\end{MintedVerbatim}

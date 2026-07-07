@@ -1,0 +1,5 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+x   ∈ [2, 8]
+y   ∈ [2, 8]
+sum ∈ [10, 10]
+\end{MintedVerbatim}

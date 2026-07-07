@@ -1,0 +1,30 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{namespace}\PYG{+w}{ }\PYG{n}{Propagators}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} A Cell wraps an IO.Ref and a type with a BoundedJoinSemilattice}
+\PYG{k+kn}{structure}\PYG{+w}{ }\PYG{n}{Cell}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{)}\PYG{+w}{ }\PYG{k+kn}{where}
+\PYG{+w}{  }\PYG{n}{ref}\PYG{+w}{      }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{IO}\PYG{n+nb+bp}{.}\PYG{n}{Ref}\PYG{+w}{ }\PYG{n}{α}
+
+\PYG{k+kn}{variable}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{\PYGZcb{}}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{BoundedJoinSemilattice}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{]}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{DecidableEq}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{]}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Create a new cell initialised to ⊥}
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{Cell}\PYG{n+nb+bp}{.}\PYG{n}{new}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{IO}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Cell}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{IO}\PYG{n+nb+bp}{.}\PYG{n}{mkRef}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{BoundedJoinSemilattice}\PYG{n+nb+bp}{.}\PYG{n}{bot}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{))}
+\PYG{+w}{  }\PYG{n}{return}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{+w}{ }\PYG{n}{ref}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{r}\PYG{+w}{ }\PYG{o}{\PYGZcb{}}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Read the current value}
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{Cell}\PYG{n+nb+bp}{.}\PYG{n}{read}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{c}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Cell}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{IO}\PYG{+w}{ }\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{c}\PYG{n+nb+bp}{.}\PYG{n}{ref}\PYG{n+nb+bp}{.}\PYG{n}{get}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Attempt to write new information.}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Returns true if the cell\PYGZsq{}s value increased.}
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{Cell}\PYG{n+nb+bp}{.}\PYG{n}{write}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{c}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Cell}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{v}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{IO}\PYG{+w}{ }\PYG{n}{Bool}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{do}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{old}\PYG{+w}{ }\PYG{n+nb+bp}{←}\PYG{+w}{ }\PYG{n}{c}\PYG{n+nb+bp}{.}\PYG{n}{ref}\PYG{n+nb+bp}{.}\PYG{n}{get}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{merged}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{old}\PYG{+w}{ }\PYG{n+nb+bp}{⊔}\PYG{+w}{ }\PYG{n}{v}
+\PYG{+w}{  }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{merged}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{n}{old}\PYG{+w}{ }\PYG{k}{then}
+\PYG{+w}{    }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{false}\PYG{+w}{          }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} no new information}
+\PYG{+w}{  }\PYG{k}{else}
+\PYG{+w}{    }\PYG{n}{c}\PYG{n+nb+bp}{.}\PYG{n}{ref}\PYG{n+nb+bp}{.}\PYG{n}{set}\PYG{+w}{ }\PYG{n}{merged}
+\PYG{+w}{    }\PYG{n}{return}\PYG{+w}{ }\PYG{n}{true}\PYG{+w}{           }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} cell updated, re\PYGZhy{}schedule dependents}
+
+\PYG{k+kn}{end}\PYG{+w}{ }\PYG{n}{Propagators}
+\end{MintedVerbatim}

@@ -1,0 +1,14 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Skip whitespace}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{spaces}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{Unit}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n}{many}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{satisfy}\PYG{+w}{ }\PYG{n}{Char.isWhitespace}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZgt{}\PYGZgt{}=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{pure}\PYG{+w}{ }\PYG{o}{()}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Parse p, then skip trailing whitespace}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{token}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{p}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{α}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n}{p}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZgt{}\PYGZgt{}=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{  }\PYG{n}{spaces}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZgt{}\PYGZgt{}=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{  }\PYG{n}{pure}\PYG{+w}{ }\PYG{n}{a}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Parse a specific character, skip trailing whitespace}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{symbol}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{c}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Char}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Parser}\PYG{+w}{ }\PYG{n}{Char}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{token}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{char}\PYG{+w}{ }\PYG{n}{c}\PYG{o}{)}
+\end{MintedVerbatim}

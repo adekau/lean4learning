@@ -1,0 +1,15 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} A relation R is a bisimulation}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{IsBisimulation}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{n}{State}\PYG{+w}{ }\PYG{n}{Label}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{step}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{State}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Action}\PYG{+w}{ }\PYG{n}{Label}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{State}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{k+kt}{Prop}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{R}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{State}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{State}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{k+kt}{Prop}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Prop}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{t}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{R}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{n+nb+bp}{→}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{s\PYGZsq{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{step}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{s\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n+nb+bp}{∃}\PYG{+w}{ }\PYG{n}{t\PYGZsq{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{step}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{t\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{∧}\PYG{+w}{ }\PYG{n}{R}\PYG{+w}{ }\PYG{n}{s\PYGZsq{}}\PYG{+w}{ }\PYG{n}{t\PYGZsq{}}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{∧}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{t\PYGZsq{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{step}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{t\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n+nb+bp}{∃}\PYG{+w}{ }\PYG{n}{s\PYGZsq{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{step}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{s\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{∧}\PYG{+w}{ }\PYG{n}{R}\PYG{+w}{ }\PYG{n}{s\PYGZsq{}}\PYG{+w}{ }\PYG{n}{t\PYGZsq{}}\PYG{o}{)}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Bisimilarity: exists a bisimulation relating them}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{Bisimilar}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{n}{State}\PYG{+w}{ }\PYG{n}{Label}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{step}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{State}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Action}\PYG{+w}{ }\PYG{n}{Label}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{State}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{k+kt}{Prop}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{s}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{State}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Prop}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n+nb+bp}{∃}\PYG{+w}{ }\PYG{n}{R}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{IsBisimulation}\PYG{+w}{ }\PYG{n}{step}\PYG{+w}{ }\PYG{n}{R}\PYG{+w}{ }\PYG{n+nb+bp}{∧}\PYG{+w}{ }\PYG{n}{R}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{t}
+\end{MintedVerbatim}

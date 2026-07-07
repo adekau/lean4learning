@@ -1,0 +1,16 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k}{import}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{n+nx}{Worker}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nx}{parentPort}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nx}{MessageChannel}\PYG{+w}{ }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{k+kr}{from}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}worker\PYGZus{}threads\PYGZsq{}}\PYG{p}{;}
+
+\PYG{c+c1}{// Main thread}
+\PYG{k+kd}{const}\PYG{+w}{ }\PYG{n+nx}{worker}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{o+ow}{new}\PYG{+w}{ }\PYG{n+nx}{Worker}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}./worker.js\PYGZsq{}}\PYG{p}{);}
+\PYG{n+nx}{worker}\PYG{p}{.}\PYG{n+nx}{postMessage}\PYG{p}{(\PYGZob{}}\PYG{+w}{ }\PYG{n+nx}{task}\PYG{o}{:}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}compute\PYGZsq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nx}{data}\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{payload}\PYG{+w}{ }\PYG{p}{\PYGZcb{});}
+\PYG{n+nx}{worker}\PYG{p}{.}\PYG{n+nx}{on}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}message\PYGZsq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{p}{(}\PYG{n+nx}{result}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{=\PYGZgt{}}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{  }\PYG{n+nx}{console}\PYG{p}{.}\PYG{n+nx}{log}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}Got result:\PYGZsq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nx}{result}\PYG{p}{);}
+\PYG{p}{\PYGZcb{});}
+
+\PYG{c+c1}{// Worker thread (worker.js)}
+\PYG{n+nx}{parentPort}\PYG{o}{?}\PYG{p}{.}\PYG{n+nx}{on}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}message\PYGZsq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{=\PYGZgt{}}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{  }\PYG{k+kd}{const}\PYG{+w}{ }\PYG{n+nx}{result}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nx}{heavyComputation}\PYG{p}{(}\PYG{n+nx}{msg}\PYG{p}{.}\PYG{n+nx}{data}\PYG{p}{);}
+\PYG{+w}{  }\PYG{n+nx}{parentPort}\PYG{o}{?}\PYG{p}{.}\PYG{n+nx}{postMessage}\PYG{p}{(}\PYG{n+nx}{result}\PYG{p}{);}
+\PYG{p}{\PYGZcb{});}
+\end{MintedVerbatim}

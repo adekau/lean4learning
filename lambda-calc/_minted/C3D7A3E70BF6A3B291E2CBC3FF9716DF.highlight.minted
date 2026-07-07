@@ -1,0 +1,6 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+def freeVars : Term → List String
+  | .var x     =\PYGZgt{} ???   \PYGZhy{}\PYGZhy{} FV(x) = \PYGZob{}x\PYGZcb{}
+  | .lam x e   =\PYGZgt{} ???   \PYGZhy{}\PYGZhy{} FV(λx.e) = FV(e) \PYGZbs{} \PYGZob{}x\PYGZcb{}
+  | .app e₁ e₂ =\PYGZgt{} ???   \PYGZhy{}\PYGZhy{} FV(e₁ e₂) = FV(e₁) ∪ FV(e₂)
+\end{MintedVerbatim}

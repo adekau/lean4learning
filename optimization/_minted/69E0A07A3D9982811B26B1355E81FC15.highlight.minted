@@ -1,0 +1,57 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{inductive}\PYG{+w}{ }\PYG{n}{SolverResult}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{optimal}\PYG{+w}{    }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Build}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{SolverResult}\PYG{+w}{   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} build + penalty}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{infeasible}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{SolverResult}
+
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} Does the build meet every HARD stat floor? (the solver\PYGZsq{}s contract) \PYGZhy{}/}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{meetsFloors}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{b}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Build}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{targets}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatType}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Bool}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n}{StatType.all.all}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{targets}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{n}{statTotal}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{s}
+
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{solve}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{problem}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{GearProblem}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{SolverResult}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Phase 1: Initial propagation}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{domains}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{propagateToFixpoint}\PYG{+w}{ }\PYG{n}{problem.initialDomains}
+\PYG{+w}{  }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{anyDomainEmpty}\PYG{+w}{ }\PYG{n}{domains}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{infeasible}
+\PYG{+w}{  }\PYG{k}{else}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Phase 2: Warm start (SA); adopt it as the incumbent ONLY if it}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} meets the hard floors, otherwise start with no incumbent.}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{warm}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{simulatedAnnealing}\PYG{+w}{ }\PYG{n}{domains}\PYG{+w}{ }\PYG{n}{problem.targets}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{mkStdGen}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{o}{)}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{warmInc}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Build}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{meetsFloors}\PYG{+w}{ }\PYG{n}{warm}\PYG{+w}{ }\PYG{n}{problem.targets}
+\PYG{+w}{    }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{warm}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{totalPenalty}\PYG{+w}{ }\PYG{n}{warm}\PYG{+w}{ }\PYG{n}{problem.targets}\PYG{+w}{ }\PYG{n}{wMiss}\PYG{+w}{ }\PYG{n}{wOver}\PYG{o}{)}
+\PYG{+w}{    }\PYG{k}{else}\PYG{+w}{ }\PYG{n}{none}
+\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Phase 3: Branch and bound}
+\PYG{+w}{  }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{branchAndBound}\PYG{+w}{ }\PYG{n}{domains}\PYG{+w}{ }\PYG{n}{problem.targets}\PYG{+w}{ }\PYG{n}{warmInc}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{            }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{infeasible}\PYG{+w}{   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} no floor\PYGZhy{}meeting build exists}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{build}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pen}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{optimal}\PYG{+w}{ }\PYG{n}{build}\PYG{+w}{ }\PYG{n}{pen}
+
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} Branch and bound with propagation + LP bounding at each node.}
+\PYG{l+s+sd}{    The incumbent is an `Option`: `none` means \PYGZdq{}no floor\PYGZhy{}meeting build}
+\PYG{l+s+sd}{    found yet\PYGZdq{}, so returning `none` genuinely reports infeasibility. \PYGZhy{}/}
+\PYG{n}{partial}\PYG{+w}{ }\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{branchAndBound}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{domains}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{GearSlot}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Finset}\PYG{+w}{ }\PYG{n}{StatCombo}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{targets}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatType}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{incumbent}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Build}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{))}
+\PYG{+w}{    }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Build}\PYG{+w}{ }\PYG{n+nb+bp}{×}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{domains}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{propagateToFixpoint}\PYG{+w}{ }\PYG{n}{domains}
+\PYG{+w}{  }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{anyDomainEmpty}\PYG{+w}{ }\PYG{n}{domains}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{incumbent}\PYG{+w}{      }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} dead subtree}
+\PYG{+w}{  }\PYG{k}{else}\PYG{+w}{ }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{allSingleton}\PYG{+w}{ }\PYG{n}{domains}\PYG{+w}{ }\PYG{k}{then}
+\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Leaf: fill infusions optimally, then CHECK the hard floors.}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{build}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{extractBuild}\PYG{+w}{ }\PYG{n}{domains}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{full}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{\PYGZob{}}\PYG{+w}{ }\PYG{n}{build}\PYG{+w}{ }\PYG{k}{with}\PYG{+w}{ }\PYG{n}{infusions}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{infusionDP}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{gearStats}\PYG{+w}{ }\PYG{n}{build}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{targets}\PYG{+w}{ }\PYG{o}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{meetsFloors}\PYG{+w}{ }\PYG{n}{full}\PYG{+w}{ }\PYG{n}{targets}\PYG{+w}{ }\PYG{k}{then}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{pen}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{totalPenalty}\PYG{+w}{ }\PYG{n}{full}\PYG{+w}{ }\PYG{n}{targets}\PYG{+w}{ }\PYG{n}{wMiss}\PYG{+w}{ }\PYG{n}{wOver}
+\PYG{+w}{      }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{incumbent}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{      }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{          }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{full}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pen}\PYG{o}{)}
+\PYG{+w}{      }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{\PYGZus{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{best}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{pen}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{best}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{full}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{pen}\PYG{o}{)}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{n}{incumbent}
+\PYG{+w}{    }\PYG{k}{else}\PYG{+w}{ }\PYG{n}{incumbent}\PYG{+w}{                              }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} leaf misses a floor: reject}
+\PYG{+w}{  }\PYG{k}{else}
+\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} LP\PYGZhy{}bound prune (only meaningful once we have an incumbent)}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{pruned}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{incumbent}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{      }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{\PYGZus{}}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{best}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{decide}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{solveLPRelaxation}\PYG{+w}{ }\PYG{n}{domains}\PYG{+w}{ }\PYG{n}{targets}\PYG{+w}{ }\PYG{n+nb+bp}{≥}\PYG{+w}{ }\PYG{n}{best}\PYG{o}{)}
+\PYG{+w}{      }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{           }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{false}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{pruned}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{incumbent}
+\PYG{+w}{    }\PYG{k}{else}
+\PYG{+w}{      }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{slot}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{smallestDomainSlot}\PYG{+w}{ }\PYG{n}{domains}
+\PYG{+w}{      }\PYG{o}{(}\PYG{n}{enumerate}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{domains}\PYG{+w}{ }\PYG{n}{slot}\PYG{o}{))}\PYG{n+nb+bp}{.}\PYG{n}{foldl}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{init}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{incumbent}\PYG{o}{)}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{best}\PYG{+w}{ }\PYG{n}{combo}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{        }\PYG{n}{branchAndBound}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{fixSlot}\PYG{+w}{ }\PYG{n}{domains}\PYG{+w}{ }\PYG{n}{slot}\PYG{+w}{ }\PYG{n}{combo}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{targets}\PYG{+w}{ }\PYG{n}{best}
+\end{MintedVerbatim}

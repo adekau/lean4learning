@@ -1,0 +1,3 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{n+nb+bp}{\PYGZsh{}\PYGZsh{}}\PYG{n}{eval}\PYG{+w}{ }\PYG{n}{solveSudoku}
+\end{MintedVerbatim}

@@ -1,0 +1,6 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+1 + 2 : Int
+λx. x+1 : (Int → Int)
+if true 1 2 : Int
+true + 1 : TypeError
+\end{MintedVerbatim}

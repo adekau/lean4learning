@@ -1,0 +1,74 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{namespace}\PYG{+w}{ }\PYG{n}{Sudoku}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Digits 1..9, represented as Fin 9 (0..8 internally, displayed as 1..9)}
+\PYG{k+kn}{abbrev}\PYG{+w}{ }\PYG{n}{Digit}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Fin}\PYG{+w}{ }\PYG{l+m+mi}{9}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} A candidate set: which digits are still possible for this cell}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} We represent it as a Bool array of length 9}
+\PYG{k+kn}{structure}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{+w}{ }\PYG{k+kn}{where}
+\PYG{+w}{  }\PYG{n}{present}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Fin}\PYG{+w}{ }\PYG{l+m+mi}{9}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Bool}
+
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{n+nb+bp}{.}\PYG{n}{full}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{o}{\PYGZob{}}\PYG{+w}{ }\PYG{n}{present}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{true}\PYG{+w}{ }\PYG{o}{\PYGZcb{}}
+
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{n+nb+bp}{.}\PYG{n}{empty}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{o}{\PYGZob{}}\PYG{+w}{ }\PYG{n}{present}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{false}\PYG{+w}{ }\PYG{o}{\PYGZcb{}}
+
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{n+nb+bp}{.}\PYG{n}{singleton}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{d}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Digit}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{o}{\PYGZob{}}\PYG{+w}{ }\PYG{n}{present}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{n}{d}\PYG{+w}{ }\PYG{o}{\PYGZcb{}}
+
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{n+nb+bp}{.}\PYG{n}{remove}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{s}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{d}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Digit}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{o}{\PYGZob{}}\PYG{+w}{ }\PYG{n}{present}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{s}\PYG{n+nb+bp}{.}\PYG{n}{present}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZam{}\PYGZam{}}\PYG{+w}{ }\PYG{n+nb+bp}{!}\PYG{o}{(}\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{n}{d}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{\PYGZcb{}}
+
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{n+nb+bp}{.}\PYG{n}{inter}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{s}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{o}{\PYGZob{}}\PYG{+w}{ }\PYG{n}{present}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{s}\PYG{n+nb+bp}{.}\PYG{n}{present}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZam{}\PYGZam{}}\PYG{+w}{ }\PYG{n}{t}\PYG{n+nb+bp}{.}\PYG{n}{present}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{o}{\PYGZcb{}}
+
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{n+nb+bp}{.}\PYG{n}{union}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{s}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{o}{\PYGZob{}}\PYG{+w}{ }\PYG{n}{present}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{s}\PYG{n+nb+bp}{.}\PYG{n}{present}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{||}\PYG{+w}{ }\PYG{n}{t}\PYG{n+nb+bp}{.}\PYG{n}{present}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{o}{\PYGZcb{}}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} The information order: s ≤ t iff t ⊆ s (t is more specific)}
+\PYG{k+kn}{def}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{n+nb+bp}{.}\PYG{n}{le}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{s}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Prop}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Digit}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{t}\PYG{n+nb+bp}{.}\PYG{n}{present}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{true}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{s}\PYG{n+nb+bp}{.}\PYG{n}{present}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{true}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Antisymmetry: compare the two indicator functions pointwise}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} (rename\PYGZus{}i names the functions exposed by `cases`).}
+\PYG{k+kn}{instance}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{OrderBook}\PYG{n+nb+bp}{.}\PYG{n}{PartialOrder}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{+w}{ }\PYG{k+kn}{where}
+\PYG{+w}{  }\PYG{n}{le}\PYG{+w}{          }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{n+nb+bp}{.}\PYG{n}{le}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}refl}\PYG{+w}{     }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{h}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}antisymm}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{n}{h1}\PYG{+w}{ }\PYG{n}{h2}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{show}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{k}{from}\PYG{+w}{ }\PYG{k}{by}
+\PYG{+w}{      }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{s}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{t}
+\PYG{+w}{      }\PYG{n}{congr}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{funext}\PYG{+w}{ }\PYG{n}{i}
+\PYG{+w}{      }\PYG{n}{rename\PYGZus{}i}\PYG{+w}{ }\PYG{n}{sp}\PYG{+w}{ }\PYG{n}{tp}
+\PYG{+w}{      }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{hi}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{tp}\PYG{+w}{ }\PYG{n}{i}
+\PYG{+w}{      }\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{hs}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{sp}\PYG{+w}{ }\PYG{n}{i}
+\PYG{+w}{        }\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n}{rfl}
+\PYG{+w}{        }\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n}{exact}\PYG{+w}{ }\PYG{n}{absurd}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{h2}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n}{hs}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{by}\PYG{+w}{ }\PYG{n}{simp}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{hi}\PYG{o}{])}
+\PYG{+w}{      }\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n}{exact}\PYG{+w}{ }\PYG{n}{h1}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n}{hi}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}trans}\PYG{+w}{    }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{n}{u}\PYG{+w}{ }\PYG{n}{hst}\PYG{+w}{ }\PYG{n}{htu}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n}{hi}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{hst}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{htu}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n}{hi}\PYG{o}{)}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Join = intersection (combines constraints).}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} `Bool.and\PYGZus{}eq\PYGZus{}true : ((a \PYGZam{}\PYGZam{} b) = true) = (a = true ∧ b = true)` is}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} an equality of propositions, so we rewrite with `▸`.}
+\PYG{k+kn}{instance}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Propagators}\PYG{n+nb+bp}{.}\PYG{n}{BoundedJoinSemilattice}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{+w}{ }\PYG{k+kn}{where}
+\PYG{+w}{  }\PYG{n}{le}\PYG{+w}{          }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{n+nb+bp}{.}\PYG{n}{le}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}refl}\PYG{+w}{     }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{h}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}antisymm}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{OrderBook}\PYG{n+nb+bp}{.}\PYG{n}{PartialOrder}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}antisymm}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{o}{)}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}trans}\PYG{+w}{    }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{OrderBook}\PYG{n+nb+bp}{.}\PYG{n}{PartialOrder}\PYG{n+nb+bp}{.}\PYG{n}{le\PYGZus{}trans}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{α}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{o}{)}
+\PYG{+w}{  }\PYG{n}{bot}\PYG{+w}{         }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{n+nb+bp}{.}\PYG{n}{full}
+\PYG{+w}{  }\PYG{n}{sup}\PYG{+w}{         }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{n+nb+bp}{.}\PYG{n}{inter}\PYG{+w}{    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} ⊔ = ∩ in information order!}
+\PYG{+w}{  }\PYG{n}{bot\PYGZus{}le}\PYG{+w}{      }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{rfl}\PYG{+w}{     }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} full ≤ s since s ⊆ full}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}sup\PYGZus{}left}\PYG{+w}{  }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Bool}\PYG{n+nb+bp}{.}\PYG{n}{and\PYGZus{}eq\PYGZus{}true}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{▸}\PYG{+w}{ }\PYG{n}{h}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{l+m}{1}
+\PYG{+w}{  }\PYG{n}{le\PYGZus{}sup\PYGZus{}right}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{Bool}\PYG{n+nb+bp}{.}\PYG{n}{and\PYGZus{}eq\PYGZus{}true}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{▸}\PYG{+w}{ }\PYG{n}{h}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{l+m}{2}
+\PYG{+w}{  }\PYG{n}{sup\PYGZus{}le}\PYG{+w}{       }\PYG{o}{:=}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{n}{u}\PYG{+w}{ }\PYG{n}{hsu}\PYG{+w}{ }\PYG{n}{htu}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{n}{Bool}\PYG{n+nb+bp}{.}\PYG{n}{and\PYGZus{}eq\PYGZus{}true}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{▸}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{⟨}\PYG{n}{hsu}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n}{h}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{htu}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n}{h}\PYG{n+nb+bp}{⟩}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{∧}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZus{}}\PYG{o}{)}
+
+\PYG{k+kn}{instance}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{DecidableEq}\PYG{+w}{ }\PYG{n}{CandidateSet}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{i}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{s}\PYG{n+nb+bp}{.}\PYG{n}{present}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{t}\PYG{n+nb+bp}{.}\PYG{n}{present}\PYG{+w}{ }\PYG{n}{i}
+\PYG{+w}{    }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{isTrue}\PYG{+w}{  }\PYG{o}{(}\PYG{k}{by}\PYG{+w}{ }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{s}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{cases}\PYG{+w}{ }\PYG{n}{t}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{congr}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{funext}\PYG{+w}{ }\PYG{n}{i}\PYG{n+nb+bp}{;}\PYG{+w}{ }\PYG{n}{exact}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{n}{i}\PYG{o}{)}
+\PYG{+w}{    }\PYG{k}{else}\PYG{+w}{ }\PYG{n}{isFalse}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{heq}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{h}\PYG{+w}{ }\PYG{o}{(}\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{i}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{k}{by}\PYG{+w}{ }\PYG{n}{rw}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{heq}\PYG{o}{]))}
+
+\PYG{k+kn}{end}\PYG{+w}{ }\PYG{n}{Sudoku}
+\end{MintedVerbatim}

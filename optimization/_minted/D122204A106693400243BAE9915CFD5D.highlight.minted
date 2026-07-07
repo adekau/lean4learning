@@ -1,0 +1,17 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{structure}\PYG{+w}{ }\PYG{n}{TraitConversion}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n}{sourceStat}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatType}
+\PYG{+w}{  }\PYG{n}{targetStat}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatType}
+\PYG{+w}{  }\PYG{n}{percentage}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Float}\PYG{+w}{   }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} e.g., 0.07 for 7\PYGZpc{}}
+
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} Stat total with trait conversions applied. \PYGZhy{}/}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{traitStatTotal}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{b}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Build}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{conversions}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{n}{TraitConversion}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{s}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatType}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Float}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{base}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{statTotal}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{s}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{toFloat}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{bonus}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{conversions.foldl}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{init}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{n+nb+bp}{.}\PYG{l+m+mi}{0}\PYG{o}{)}\PYG{+w}{ }\PYG{k}{fun}\PYG{+w}{ }\PYG{n}{acc}\PYG{+w}{ }\PYG{n}{conv}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{conv.targetStat}\PYG{+w}{ }\PYG{n+nb+bp}{==}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{k}{then}
+\PYG{+w}{      }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} ACCUMULATE: several conversions into the same stat must ADD.}
+\PYG{+w}{      }\PYG{n}{acc}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{n}{conv.percentage}\PYG{+w}{ }\PYG{n+nb+bp}{*}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{statTotal}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{conv.sourceStat}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{toFloat}
+\PYG{+w}{    }\PYG{k}{else}\PYG{+w}{ }\PYG{n}{acc}
+\PYG{+w}{  }\PYG{n}{base}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{n}{bonus}
+\end{MintedVerbatim}

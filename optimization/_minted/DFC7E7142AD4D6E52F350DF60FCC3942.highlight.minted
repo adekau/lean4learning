@@ -1,0 +1,14 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} SPECIFICATION (proof left as an extended exercise): with the hard\PYGZhy{}floor}
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} `feasible` above, this statement is faithful to what `solve` computes.}
+\PYG{k+kd}{theorem}\PYG{+w}{ }\PYG{n}{solver\PYGZus{}sound}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{problem}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{GearProblem}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}
+\PYG{+w}{    }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{solve}\PYG{+w}{ }\PYG{n}{problem}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{optimal}\PYG{+w}{ }\PYG{n}{build}\PYG{+w}{ }\PYG{n}{pen}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{        }\PYG{n}{build.feasible}\PYG{+w}{ }\PYG{n}{problem}\PYG{+w}{ }\PYG{n+nb+bp}{∧}
+\PYG{+w}{        }\PYG{n}{pen}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{totalPenalty}\PYG{+w}{ }\PYG{n}{build}\PYG{+w}{ }\PYG{n}{problem.targets}\PYG{+w}{ }\PYG{n}{wMiss}\PYG{+w}{ }\PYG{n}{wOver}\PYG{+w}{ }\PYG{n+nb+bp}{∧}
+\PYG{+w}{        }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{b}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{b.feasible}\PYG{+w}{ }\PYG{n}{problem}\PYG{+w}{ }\PYG{n+nb+bp}{→}
+\PYG{+w}{          }\PYG{n}{totalPenalty}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{problem.targets}\PYG{+w}{ }\PYG{n}{wMiss}\PYG{+w}{ }\PYG{n}{wOver}\PYG{+w}{ }\PYG{n+nb+bp}{≥}\PYG{+w}{ }\PYG{n}{pen}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{infeasible}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{        }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Build}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{¬}\PYG{+w}{ }\PYG{n}{b.feasible}\PYG{+w}{ }\PYG{n}{problem}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k+kd}{by}
+\PYG{+w}{  }\PYG{g+gr}{sorry}
+\end{MintedVerbatim}

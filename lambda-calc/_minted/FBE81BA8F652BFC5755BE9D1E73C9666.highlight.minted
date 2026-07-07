@@ -1,0 +1,8 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{eval}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{fuel}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{t}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Term}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Term}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{fuel}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{+w}{         }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{                       }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} out of fuel: return as\PYGZhy{}is}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{fuel\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{+}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{betaStep}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{                 }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{    }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{t}\PYG{+w}{          }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} normal form reached!}
+\PYG{+w}{                 }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{t\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{eval}\PYG{+w}{ }\PYG{n}{fuel\PYGZsq{}}\PYG{+w}{ }\PYG{n}{t\PYGZsq{}}
+\end{MintedVerbatim}

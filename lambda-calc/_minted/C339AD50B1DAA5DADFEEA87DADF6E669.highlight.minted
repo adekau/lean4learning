@@ -1,0 +1,6 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{freeVars}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Term}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{n}{String}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{var}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{     }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{x}\PYG{o}{]}\PYG{+w}{                                  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} FV(x) = \PYGZob{}x\PYGZcb{}}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{n}{x}\PYG{+w}{ }\PYG{n}{e}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{freeVars}\PYG{+w}{ }\PYG{n}{e}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{filter}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{·}\PYG{+w}{ }\PYG{n+nb+bp}{!=}\PYG{+w}{ }\PYG{n}{x}\PYG{o}{)}\PYG{+w}{         }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} FV(λx.e) = FV(e)\PYGZbs{}\PYGZob{}x\PYGZcb{}}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{app}\PYG{+w}{ }\PYG{n}{e₁}\PYG{+w}{ }\PYG{n}{e₂}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{freeVars}\PYG{+w}{ }\PYG{n}{e₁}\PYG{+w}{ }\PYG{n+nb+bp}{++}\PYG{+w}{ }\PYG{n}{freeVars}\PYG{+w}{ }\PYG{n}{e₂}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{eraseDups}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} union}
+\end{MintedVerbatim}

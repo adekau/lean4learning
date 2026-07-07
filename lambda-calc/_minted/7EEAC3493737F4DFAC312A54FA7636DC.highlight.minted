@@ -1,0 +1,19 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{isValue}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Expr}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Bool}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{true}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{     }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{false}
+
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{cbvStep}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Expr}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Option}\PYG{+w}{ }\PYG{n}{Expr}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{app}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{n}{body}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{arg}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{isValue}\PYG{+w}{ }\PYG{n}{arg}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{betaReduce}\PYG{+w}{ }\PYG{n}{body}\PYG{+w}{ }\PYG{n}{arg}\PYG{o}{)}
+\PYG{+w}{    }\PYG{k}{else}\PYG{+w}{ }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{cbvStep}\PYG{+w}{ }\PYG{n}{arg}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{         }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{arg\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{app}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{lam}\PYG{+w}{ }\PYG{n}{body}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{arg\PYGZsq{}}\PYG{o}{)}
+\PYG{+w}{         }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{      }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{none}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{app}\PYG{+w}{ }\PYG{n}{e₁}\PYG{+w}{ }\PYG{n}{e₂}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{cbvStep}\PYG{+w}{ }\PYG{n}{e₁}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{e₁\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{app}\PYG{+w}{ }\PYG{n}{e₁\PYGZsq{}}\PYG{+w}{ }\PYG{n}{e₂}\PYG{o}{)}
+\PYG{+w}{    }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{     }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{cbvStep}\PYG{+w}{ }\PYG{n}{e₂}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{                  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{n}{e₂\PYGZsq{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{some}\PYG{+w}{ }\PYG{o}{(}\PYG{n+nb+bp}{.}\PYG{n}{app}\PYG{+w}{ }\PYG{n}{e₁}\PYG{+w}{ }\PYG{n}{e₂\PYGZsq{}}\PYG{o}{)}
+\PYG{+w}{                  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{none}\PYG{+w}{     }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{none}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{n}{none}
+\end{MintedVerbatim}

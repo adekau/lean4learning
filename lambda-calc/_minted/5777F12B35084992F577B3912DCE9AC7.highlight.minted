@@ -1,0 +1,13 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+body = λ. 1 0,  arg = bvar 5
+
+Step 1: shift arg up       → bvar 6
+Step 2: subst 0 (bvar 6) (λ. 1 0)
+  enter inner λ: subst 1 (bvar 7) (app (bvar 1) (bvar 0))
+    bvar 1 (y): 1 == 1 → replaced with bvar 7       ← target
+    bvar 0 (x): 0 ≠ 1 → stays                       ← inner λ\PYGZsq{}s own param
+  result: λ. 7 0
+Step 3: shift down         → λ. 6 0
+
+Named result: λx. arg x   \PYGZhy{}\PYGZhy{} takes x, applies arg to x
+\end{MintedVerbatim}

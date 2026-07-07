@@ -1,0 +1,12 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k}{import}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{n+nx}{createMachine}\PYG{p}{,}\PYG{+w}{ }\PYG{n+nx}{interpret}\PYG{+w}{ }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{k+kr}{from}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}xstate\PYGZsq{}}\PYG{p}{;}
+
+\PYG{k+kd}{const}\PYG{+w}{ }\PYG{n+nx}{protocolMachine}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nx}{createMachine}\PYG{p}{(\PYGZob{}}
+\PYG{+w}{  }\PYG{n+nx}{initial}\PYG{o}{:}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}idle\PYGZsq{}}\PYG{p}{,}
+\PYG{+w}{  }\PYG{n+nx}{states}\PYG{o}{:}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n+nx}{idle}\PYG{o}{:}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{n+nx}{on}\PYG{o}{:}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{n+nx}{SEND\PYGZus{}TASK}\PYG{o}{:}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}awaitingResult\PYGZsq{}}\PYG{+w}{ }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{p}{\PYGZcb{},}
+\PYG{+w}{    }\PYG{n+nx}{awaitingResult}\PYG{o}{:}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{n+nx}{on}\PYG{o}{:}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{n+nx}{RECV\PYGZus{}RESULT}\PYG{o}{:}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}done\PYGZsq{}}\PYG{+w}{ }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{p}{\PYGZcb{},}
+\PYG{+w}{    }\PYG{n+nx}{done}\PYG{o}{:}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{k+kr}{type}\PYG{o}{:}\PYG{+w}{ }\PYG{l+s+s1}{\PYGZsq{}final\PYGZsq{}}\PYG{+w}{ }\PYG{p}{\PYGZcb{},}
+\PYG{+w}{  }\PYG{p}{\PYGZcb{},}
+\PYG{p}{\PYGZcb{});}
+\end{MintedVerbatim}

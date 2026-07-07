@@ -1,0 +1,12 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{n}{name}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}gearsolver\PYGZdq{}}
+\PYG{n}{defaultTargets}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}GearSolver\PYGZdq{}}\PYG{p}{]}
+
+\PYG{k}{[[require]]}
+\PYG{n}{name}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}mathlib\PYGZdq{}}
+\PYG{n}{scope}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}leanprover\PYGZhy{}community\PYGZdq{}}
+\PYG{n}{rev}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}v4.31.0\PYGZdq{}}
+
+\PYG{k}{[[lean\PYGZus{}lib]]}
+\PYG{n}{name}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}GearSolver\PYGZdq{}}
+\end{MintedVerbatim}

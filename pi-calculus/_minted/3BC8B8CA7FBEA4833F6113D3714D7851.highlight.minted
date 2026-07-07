@@ -1,0 +1,8 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{structure}\PYG{+w}{ }\PYG{n}{Point}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n}{x}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}
+\PYG{+w}{  }\PYG{n}{y}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}
+\PYG{+w}{  }\PYG{n}{deriving}\PYG{+w}{ }\PYG{n}{Repr}
+
+\PYG{n}{abbrev}\PYG{+w}{ }\PYG{n}{Nombre}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{String}
+\end{MintedVerbatim}

@@ -1,0 +1,4 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{n}{y} \PYG{o}{=} \PYG{l+m+mi}{10}            \PYG{c+c1}{\PYGZsh{} y is defined outside}
+\PYG{n}{f} \PYG{o}{=} \PYG{k}{lambda} \PYG{n}{x}\PYG{p}{:} \PYG{n}{x} \PYG{o}{+} \PYG{n}{y}  \PYG{c+c1}{\PYGZsh{} x is bound (parameter), y is free (from outer scope)}
+\end{MintedVerbatim}

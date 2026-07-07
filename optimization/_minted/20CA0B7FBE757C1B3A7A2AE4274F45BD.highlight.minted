@@ -1,0 +1,44 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{structure}\PYG{+w}{ }\PYG{n}{SlotCoefficients}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n}{tripleMajor}\PYG{+w}{  }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}
+\PYG{+w}{  }\PYG{n}{tripleMinor}\PYG{+w}{  }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}
+\PYG{+w}{  }\PYG{n}{quadMajor}\PYG{+w}{    }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}
+\PYG{+w}{  }\PYG{n}{quadMinor}\PYG{+w}{    }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}
+\PYG{+w}{  }\PYG{n}{celestial}\PYG{+w}{    }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}
+\PYG{+w}{  }\PYG{n}{deriving}\PYG{+w}{ }\PYG{n}{Repr}
+
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{coefficients}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{GearSlot}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{SlotCoefficients}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{headgear}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{⟨}\PYG{l+m+mi}{63}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{45}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{54}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{30}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{30}\PYG{o}{⟩}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{shoulders}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{⟨}\PYG{l+m+mi}{47}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{34}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{40}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{22}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{22}\PYG{o}{⟩}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{coat}\PYG{+w}{       }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{⟨}\PYG{l+m+mi}{141}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{101}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{121}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{67}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{67}\PYG{o}{⟩}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{gloves}\PYG{+w}{     }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{⟨}\PYG{l+m+mi}{47}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{34}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{40}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{22}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{22}\PYG{o}{⟩}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{leggings}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{⟨}\PYG{l+m+mi}{94}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{67}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{81}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{44}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{44}\PYG{o}{⟩}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{boots}\PYG{+w}{      }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{⟨}\PYG{l+m+mi}{47}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{34}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{40}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{22}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{22}\PYG{o}{⟩}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{mainhand}\PYG{+w}{   }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{⟨}\PYG{l+m+mi}{125}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{90}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{108}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{59}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{59}\PYG{o}{⟩}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} 1H}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{offhand}\PYG{+w}{    }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{⟨}\PYG{l+m+mi}{125}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{90}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{108}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{59}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{59}\PYG{o}{⟩}\PYG{+w}{  }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} 1H}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{amulet}\PYG{+w}{     }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{⟨}\PYG{l+m+mi}{157}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{108}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{133}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{71}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{72}\PYG{o}{⟩}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{ring1}\PYG{+w}{      }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{⟨}\PYG{l+m+mi}{126}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{85}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{106}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{56}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{57}\PYG{o}{⟩}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{ring2}\PYG{+w}{      }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{⟨}\PYG{l+m+mi}{126}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{85}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{106}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{56}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{57}\PYG{o}{⟩}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{accessory1}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{⟨}\PYG{l+m+mi}{110}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{74}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{92}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{49}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{50}\PYG{o}{⟩}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{accessory2}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{⟨}\PYG{l+m+mi}{110}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{74}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{92}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{49}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{50}\PYG{o}{⟩}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{backPiece}\PYG{+w}{  }\PYG{n+nb+bp}{=\PYGZgt{}}\PYG{+w}{ }\PYG{o}{⟨}\PYG{l+m+mi}{63}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{40}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{52}\PYG{o}{,}\PYG{+w}{  }\PYG{l+m+mi}{27}\PYG{o}{,}\PYG{+w}{ }\PYG{l+m+mi}{28}\PYG{o}{⟩}
+
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} Contribution of `combo` on `slot` to `stat`. \PYGZhy{}/}
+\PYG{k+kd}{def}\PYG{+w}{ }\PYG{n}{contribution}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{slot}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{GearSlot}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{combo}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatCombo}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{stat}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatType}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Nat}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{  }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{coefficients}\PYG{+w}{ }\PYG{n}{slot}
+\PYG{+w}{  }\PYG{k}{match}\PYG{+w}{ }\PYG{n}{combo.category}\PYG{+w}{ }\PYG{k}{with}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{triple}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{combo.majors.contains}\PYG{+w}{ }\PYG{n}{stat}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{c.tripleMajor}
+\PYG{+w}{    }\PYG{k}{else}\PYG{+w}{ }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{combo.minors.contains}\PYG{+w}{ }\PYG{n}{stat}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{c.tripleMinor}
+\PYG{+w}{    }\PYG{k}{else}\PYG{+w}{ }\PYG{l+m+mi}{0}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{quad}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{combo.majors.contains}\PYG{+w}{ }\PYG{n}{stat}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{c.quadMajor}
+\PYG{+w}{    }\PYG{k}{else}\PYG{+w}{ }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{combo.minors.contains}\PYG{+w}{ }\PYG{n}{stat}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{c.quadMinor}
+\PYG{+w}{    }\PYG{k}{else}\PYG{+w}{ }\PYG{l+m+mi}{0}
+\PYG{+w}{  }\PYG{n+nb+bp}{|}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{celestial}\PYG{+w}{ }\PYG{n+nb+bp}{=\PYGZgt{}}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{wvwStats}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{List}\PYG{+w}{ }\PYG{n}{StatType}\PYG{+w}{ }\PYG{o}{:=}
+\PYG{+w}{      }\PYG{o}{[}\PYG{n+nb+bp}{.}\PYG{n}{power}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{precision}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{ferocity}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{toughness}\PYG{o}{,}
+\PYG{+w}{       }\PYG{n+nb+bp}{.}\PYG{n}{vitality}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{conditionDamage}\PYG{o}{,}\PYG{+w}{ }\PYG{n+nb+bp}{.}\PYG{n}{healingPower}\PYG{o}{]}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{wvwStats.contains}\PYG{+w}{ }\PYG{n}{stat}\PYG{+w}{ }\PYG{k}{then}\PYG{+w}{ }\PYG{n}{c.celestial}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{l+m+mi}{0}
+\end{MintedVerbatim}

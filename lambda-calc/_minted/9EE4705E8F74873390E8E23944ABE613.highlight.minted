@@ -1,0 +1,9 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kr}{class}\PYG{+w}{ }\PYG{k+kt}{Functor}\PYG{+w}{ }\PYG{n}{f}\PYG{+w}{ }\PYG{k+kr}{where}\PYG{+w}{                    }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} f has kind Type \PYGZhy{}\PYGZgt{} Type}
+\PYG{+w}{  }\PYG{n}{fmap}\PYG{+w}{ }\PYG{o+ow}{::}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{a}\PYG{+w}{ }\PYG{o+ow}{\PYGZhy{}\PYGZgt{}}\PYG{+w}{ }\PYG{n}{b}\PYG{p}{)}\PYG{+w}{ }\PYG{o+ow}{\PYGZhy{}\PYGZgt{}}\PYG{+w}{ }\PYG{n}{f}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{o+ow}{\PYGZhy{}\PYGZgt{}}\PYG{+w}{ }\PYG{n}{f}\PYG{+w}{ }\PYG{n}{b}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Works for every container:}
+\PYG{n+nf}{fmap}\PYG{+w}{ }\PYG{p}{(}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{2}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{3}\PYG{p}{]}\PYG{+w}{                      }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} [2, 3, 4]       (f = List)}
+\PYG{n+nf}{fmap}\PYG{+w}{ }\PYG{p}{(}\PYG{o}{+}\PYG{l+m+mi}{1}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{Just}\PYG{+w}{ }\PYG{l+m+mi}{5}\PYG{p}{)}\PYG{+w}{                       }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Just 6           (f = Maybe)}
+\PYG{n+nf}{fmap}\PYG{+w}{ }\PYG{n}{show}\PYG{+w}{ }\PYG{p}{(}\PYG{k+kt}{Node}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{+w}{ }\PYG{k+kt}{Leaf}\PYG{+w}{ }\PYG{k+kt}{Leaf}\PYG{p}{)}\PYG{+w}{             }\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Node \PYGZdq{}1\PYGZdq{} ...     (f = Tree)}
+\end{MintedVerbatim}

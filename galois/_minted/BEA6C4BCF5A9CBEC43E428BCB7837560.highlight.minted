@@ -1,0 +1,16 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{k+kd}{class}\PYG{+w}{ }\PYG{n}{Group}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{G}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{k+kt}{Type}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{where}
+\PYG{+w}{  }\PYG{n}{mul}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{G}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{G}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{G}
+\PYG{+w}{  }\PYG{n}{one}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{G}
+\PYG{+w}{  }\PYG{n}{inv}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{G}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{G}
+\PYG{+w}{  }\PYG{n}{mul\PYGZus{}assoc}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{G}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{mul}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{mul}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{b}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{c}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{mul}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{mul}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{c}\PYG{o}{)}
+\PYG{+w}{  }\PYG{n}{one\PYGZus{}mul}\PYG{+w}{   }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{G}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{mul}\PYG{+w}{ }\PYG{n}{one}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{a}
+\PYG{+w}{  }\PYG{n}{mul\PYGZus{}one}\PYG{+w}{   }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{G}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{mul}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n}{one}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{a}
+\PYG{+w}{  }\PYG{n}{inv\PYGZus{}mul}\PYG{+w}{   }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{G}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{mul}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{inv}\PYG{+w}{ }\PYG{n}{a}\PYG{o}{)}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{one}
+\PYG{+w}{  }\PYG{n}{mul\PYGZus{}inv}\PYG{+w}{   }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{G}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{mul}\PYG{+w}{ }\PYG{n}{a}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{inv}\PYG{+w}{ }\PYG{n}{a}\PYG{o}{)}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{one}
+
+\PYG{c+c1}{\PYGZhy{}\PYGZhy{} Notation}
+\PYG{k+kd}{instance}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{Group}\PYG{+w}{ }\PYG{n}{G}\PYG{o}{]}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Mul}\PYG{+w}{ }\PYG{n}{G}\PYG{+w}{ }\PYG{n}{where}\PYG{+w}{ }\PYG{n}{mul}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Group.mul}
+\PYG{k+kd}{instance}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{Group}\PYG{+w}{ }\PYG{n}{G}\PYG{o}{]}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{One}\PYG{+w}{ }\PYG{n}{G}\PYG{+w}{ }\PYG{n}{where}\PYG{+w}{ }\PYG{n}{one}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Group.one}
+\PYG{k+kd}{instance}\PYG{+w}{ }\PYG{o}{[}\PYG{n}{Group}\PYG{+w}{ }\PYG{n}{G}\PYG{o}{]}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Inv}\PYG{+w}{ }\PYG{n}{G}\PYG{+w}{ }\PYG{n}{where}\PYG{+w}{ }\PYG{n}{inv}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{Group.inv}
+\end{MintedVerbatim}

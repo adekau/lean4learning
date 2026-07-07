@@ -4,7 +4,13 @@
 \usepackage{fontspec}
 \setmainfont{Latin Modern Roman}
 \setsansfont{Latin Modern Sans}
-\setmonofont{DejaVu Sans Mono}[Scale=0.85]
+% Pin the full system DejaVu Sans Mono by path: the TeX-distribution copy
+% is trimmed and silently drops some math glyphs used in the Lean listings
+% (e.g. 𝟎, ⬝, ⊕, ∥). The system TTFs carry the full glyph set.
+\setmonofont{DejaVuSansMono.ttf}[
+  Path=/usr/share/fonts/truetype/dejavu/,
+  BoldFont=DejaVuSansMono-Bold.ttf,
+  Scale=0.85]
 
 % ── Core packages ────────────────────────────────────────────────────────────
 \usepackage[margin=2.5cm]{geometry}
@@ -228,8 +234,18 @@ JavaScript. Go's goroutines and Erlang's actors build entire distributed
 systems around message passing. And yet: race conditions, deadlocks, and
 data corruption remain among the most common and hardest-to-debug classes of
 software defects. The Therac-25 radiation therapy machine killed patients
-because of a race condition. The Ariane~5 rocket exploded because of a
-concurrent sensor processing fault. These are not hypothetical risks.
+because of a race condition between concurrent tasks updating shared
+state. These are not hypothetical risks.
+
+(A word of caution about famous disasters: not every high-profile software
+failure is a concurrency bug. Ariane~5 Flight~501 (1996), for instance, is
+often mis-cited as one. It was not: reused Ariane~4 alignment code converted
+a 64-bit floating-point horizontal-velocity value into a 16-bit signed
+integer, the value overflowed, and the resulting unhandled Operand Error
+shut down the guidance computers. That is a data-conversion/overflow defect,
+not a race condition. We mention it precisely because misattributing bugs is
+itself a hazard---the first step in eliminating a class of defect is naming
+it correctly.)
 
 The root cause is that concurrent programs are \emph{fundamentally different}
 from sequential ones. When two processes run in parallel, their actions can
@@ -260,8 +276,17 @@ Comfort with Lean\,4 (inductive types, pattern matching, tactics) and
 familiarity with TypeScript/Node.js. No prior concurrency theory.
 
 \paragraph{Lean\,4 setup.}
-All code is vanilla Lean\,4, no Mathlib. We build every structure from
-scratch.
+All code is vanilla Lean\,4, no Mathlib---this book is genuinely
+zero-dependency, and we build every structure from scratch. The listings are
+checked against toolchain \lc{leanprover/lean4:v4.31.0}; a \lc{lean-toolchain}
+file containing that single line is all the project needs. Every printed
+listing compiles as shown (the one exception, an intentional \lc{sorry}, is an
+exercise and is flagged where it appears). Do not worry if the first listing
+is your first encounter with Lean~4: Appendix~\ref{app:primer}
+(\emph{A Lean 4 Primer}) explains every keyword and tactic this book uses,
+with small worked examples and---where it illuminates---the lower-level term
+each tactic expands to. Read it alongside the early chapters, or dip in
+whenever a new construct appears.
 
 \mainmatter
 \color{black}
@@ -647,11 +672,14 @@ inductive CCS where
   | repl : CCS → CCS                    -- !P
   deriving Repr
 
--- Notation helpers
-scoped notation "𝟎" => CCS.nil
-scoped infixr:60 " ⬝ " => CCS.pre        -- α.P
+-- Notation helpers. `scoped` attributes are only legal inside a
+-- namespace, so we wrap them (open CCSNotation to bring them in scope).
+namespace CCSNotation
+scoped notation "∅" => CCS.nil
+scoped infixr:60 " ⊳ " => CCS.pre        -- α.P
 scoped infixl:50 " ⊕ " => CCS.plus       -- P + Q
-scoped infixl:40 " ∥ " => CCS.par        -- P | Q
+scoped infixl:40 " ‖ " => CCS.par        -- P | Q
+end CCSNotation
 \end{minted}
 \end{leanbox}
 
@@ -674,7 +702,11 @@ satisfying these rules:
 \item \textsc{Par-R:} If $Q \xrightarrow{\alpha} Q'$ then
   $P \Par Q \xrightarrow{\alpha} P \Par Q'$
 \item \textsc{Comm:} If $P \xrightarrow{a} P'$ and $Q \xrightarrow{\bar{a}} Q'$
-  then $P \Par Q \xrightarrow{\tau} P' \Par Q'$
+  then $P \Par Q \xrightarrow{\tau} P' \Par Q'$ (and symmetrically, with the
+  roles of $P$ and $Q$ swapped---the label $a$ ranges over both inputs and
+  their complementary outputs, so a send on the left meeting a receive on the
+  right also synchronizes). The Lean encoding below makes both directions
+  explicit as the constructors \lc{comm} and \lc{commR}.
 \item \textsc{Res:} If $P \xrightarrow{\alpha} P'$ and $\alpha \neq a, \bar{a}$
   then $\res{a} P \xrightarrow{\alpha} \res{a} P'$
 \item \textsc{Repl:} If $P \Par \repl P \xrightarrow{\alpha} P'$
@@ -740,6 +772,16 @@ Two $\tau$ steps: two internal communications. The outside world sees nothing
 \end{tabular}
 \end{center}
 
+\begin{warning}[title={The \lc{Promise.race} analogy is imperfect}]
+CCS choice $P + Q$ \emph{discards} the branch not taken: the moment $P$ takes
+a step, $Q$ is gone, and none of $Q$'s effects ever happen.
+\lc{Promise.race([p, q])} resolves with whichever promise settles first, but
+it does \textbf{not} cancel the loser---the losing promise keeps running and
+its side effects still occur. So the mapping captures ``first one wins the
+result,'' not ``the other is abandoned.'' A closer operational match to $+$ is
+an \lc{AbortController} whose \lc{abort()} genuinely tears down the loser.
+\end{warning}
+
 \begin{exercisebox}[title={Exercise 3.1}]
 \stepcounter{exercise}
 Model a pub/sub system in CCS: a publisher sends messages on a channel, and
@@ -751,7 +793,12 @@ possible executions.
 \stepcounter{exercise}
 Prove in Lean that the Client $\|$ Server system above reaches
 $\nil \Par \nil$ after exactly two $\tau$ steps, by constructing the
-derivation using \lc{CCSStep} constructors.
+derivation using \lc{CCSStep} constructors. \emph{Hint:} each step is a single
+constructor --- \lc{CCSStep.commR CCSStep.prefix CCSStep.prefix} for the first
+(Client outputs, Server inputs) and \lc{CCSStep.comm …} for the second. If
+tactic and term proofs are new to you, see Appendix~\ref{app:primer}; a fully
+worked version of this derivation is in the companion file
+\lc{PiCalcVerification.lean}.
 \end{exercisebox}
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -955,11 +1002,14 @@ def isDeadlocked (P : CCS) : Prop :=
   &\res{a}\res{b}(A \Par B)
 \end{align*}
 
-Both $A$ and $B$ want to send first. Under restriction, neither output is
-visible externally, and neither can synchronize because $A$ outputs on $b$
-while $B$ outputs on $a$---but $A$ is waiting for input on $a$ (which $B$
-hasn't sent yet) and $B$ is waiting for input on $b$ (which $A$ hasn't sent
-yet). Deadlock.
+Both $A$ and $B$ want to \emph{send} first. Under restriction, neither output
+is visible externally, so a step could only happen by an internal
+synchronization---and none is possible. $A$'s first (and blocking) action is
+an \emph{output} on $b$, but nobody is listening on $b$: $B$'s first action is
+an output on $a$, not an input on $b$. Symmetrically, $A$ never offers an
+input on $a$ to match $B$'s output. Neither process ever reaches its later
+input action, because each is stuck trying to send. Two senders, no matching
+receivers. Deadlock.
 
 \section{Livelock}
 
@@ -1124,6 +1174,8 @@ $\inp{x}{z}.Q$, they synchronize---$y$ is sent, $z$ gets bound to $y$:
   \outp{x}{y}.P \;\Par\; \inp{x}{z}.Q \;\xrightarrow{\tau}\;
   P \;\Par\; Q[y/z]
 \]
+Here $Q[y/z]$ is \textbf{substitution}: replace every free occurrence of $z$
+in $Q$ by $y$. We give it a Lean definition below (Definition~\ref{def:pi-op}).
 
 The truly novel feature is \textbf{scope extrusion}: if a private name
 escapes via communication, its scope automatically widens.
@@ -1131,10 +1183,58 @@ escapes via communication, its scope automatically widens.
   \res{a}(\outp{x}{a}.P) \;\Par\; \inp{x}{z}.Q
   \;\xrightarrow{\tau}\;
   \res{a}(P \;\Par\; Q[a/z])
+  \qquad\text{if } a \notin \fn(Q)
 \]
 The name $a$ was private to the left process, but after sending it over $x$,
 the right process now knows $a$ too. The $\nu a$ scope expands to cover
-both processes.
+both processes. The side condition $a \notin \fn(Q)$ is essential: if $a$ were
+already free in $Q$ it would be a \emph{different}, unrelated name, and
+widening the $\nu a$ scope over $Q$ would wrongly capture it. (This mirrors
+the side condition on the structural-congruence version of the same law in
+Chapter~7, and in practice one always $\alpha$-renames the bound $a$ to
+something fresh for $Q$ first.)
+
+\begin{defn}{$\pi$-Calculus Substitution and Reduction}{pi-op}
+Substitution $P[y/z]$ replaces free occurrences of $z$ by $y$, stopping at any
+binder that re-binds $z$ (and, by the usual freshness convention, assuming $y$
+is not captured by a binder in $P$). The one-step reduction relation
+$P \reduces Q$ is generated by communication (in either order) closed under
+parallel composition and restriction. The Lean encoding follows.
+\end{defn}
+
+\begin{leanbox}
+\begin{minted}{lean}
+-- Substitution: replace FREE occurrences of z by y  (prose: P[y/z]).
+-- Structural recursion on P, so it terminates. Stops at binders that
+-- re-bind z; assumes (Barendregt convention) y is fresh for P.
+def Pi.subst : Pi → Name → Name → Pi
+  | .nil,        _, _ => .nil
+  | .send x w P, z, y =>
+      .send (if x = z then y else x) (if w = z then y else w) (P.subst z y)
+  | .recv x w P, z, y =>
+      .recv (if x = z then y else x) w (if w = z then P else P.subst z y)
+  | .par P Q,    z, y => .par (P.subst z y) (Q.subst z y)
+  | .res a P,    z, y => .res a (if a = z then P else P.subst z y)
+  | .repl P,     z, y => .repl (P.subst z y)
+  | .plus P Q,   z, y => .plus (P.subst z y) (Q.subst z y)
+
+-- Reduction (τ) semantics. commL/commR: a send meets a matching receive
+-- (in either order). parL/parR/res: reduction under those contexts.
+inductive PiStep : Pi → Pi → Prop where
+  | commL : PiStep (.par (.send x y P) (.recv x z Q)) (.par P (Q.subst z y))
+  | commR : PiStep (.par (.recv x z Q) (.send x y P)) (.par (Q.subst z y) P)
+  | parL  : PiStep P P' → PiStep (.par P Q) (.par P' Q)
+  | parR  : PiStep Q Q' → PiStep (.par P Q) (.par P Q')
+  | res   : PiStep P P' → PiStep (.res a P) (.res a P')
+\end{minted}
+\end{leanbox}
+
+This \lc{PiStep} deliberately keeps only the ``computational'' rules
+(communication under parallel/restriction contexts); a fully general
+presentation also closes reduction under structural congruence
+(Chapter~7), which is what lets scope extrusion fire in arbitrary positions.
+We omit that closure to keep the relation small enough to compute with by
+hand---it is all we need for the exercises.
 
 \subsection{The Node.js Connection}
 
@@ -1156,22 +1256,41 @@ worker.postMessage({ port: port2 }, [port2]);
 
 \section{Encoding the $\lambda$-Calculus}
 
-Milner showed that function application can be encoded as communication:
-
+Milner showed that function application can be encoded as communication.
+Each $\lambda$-term is translated relative to a \emph{return channel} $u$ ---
+the channel on which its value will be delivered. This is Milner's monadic
+call-by-name encoding (every message is a single name, matching our
+\lc{send}/\lc{recv} syntax):
 \begin{align*}
-  ⟦x⟧_u &= \outp{x}{u}.\nil \\
+  ⟦x⟧_u &= \outp{x}{u}.\nil
+    &&\text{(look up $x$: hand it the return channel $u$)} \\
   ⟦\lambda x. M⟧_u &=
-    \inp{u}{(x, v)}.⟦M⟧_v \\
+    \inp{u}{x}.\inp{u}{w}.⟦M⟧_w
+    &&\text{(receive the argument channel $x$, then the return channel $w$)} \\
   ⟦M\;N⟧_u &=
-    \res{v}(⟦M⟧_v \;\Par\;
-    \inp{v}{(x,w)}.(
-      ⟦N⟧_x \;\Par\;
-      \outp{w}{u}.\nil))
+    \res{v}\bigl(⟦M⟧_v \;\Par\;
+      \outp{v}{n}.\outp{v}{u}.\nil\bigr)
+    &&\text{(run $M$ on fresh $v$; send it $N$'s channel, then $u$)}
 \end{align*}
+where $n$ is the channel giving access to the argument $N$. For a variable
+argument $N = y$ this is simply $y$ itself; the general case wraps $N$ in a
+replicated server $\res{n}\bigl(\ldots \Par \repl\, \inp{n}{w}.⟦N⟧_w\bigr)$
+(see Milner, \emph{Functions as Processes}, 1992).
+
+\begin{warning}[title={Polarity matters}]
+The direction of each communication is the whole point. An abstraction
+$⟦\lambda x.M⟧_u$ \textbf{inputs} on its channel (it is waiting to be called);
+an application \textbf{outputs} on that channel (it is doing the calling). If
+both sides input --- as an earlier draft of this encoding had it --- then
+nothing ever outputs on $v$, no $\tau$ step is possible, and the ``redex''
+$(\lambda x.M)\,N$ is stuck. Getting sender and receiver the right way round
+is exactly what makes $\beta$-reduction turn into communication.
+\end{warning}
 
 The variable $u$ is a ``return channel''---where the result will be sent.
-Function application creates a fresh channel $v$, evaluates the function,
-receives its body, evaluates the argument, and forwards the result.
+Function application creates a fresh channel $v$, runs the function on it,
+sends the function its argument channel and then the outer return channel,
+and the function's body delivers the result on that return channel.
 
 \begin{intuition}
 This encoding reveals something deep: sequential computation (the
@@ -1190,9 +1309,22 @@ them. Use scope extrusion to pass the private channel to both users.
 
 \begin{exercisebox}[title={Exercise 6.2}]
 \stepcounter{exercise}
-Encode the $\lambda$-term $(\lambda x. x)\; y$ (identity applied to $y$)
-using Milner's encoding. Trace the reduction steps and verify that the
-result is $y$.
+Encode the $\lambda$-term $(\lambda x. x)\; y$ (identity applied to $y$) with
+return channel $u$ using the encoding above. You should get
+\[
+  \res{v}\bigl(\,\inp{v}{x}.\inp{v}{w}.\outp{x}{w}.\nil
+    \;\Par\;
+    \outp{v}{y}.\outp{v}{u}.\nil\,\bigr).
+\]
+Now trace the reduction using \lc{PiStep}. Show it takes exactly two
+$\tau$ steps --- the first sends $y$ (binding $x := y$), the second sends $u$
+(binding $w := u$) --- ending in
+$\res{v}\bigl(\outp{y}{u}.\nil \Par \nil\bigr)$, which is structurally
+congruent to $⟦y⟧_u = \outp{y}{u}.\nil$ (drop the $\Par\,\nil$ and the vacuous
+$\nu v$, since $v \notin \fn$). The result is $y$, as expected.
+Encode these processes as \lc{Pi} terms and prove both \lc{PiStep} steps in
+Lean by applying \lc{PiStep.res} to \lc{PiStep.commR}. (Worked in the
+companion file \lc{PiCalcVerification.lean}.)
 \end{exercisebox}
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -1280,6 +1412,18 @@ inductive StructCong : CCS → CCS → Prop where
   | plusCong : StructCong P P' → StructCong (.plus P Q) (.plus P' Q)
 \end{minted}
 \end{leanbox}
+
+Note that this Lean \lc{StructCong} encodes only the algebraic laws over the
+\lc{CCS} type plus the equivalence-and-congruence closure. It deliberately
+omits the four laws in the Definition above that are specific to
+restriction and replication --- $\res{a}\nil \equiv \nil$,
+$\res{a}\res{b}P \equiv \res{b}\res{a}P$, scope extrusion, and
+$\repl P \equiv P \Par \repl P$ --- together with a congruence rule for
+$\nu$. Those laws mention constructors (\lc{res}, \lc{repl}) that the
+$\pi$-calculus type \lc{Pi} carries; a full \lc{Pi}-level structural
+congruence would add them (and a \lc{resCong}). We show the CCS fragment here
+because it is all the later CCS material needs; extending it to \lc{Pi} is a
+good exercise.
 
 Structural congruence is used to ``prepare'' terms before reduction. The
 idea: first rearrange using $\equiv$ (which is purely syntactic), then
@@ -1395,6 +1539,20 @@ HM logic gives us a specification language for concurrent systems:
   where $\mathsf{live} = \bigvee_a \langle a \rangle \mathsf{tt}$.
 \end{itemize}
 
+\begin{warning}[title={Beyond the core logic}]
+The first and third examples reach \emph{outside} the HM grammar of
+Definition~\ref{def:hm-logic}, and we write them informally. The iterated
+modality $[\tau]^*$ (``after any number of $\tau$-steps'') is a Kleene star,
+and $\mathsf{live} = \bigvee_a \langle a \rangle\mathsf{tt}$ is a disjunction
+over \emph{all} actions --- but the core logic has neither iteration nor
+infinite/$n$-ary connectives, only the finite $\wedge$ and $\vee$ of the
+grammar. Expressing ``always,'' ``eventually,'' and ``for every reachable
+state'' properly requires fixed-point operators: this is the
+\emph{modal $\mu$-calculus}, HM logic's more expressive descendant, mentioned
+in the next box. Read these two bullets as motivation, not as formulas of the
+logic we defined.
+\end{warning}
+
 \begin{historical}[title={From HM Logic to Model Checking}]
 HM logic is the ancestor of the temporal logics (CTL, CTL*, LTL) used by
 industrial model-checking tools like SPIN, NuSMV, and TLA+. Edmund Clarke,
@@ -1498,6 +1656,14 @@ describes the other endpoint of the channel.
   \overline{\mu X. S} &= \mu X. \overline{S}
 \end{alignat*}
 \end{defn}
+
+The next listing contains this book's first \emph{tactic} proof: that taking
+the dual twice returns the original type. It uses \lc{induction \ldots with}
+(one case per constructor, with induction hypotheses \lc{ih} for recursive
+sub-types), \lc{simp} (rewrite with the given equations until nothing
+changes), and \lc{rfl} (true by computation). If any of these is unfamiliar,
+Appendix~\ref{app:primer} explains each one --- including the recursor term
+that \lc{induction} is sugar for.
 
 \begin{leanbox}
 \begin{minted}{lean}
@@ -1831,6 +1997,23 @@ Project onto each of the three roles.
 ``Move fast and \emph{prove} things.''}%
 {The promise of verified concurrency}
 
+\begin{warning}[title={``Verified'' means two different things --- be precise}]
+This is a good moment to be honest about what ``verified'' covers in this book.
+There is a firm line between \emph{proved on paper} and \emph{checked by Lean}.
+Machine-checked in Lean (the kernel accepts the proof term): the syntax of
+every calculus, the session-duality involution
+(Theorem/\lc{SessionType.dual\_dual}), the two-step \lc{CCSStep} request/response
+derivation, and the two-step \lc{PiStep} reduction of the identity encoding
+(Exercise~6.2). Everything with a ``\emph{Proof sketch}'' label below --- session
+safety, multiparty safety, and the three worker-pool theorems --- is argued
+\emph{on paper} in this chapter, not checked in Lean. Turning those sketches
+into machine-checked theorems (which would require, among other things, a
+typing relation and a fuel-bounded worker) is exactly the kind of work the
+field does and the exercises point toward. Read ``verified'' in the chapter
+title as the \emph{goal} the protocol is designed to meet, not a claim that
+Lean has certified all of it.
+\end{warning}
+
 \section{The Protocol}
 
 We design, formalize, and verify a worker pool protocol for Node.js:
@@ -1872,8 +2055,15 @@ def dispatcher (tasks : List Name) (pool : Name) : Pi :=
     .recv "worker" "result" <|
     dispatcher ts pool
 
--- A worker process
-def worker (pool : Name) : Pi :=
+-- A worker process. It loops forever (`worker pool` recurses with the SAME
+-- argument and no decreasing measure), so Lean cannot prove it terminates
+-- and rejects a plain `def`. That is intentional: a server loop is *meant*
+-- to run forever. We mark it `partial def` (which asks Lean to trust us
+-- rather than check termination). A `partial def` returning `Pi` also needs
+-- to know `Pi` is nonempty, so we register `Inhabited Pi` first.
+instance : Inhabited Pi := ⟨.nil⟩
+
+partial def worker (pool : Name) : Pi :=
   -- Register with dispatcher
   .send pool "self" <|       -- scope extrusion: pass our channel
   -- Receive task
@@ -1884,6 +2074,13 @@ def worker (pool : Name) : Pi :=
   worker pool                 -- loop: re-register
 \end{minted}
 \end{leanbox}
+
+Because \lc{worker} is \lc{partial}, Lean treats it as an opaque black box in
+proofs: we cannot unfold it or do induction on its (nonexistent) recursion.
+That is a deliberate trade-off --- \lc{partial def} buys us
+non-termination at the cost of proof transparency. The \lc{dispatcher} above,
+by contrast, recurses structurally on the shrinking \lc{tasks} list, so it is
+an ordinary \lc{def} we \emph{can} reason about.
 
 \section{Properties to Prove}
 
@@ -1985,9 +2182,17 @@ Formalize the extended protocol and prove that every task eventually completes
 
 \begin{exercisebox}[title={Exercise 12.2}]
 \stepcounter{exercise}
-Prove in Lean that the worker pool protocol satisfies the deadlock-freedom
-property. \emph{Hint:} show that in every reachable state, at least one
-communication rule (from the $\pi$-calculus operational semantics) is applicable.
+Argue on paper that the worker pool protocol satisfies deadlock freedom: show
+that in every reachable state at least one \lc{PiStep} communication rule
+(Definition~\ref{def:pi-op}) is applicable. \emph{Hint:} follow the four-point
+proof sketch of Theorem~\ref{thm:pool-deadlock-free}, matching each case to a
+\lc{PiStep.commL}/\lc{commR} redex. \emph{Why paper and not Lean here?} Our
+\lc{worker} is a \lc{partial def} (it is an infinite loop), so Lean treats it
+as opaque: you cannot unfold it or induct on it, which blocks a machine proof.
+For a Lean-checkable version, first replace \lc{worker} by a fuel-bounded
+structural \lc{def worker (fuel : Nat) (pool : Name) : Pi} that recurses on
+\lc{fuel}, then state and prove progress for each fuel step. (Compare the
+fully machine-checked two-step \lc{PiStep} reduction of Exercise~6.2.)
 \end{exercisebox}
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -2063,9 +2268,10 @@ connected each one to TypeScript/Node.js patterns.
   Knaster-Tarski theorem.
 \item \textbf{Galois theory book:} The algebraic laws of parallel composition
   (commutative monoid) are the same kind of structure as the algebraic laws
-  of field arithmetic. The subgroup lattice ↔ intermediate field lattice
-  correspondence is structurally parallel to the specification ↔
-  implementation correspondence in refinement theory.
+  of field arithmetic. The subgroup lattice $\leftrightarrow$ intermediate
+  field lattice correspondence is structurally parallel to the
+  specification $\leftrightarrow$ implementation correspondence in
+  refinement theory.
 \end{itemize}
 
 \vfill
@@ -2144,17 +2350,27 @@ correctness, not performance.\\
   \lc{LTS} & Labeled transition system & 2 \\
   \lc{CCS} & CCS process terms & 3 \\
   \lc{CCSAct} & CCS actions (input/output/tau) & 3 \\
+  \lc{CCSAct.complement} & Complement of an action & 3 \\
   \lc{CCSStep} & CCS operational semantics & 3 \\
   \lc{IsBisimulation} & Bisimulation condition & 4 \\
   \lc{Bisimilar} & Bisimilarity relation & 4 \\
   \lc{isDeadlocked} & Deadlock predicate & 5 \\
+  \lc{philosopher} & Dining-philosopher process & 5 \\
   \lc{Pi} & $\pi$-calculus terms & 6 \\
+  \lc{Pi.freeNames} & Free names of a $\pi$-term & 6 \\
+  \lc{Pi.subst} & Name substitution $P[y/z]$ & 6 \\
+  \lc{PiStep} & $\pi$-calculus reduction semantics & 6 \\
   \lc{StructCong} & Structural congruence & 7 \\
   \lc{HML} & Hennessy-Milner logic formulas & 8 \\
   \lc{Satisfies} & HM logic satisfaction & 8 \\
+  \lc{BaseType} & Message base types & 9 \\
   \lc{SessionType} & Session types & 9 \\
   \lc{SessionType.dual} & Session type duality & 9 \\
+  \lc{SessionType.dual\_dual} & Duality involution (theorem) & 9 \\
+  \lc{Role} & Multiparty participants & 11 \\
   \lc{GlobalType} & Multiparty global types & 11 \\
+  \lc{dispatcher} & Worker-pool dispatcher & 12 \\
+  \lc{worker} & Worker-pool worker loop & 12 \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -2188,5 +2404,348 @@ correctness, not performance.\\
   \bottomrule
 \end{tabular}
 \end{center}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\chapter*{Appendix D: A Lean 4 Primer}\label{app:primer}
+\addcontentsline{toc}{chapter}{Appendix D: A Lean 4 Primer}
+% ══════════════════════════════════════════════════════════════════════════════
+
+This appendix is a zero-prerequisites tour of every Lean~4 construct and tactic
+used in this book. Each entry says what the construct does, shows a small
+self-contained example (every example here is machine-checked in the companion
+file \lc{PiCalcVerification.lean}), and --- where it illuminates --- shows the
+lower-level term the tactic is sugar for. That last part is worth your
+attention: Lean tactics are not magic, they are \emph{programs that build proof
+terms}, and seeing the term once demystifies the tactic permanently.
+
+Everything here is core Lean~4 (toolchain \lc{leanprover/lean4:v4.31.0}), no
+Mathlib --- the same setup as the rest of the book.
+
+\section*{Declarations}
+
+\subsection*{\lc{inductive} --- defining new types}
+
+An \lc{inductive} declaration creates a new type from a list of
+\emph{constructors} --- the only ways to build values of the type. The kernel
+knows constructors are injective and disjoint, and generates an induction
+principle (the \emph{recursor}, below). Every syntax type in this book
+(\lc{CCS}, \lc{Pi}, \lc{HML}, \lc{SessionType}, \ldots) is an \lc{inductive}.
+
+\begin{leanbox}
+\begin{minted}{lean}
+inductive Tree where
+  | leaf : Tree
+  | node : Tree → Tree → Tree
+  deriving Repr, DecidableEq
+\end{minted}
+\end{leanbox}
+
+\lc{deriving Repr} asks Lean to synthesise a printer (so \lc{\#eval} can show
+values); \lc{deriving DecidableEq} synthesises a decidable \lc{=} test (used by
+\lc{CCSAct}, \lc{SessionType}, and the \lc{if x = z} tests inside
+\lc{Pi.subst}).
+
+\subsection*{\lc{def} and pattern matching}
+
+A \lc{def} introduces a function or value. Functions on inductive types are
+usually written by \emph{pattern matching}, one equation per constructor.
+Recursion is allowed when some argument structurally shrinks (Lean checks
+this).
+
+\begin{leanbox}
+\begin{minted}{lean}
+def Tree.size : Tree → Nat
+  | .leaf     => 1
+  | .node l r => l.size + r.size
+\end{minted}
+\end{leanbox}
+
+The leading dot in \lc{.leaf} means ``the constructor of the type being
+matched'' --- shorthand for \lc{Tree.leaf}. Because the function is named
+\lc{Tree.size}, \emph{dot notation} \lc{t.size} works for any \lc{t : Tree}.
+When Lean \emph{cannot} see that recursion shrinks --- as with the server loop
+\lc{worker}, which calls itself with the same argument --- you must write
+\lc{partial def} instead (below).
+
+\subsection*{\lc{structure} and \lc{abbrev}}
+
+A \lc{structure} is a one-constructor inductive with named fields (\lc{LTS} in
+Chapter~2 is a structure). An \lc{abbrev} is a transparent name for an existing
+type (\lc{abbrev Name := String}); unlike \lc{def}, an \lc{abbrev} unfolds
+automatically during type-checking.
+
+\begin{leanbox}
+\begin{minted}{lean}
+structure Point where
+  x : Nat
+  y : Nat
+  deriving Repr
+
+abbrev Nombre := String
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{Prop}, \lc{theorem}, and \lc{example}}
+
+In Lean, propositions are types (of sort \lc{Prop}) and proofs are programs: to
+prove $P$ is to construct a term of type $P$. A \lc{theorem} is a named proof;
+an \lc{example} is an anonymous one (used throughout this appendix). The body
+can be a direct \emph{term} or a \emph{tactic block} introduced by \lc{by}, in
+which tactics manipulate the current \emph{goal} until none remain.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (p q : Prop) (hp : p) (h : p → q) : q := h hp   -- term style
+
+example (p q : Prop) : p → (p → q) → q := by            -- tactic style
+  intro hp h
+  apply h
+  exact hp
+\end{minted}
+\end{leanbox}
+
+\subsection*{Type classes and \lc{instance}}
+
+A \emph{type class} is an interface; an \lc{instance} registers an
+implementation that Lean finds automatically. The book uses
+\lc{instance : Inhabited Pi := ⟨.nil⟩} so that the \lc{partial def worker}
+(which returns a \lc{Pi}) is allowed --- a \lc{partial def} must know its
+result type is nonempty.
+
+\begin{leanbox}
+\begin{minted}{lean}
+instance : Inhabited Tree := ⟨.leaf⟩
+\end{minted}
+\end{leanbox}
+
+The angle brackets \lc{⟨…⟩} are the \emph{anonymous constructor}: Lean infers
+which constructor to apply from the expected type. They also build proofs of
+$\exists$ and $\land$ --- \lc{⟨k, hk⟩} proves \lc{∃ k, P k} by giving the
+witness and its proof, and proves \lc{p ∧ q} by giving both halves.
+
+\subsection*{\lc{partial def} --- loops without a termination proof}
+
+\lc{partial def} tells Lean not to check termination (you assert it, Lean trusts
+you). This is how the server loop \lc{worker} is written. The cost: a
+\lc{partial def} is \emph{opaque} in proofs --- you cannot unfold it or induct on
+it --- which is why the worker-pool deadlock-freedom result stays on paper.
+
+\begin{leanbox}
+\begin{minted}{lean}
+partial def spin (n : Nat) : Nat := spin n   -- never terminates; legal
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{notation} / \lc{infixl} / \lc{infixr} --- custom syntax}
+
+These declare operators. When marked \lc{scoped}, they \textbf{must} sit inside
+a \lc{namespace} (Lean errors otherwise --- exactly the bug fixed in the CCS
+notation block of Chapter~3); \lc{open}ing the namespace brings them into scope.
+The number is the precedence.
+
+\begin{leanbox}
+\begin{minted}{lean}
+namespace TreeNotation
+scoped notation "◇" => Tree.leaf
+scoped infixr:65 " △ " => Tree.node
+end TreeNotation
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{@[simp]} --- the simplifier's rule set}
+
+The attribute \lc{@[simp]} marks an equation as a left-to-right rewrite rule
+for the \lc{simp} tactic.
+
+\begin{leanbox}
+\begin{minted}{lean}
+@[simp] theorem size_node (l r : Tree) :
+    (Tree.node l r).size = l.size + r.size := rfl
+
+example (t : Tree) : (Tree.node t .leaf).size = t.size + 1 := by
+  simp [Tree.size]
+\end{minted}
+\end{leanbox}
+
+\section*{Core Tactics}
+
+\subsection*{\lc{rfl} --- true by computation}
+
+Proves \lc{a = a} \emph{after both sides compute} to the same normal form.
+Definitional unfolding is free: \lc{2 + 3 = 5} is \lc{rfl}. This is what closes
+the base cases of \lc{dual\_dual}.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example : 2 + 3 = 5 := rfl
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{intro}, \lc{exact}, \lc{apply}}
+
+If the goal is \lc{p → q} (or \lc{∀ x, P x}), \lc{intro hp} moves the antecedent
+into the context as \lc{hp} --- the tactic form of writing \lc{fun hp => …}.
+\lc{exact h} closes the goal with the term \lc{h}. \lc{apply h} works
+\emph{backwards}: if \lc{h : p → q} and the goal is \lc{q}, then \lc{apply h}
+leaves the new goal \lc{p}. The tactic proof of \lc{p → (p → q) → q} above
+assembles exactly the term-style proof \lc{h hp}.
+
+\subsection*{\lc{refine} --- a term with named holes}
+
+\lc{refine e} is like \lc{exact e} but lets you leave holes \lc{?\_} to be
+discharged as further goals --- ideal for building an \lc{⟨…, …⟩} proof one part
+at a time.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (p q : Prop) (hp : p) (hq : q) : p ∧ q := by
+  refine ⟨?_, ?_⟩
+  · exact hp
+  · exact hq
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{subst} --- substitute an equation}
+
+Given \lc{h : a = b}, \lc{subst h} replaces one variable by the other
+everywhere and discards \lc{h}.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (a b : Nat) (h : a = b) : b = a := by
+  subst h
+  rfl
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{simp} --- rewrite to a normal form}
+
+\lc{simp} rewrites with its rule set (and any lemmas you pass in brackets)
+until nothing changes. \lc{simp [dual, ih]} in \lc{dual\_dual} unfolds \lc{dual}
+and applies the induction hypothesis. When a goal reduces to arithmetic, the
+core tactics \lc{omega} (linear arithmetic over integers/naturals) and
+\lc{decide} (decidable propositions) finish it.
+
+\section*{Induction and Case Analysis}\label{sec:primer-induction}
+
+\subsection*{\lc{cases} --- split on a constructor}
+
+\lc{cases t with} produces one goal per constructor of \lc{t}'s type, with no
+induction hypotheses.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (t : Tree) : t.size = t.size := by
+  cases t with
+  | leaf => rfl
+  | node l r => rfl
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{induction … with} --- and the recursor it desugars to}
+
+\lc{induction t with} is like \lc{cases}, but each recursive constructor also
+gives you an \emph{induction hypothesis} (named \lc{ih} here) --- the statement
+already proved for the sub-terms. This is the tactic used in \lc{dual\_dual}.
+
+\begin{leanbox}
+\begin{minted}{lean}
+theorem size_pos (t : Tree) : 0 < t.size := by
+  induction t with
+  | leaf => decide
+  | node l r ihl ihr => simp [Tree.size]; omega
+\end{minted}
+\end{leanbox}
+
+\noindent\textbf{Under the hood.} \lc{induction} is sugar for applying the
+type's auto-generated \emph{recursor} \lc{Tree.rec}. The recursor takes one
+argument per constructor (the recursive ones receive the results for the
+sub-terms) plus a \lc{motive} --- the property being proved, as a function of
+the value. The identical proof written as a raw term:
+
+\begin{leanbox}
+\begin{minted}{lean}
+theorem size_pos' (t : Tree) : 0 < t.size :=
+  Tree.rec (motive := fun t => 0 < t.size)
+    (by decide)                                  -- leaf case
+    (fun l r ihl ihr => by simp [Tree.size]; omega) -- node case
+    t
+\end{minted}
+\end{leanbox}
+
+Seeing this once explains why \lc{induction} gives you exactly those cases and
+exactly those hypotheses: they are the arguments of \lc{Tree.rec}.
+
+\section*{Structured Terms and Sugar}
+
+\subsection*{\lc{obtain ⟨…⟩} --- destructure a hypothesis}
+
+\lc{obtain ⟨n, hn⟩ := h} unpacks an \lc{∃} or \lc{∧} hypothesis into its
+components. It is sugar for a \lc{match} (equivalently \lc{Exists.elim}): both
+term forms below type-check.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (h : ∃ n : Nat, n = 3) : True := by
+  obtain ⟨n, hn⟩ := h
+  trivial
+
+example (h : ∃ n : Nat, n = 3) : True :=
+  match h with
+  | ⟨_, _⟩ => trivial
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{calc} --- chained (in)equalities}
+
+\lc{calc} writes a chain of steps, each justified by a proof; Lean glues them
+with \lc{Trans.trans} (transitivity). This is how the multi-step reductions of
+the book read on paper.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (a b c : Nat) (h1 : a = b) (h2 : b = c) : a = c :=
+  calc a = b := h1
+    _ = c := h2
+\end{minted}
+\end{leanbox}
+
+\subsection*{Proof by contradiction --- \lc{Classical.byContradiction}}
+
+To prove \lc{p}, assume \lc{¬p} and derive \lc{False}. Core Lean provides this
+as the term \lc{Classical.byContradiction}; Mathlib wraps it in a \lc{by\_contra}
+tactic, but this book stays core-only, so we use the term.
+
+\begin{leanbox}
+\begin{minted}{lean}
+example (p : Prop) (h : ¬ ¬ p) : p :=
+  Classical.byContradiction (fun hnp => h hnp)
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{do}-notation --- sugar for monadic bind}
+
+The \lc{do} block sequences monadic computations; each \lc{let x ← e}
+desugars to a \lc{bind} (\lc{>>=}). The two definitions below are equal by
+\lc{rfl}. (The book's \lc{s!"pick\{i\}"} string interpolation is a similar piece
+of sugar, expanding to \lc{toString} calls and concatenation.)
+
+\begin{leanbox}
+\begin{minted}{lean}
+def firstTwo (xs : List Nat) : Option (Nat × Nat) := do
+  let a ← xs[0]?
+  let b ← xs[1]?
+  pure (a, b)
+
+def firstTwo' (xs : List Nat) : Option (Nat × Nat) :=
+  xs[0]? >>= fun a => xs[1]? >>= fun b => pure (a, b)
+\end{minted}
+\end{leanbox}
+
+\subsection*{\lc{sorry} --- an admitted hole}
+
+\lc{sorry} closes any goal without a proof. It type-checks but is flagged with a
+warning; the book uses it for exactly one exercise (the deadlock of
+Chapter~5). Never ship a \lc{sorry} as a real proof.
 
 \end{document}

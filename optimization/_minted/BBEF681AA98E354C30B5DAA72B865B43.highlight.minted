@@ -1,0 +1,32 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} CORRECTED (the earlier `+ 90` in the conclusion double\PYGZhy{}counted the}
+\PYG{l+s+sd}{    infusions, since `statTotal` already includes them). If LinearGeq}
+\PYG{l+s+sd}{    removes `combo` from `slot`, then any build using it there\PYGZhy{}\PYGZhy{}\PYGZhy{}with its}
+\PYG{l+s+sd}{    other gear in the domains and a budget\PYGZhy{}respecting infusion split\PYGZhy{}\PYGZhy{}\PYGZhy{}}
+\PYG{l+s+sd}{    MISSES some floor. \PYGZhy{}/}
+\PYG{k+kd}{theorem}\PYG{+w}{ }\PYG{n}{linearGeq\PYGZus{}sound}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{domains}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{GearSlot}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Finset}\PYG{+w}{ }\PYG{n}{StatCombo}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{targets}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatType}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{slot}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{GearSlot}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{combo}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatCombo}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{h\PYGZus{}removed}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{combo}\PYG{+w}{ }\PYG{n+nb+bp}{∉}\PYG{+w}{ }\PYG{n}{linearGeqPropagate}\PYG{+w}{ }\PYG{n}{domains}\PYG{+w}{ }\PYG{n}{targets}\PYG{+w}{ }\PYG{n}{slot}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{h\PYGZus{}was\PYGZus{}in}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{combo}\PYG{+w}{ }\PYG{n+nb+bp}{∈}\PYG{+w}{ }\PYG{n}{domains}\PYG{+w}{ }\PYG{n}{slot}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{b}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Build}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{h\PYGZus{}uses}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{b.gear}\PYG{+w}{ }\PYG{n}{slot}\PYG{+w}{ }\PYG{n+nb+bp}{=}\PYG{+w}{ }\PYG{n}{combo}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{h\PYGZus{}others}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{j}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{b.gear}\PYG{+w}{ }\PYG{n}{j}\PYG{+w}{ }\PYG{n+nb+bp}{∈}\PYG{+w}{ }\PYG{n}{domains}\PYG{+w}{ }\PYG{n}{j}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{h\PYGZus{}budget}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{StatType.all.map}\PYG{+w}{ }\PYG{n}{b.infusions}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{sum}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{l+m+mi}{18}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}
+\PYG{+w}{    }\PYG{n+nb+bp}{∃}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatType}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{statTotal}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n+nb+bp}{\PYGZlt{}}\PYG{+w}{ }\PYG{n}{targets}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k+kd}{by}
+\PYG{+w}{  }\PYG{g+gr}{sorry}
+
+\PYG{l+s+sd}{/\PYGZhy{}\PYGZhy{} Propagation to fixpoint preserves every FEASIBLE build (this REPLACES}
+\PYG{l+s+sd}{    the earlier `propagation\PYGZus{}preserves\PYGZus{}optimal`, which was false for the}
+\PYG{l+s+sd}{    soft objective: LinearGeq can prune the soft optimum). \PYGZhy{}/}
+\PYG{k+kd}{theorem}\PYG{+w}{ }\PYG{n}{propagation\PYGZus{}preserves\PYGZus{}feasible}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{domains₀}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{GearSlot}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Finset}\PYG{+w}{ }\PYG{n}{StatCombo}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{targets}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{StatType}\PYG{+w}{ }\PYG{n+nb+bp}{→}\PYG{+w}{ }\PYG{n}{Nat}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{b}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n}{Build}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{h\PYGZus{}floors}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{s}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{statTotal}\PYG{+w}{ }\PYG{n}{b}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n+nb+bp}{≥}\PYG{+w}{ }\PYG{n}{targets}\PYG{+w}{ }\PYG{n}{s}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{h\PYGZus{}budget}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{o}{(}\PYG{n}{StatType.all.map}\PYG{+w}{ }\PYG{n}{b.infusions}\PYG{o}{)}\PYG{n+nb+bp}{.}\PYG{n}{sum}\PYG{+w}{ }\PYG{n+nb+bp}{≤}\PYG{+w}{ }\PYG{l+m+mi}{18}\PYG{o}{)}
+\PYG{+w}{    }\PYG{o}{(}\PYG{n}{h\PYGZus{}in}\PYG{+w}{ }\PYG{o}{:}\PYG{+w}{ }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{s}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{b.gear}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n+nb+bp}{∈}\PYG{+w}{ }\PYG{n}{domains₀}\PYG{+w}{ }\PYG{n}{s}\PYG{o}{)}\PYG{+w}{ }\PYG{o}{:}
+\PYG{+w}{    }\PYG{k}{let}\PYG{+w}{ }\PYG{n}{domains\PYGZsq{}}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{n}{propagateToFixpoint}\PYG{+w}{ }\PYG{n}{domains₀}
+\PYG{+w}{    }\PYG{n+nb+bp}{∀}\PYG{+w}{ }\PYG{n}{s}\PYG{o}{,}\PYG{+w}{ }\PYG{n}{b.gear}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{n+nb+bp}{∈}\PYG{+w}{ }\PYG{n}{domains\PYGZsq{}}\PYG{+w}{ }\PYG{n}{s}\PYG{+w}{ }\PYG{o}{:=}\PYG{+w}{ }\PYG{k+kd}{by}
+\PYG{+w}{  }\PYG{g+gr}{sorry}
+\end{MintedVerbatim}
