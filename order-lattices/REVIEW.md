@@ -260,3 +260,122 @@ missing-glyph warnings (117 pages).
 Repo `lean-toolchain` bumped v4.28.0 → v4.31.0; `PropagatorsVerification.lean` and
 `OrderAndLattices.lean` both re-verified on v4.31.0 with no changes needed
 (0 errors / 0 warnings / 0 sorries). The book remains zero-dependency core Lean.
+
+## Second pass (2026-09-27)
+
+Full re-read of all 4,882 lines (post-edit count) against the fixes from the first pass. None of
+the first pass's items has come back. The Lean code, figures and printed outputs
+checked here (D12 sup/inf, isMonotone, fixedPoints, iterToFixpoint, the
+FlatNat/interval traces, the Sudoku givens and grey digits against the known
+solution, the type-inference outputs, collatz/sumTo/firstPowerAbove) all agree
+with hand re-derivation. The main new correctness error was in a Chapter 2
+figure, which claimed a supremum that does not exist. The rest are smaller
+factual and prose slips. No Lean code was changed.
+
+### Fixed — correctness
+
+- **ll.985–1006 (bounds figure + caption):** claimed `sup S = g` for S = {c,d}
+  with incomparable upper bounds e, f. That is wrong: g sits above e and f, so it
+  is not *least*. S has no supremum. The annotation and caption now say
+  sup S does not exist.
+- **l.3269 (Sudoku elimination example):** the cell was placed at "row 3,
+  column 5, box 5 (the centre box)". But r3c5 lies in the top-middle box, so it
+  now reads row 5 / column 5 (r5c5 is in the centre box). The digit sets and
+  the {5} result are unchanged.
+- **l.3307 (candidate-set defbox):** "the *smallest* set of candidates
+  consistent with both sources". S ∩ T is the largest such set. It now reads
+  "exactly the candidates consistent with both sources".
+- **l.355:** "a is a parent of b" was given as a relation that is neither
+  symmetric nor antisymmetric. It is antisymmetric (vacuously, being
+  asymmetric). Replaced with "a likes b".
+- **ll.1672–1674 (Ex 3.4):** "Prove all eight lattice axioms". The book's
+  `Lattice` class requires nine laws (3 partial-order + 6 lattice), so it now
+  says nine and lists them.
+- **l.1981 (Ch. 5 epigraph):** the quote was presented verbatim with the
+  authors reversed ("Sussman & Radul"). It is not a sentence from the report,
+  and the report is by Radul & Sussman. Now "paraphrasing A. Radul &
+  G.J. Sussman".
+- **l.4865 (Further Reading):** the Equality Saturation (POPL 2009) authors
+  are Tate, Stepp, Tatlock & Lerner. "Chambers" was wrong and Tatlock was
+  missing.
+- **l.760:** the D12 computation interlude claimed an order "on {1,…,12}". D12
+  is the divisors of 12, {1,2,3,4,6,12}, and the text now says so. (The l.947
+  bullet about {1,…,12} having no top is literally correct and was left alone.)
+- **ll.2305–2307:** "For the finite lattices we use in our capstone projects",
+  but `Ty` (capstone II) and `Interval` are infinite. It now says DecidableEq is
+  available for all the lattices in the book.
+- **l.244 (Preface):** promised Mathlib equivalents "in a margin note". The book
+  has no margin notes, so it now says "occasionally ... in passing".
+- **ll.1711–1713, 1734–1735, 1742:** Lean comments said `def Set` "was opaque"
+  (a `def` is not opaque; the book itself calls it a transparent alias at
+  l.444). They also said the Lattice fields of the CompleteLattice (Set α)
+  instance were "inherited", while the same listing restates them (as Lean
+  requires). The comments now match the code. These are comment-only changes.
+- **ll.1421–1422 (Dual notebox):** described "destructuring ⟨a⟩ ⟨b⟩ ⟨c⟩"
+  in `le_inf`/`le_sup`, but the code does no destructuring there. Reworded.
+- **l.4368 (primer):** "A `have` with no proof term, like `... := hab`". It has
+  a proof term. Now "whose proof is just an existing hypothesis".
+- **l.1132 (Ex 2.1):** "Give an example showing that [a general claim]". An
+  example cannot show a general claim, and the Selected Solution proves it in
+  general. Now "Prove that".
+
+### Fixed — prose
+
+- Exercise titles made to match their content and their Selected-Solutions
+  headings: Ex 1.1 "Reflexivity and symmetry" → "Symmetry and antisymmetry"
+  (exercise l.805 and solution l.4579). Ex 2.3 "Characterising PartialOrder via
+  Monotone" → "Identity is monotone" (l.1143).
+- l.699 "our first non-trivial Lean proof" came after the harder DvdNat proof.
+  Now "our first proof written entirely as terms, with no tactics".
+- l.854 "We will use this construction crucially when encoding Sudoku" →
+  "meet this construction again" (the Sudoku code defines its order directly
+  and does not use `Dual`).
+- l.3161 "sufficient for termination, never necessary" → "not necessary".
+
+### Flagged, not changed
+
+1. **ll.3900–3919 — `app` propagator always `return false`**, with the comment
+   "(actual change tracked by writes)". Nothing tracks those writes:
+   `runToFixpoint` only looks at return values, so a pass in which only the
+   `app` propagator changes cells ends the loop early. The fix
+   (`return b1 || b2 || b3` from the writes' results) is easy to type-check.
+   It was not applied because reporting changes could make self-application
+   programs (e.g. `λx. x x`: no occurs check, and `Ty` has infinite height)
+   loop forever. None of the printed examples uses `app`. The companion file
+   has the same code.
+2. **ll.1524–1537 vs ll.437–440 — second order on `Nat`.** The book argues that
+   a second `LE Nat` (divisibility) would make `≤` ambiguous, and so wraps it in
+   `DvdNat`. Then `instance : OrderBook.Lattice Nat` with `le := (· ∣ ·)` does
+   exactly that: it adds a second `OrderBook.PartialOrder Nat` next to the
+   l.417 one. The companion compiles, but the prose contradicts itself. Consider
+   putting the divisibility lattice on `DvdNat`.
+3. **ll.4230–4245, table l.4513 — `by_cases` "needs p to be decidable".** I
+   believe core Lean's `by_cases` macro elaborates under `open Classical`, so
+   it works for any `Prop` (it uses the `Decidable` instance when one exists).
+   I did not change it because I could not check this against the v4.31 source.
+   *Resolved afterwards:* core `by_cases` expands under `open Classical in`
+   (Init/ByCases.lean), so the text and the tactic table now say it uses a
+   `Decidable` instance when one exists and classical logic otherwise.
+4. **Selected Solutions, Ex 6.1 (ll.4748–4770).** "Division by zero writes
+   `.conflict`" is false when z = 0: `0 ∣ 0` holds, so `divProp` writes
+   `known (0/0) = known 0` for an unconstrained factor, which is unsound.
+   Also, `mulProp` returns `false` on `conflict` inputs, which is the
+   non-monotone behaviour §6.5 (ll.2422–2430) warns against.
+5. **ll.2054–2063 — "Monotonicity Ensures Soundness" theorem box.** As stated,
+   monotonicity does not imply soundness. Soundness comes from each propagator
+   making only valid deductions, which the next paragraph concedes
+   ("assuming correct propagators"). Consider calling it a principle or
+   remark and stating the correctness hypothesis.
+6. **ll.2174–2178 — Convergence theorem** implicitly assumes finitely many
+   cells. It is true for every network in the book, but not stated.
+7. **ll.1286–1303 — naming:** the book's `Lattice` fields `sup_le_left` (a ≤ a⊔b)
+   and `le_sup` (a⊔b ≤ c) swap Mathlib's names (`le_sup_left`, `sup_le`), while
+   Ch. 5's `BoundedJoinSemilattice` uses the Mathlib names. This is internally
+   inconsistent and could confuse a reader who moves on to Mathlib. It is
+   consistent within each class, so I left it.
+8. **l.1903 table row** "Cauchy sequence ↔ Ascending chain condition" is a weak
+   analogy (the ACC says monotone sequences are eventually constant). This is
+   pedagogical, so I left it.
+9. **ll.3633–3636** "solving Sudoku *is* computing the least fixed point" overstates
+   things slightly. The lfp is a solution only when propagation alone suffices,
+   as l.3287 itself says.

@@ -241,8 +241,8 @@ reading the longer code sections.
 Every definition and theorem in this book has a corresponding Lean~4
 encoding. We deliberately avoid Mathlib to keep the dependency footprint at
 zero and to force you to understand every axiom rather than importing it from
-a library. Where a Mathlib equivalent exists we point it out in a margin
-note.
+a library. Where a Mathlib equivalent exists we occasionally point it out in
+passing.
 
 \medskip
 \textbf{How to read this book.}
@@ -352,7 +352,7 @@ end OrderBook
 \begin{notebox}
   \textbf{Symmetry vs Antisymmetry.}
   These are not negations of each other! A relation can be both symmetric and
-  antisymmetric (equality), neither (``$a$ is a parent of $b$''), or only one.
+  antisymmetric (equality), neither (``$a$ likes $b$''), or only one.
   Antisymmetry says: if you can go \emph{both} ways, the elements must be equal.
 \end{notebox}
 
@@ -696,7 +696,7 @@ instance {α : Type} : OrderBook.PartialOrder (Set α) where
   le_trans    := fun s t u h1 h2 a ha => h2 a (h1 a ha)
 \end{minted}
 
-This is our first non-trivial Lean proof. Let us read it carefully:
+This is our first proof written entirely as terms, with no tactics. Let us read it carefully:
 \begin{itemize}
   \item \lc{le_refl}: given $a \in s$, produce $a \in s$ --- trivial.
   \item \lc{le_antisymm}: $s \subseteq t$ and $t \subseteq s$ imply $s = t$.
@@ -757,7 +757,8 @@ nodes and covers as upward edges: we say $a$ is \emph{covered by} $b$
 \section{Computation Interlude: Running the Divisibility Order}
 
 So far every definition has lived in \lc{Prop}. This section bridges that gap
-with a fully computable divisibility order on $\{1,\ldots,12\}$.
+with a fully computable divisibility order on the divisors of 12,
+$\{1,2,3,4,6,12\}$.
 
 \begin{minted}{lean4}
 def D12 : List Nat := [1, 2, 3, 4, 6, 12]
@@ -801,7 +802,7 @@ def printHasse : IO Unit := do
 % ── 1.5 Exercises ───────────────────────────────────────────
 \section{Exercises}
 
-\begin{exercisebox}[Reflexivity and symmetry]
+\begin{exercisebox}[Symmetry and antisymmetry]
   Show that a relation that is both symmetric and antisymmetric must be a
   subset of the equality relation, i.e.\ $a \mathrel{R} b \to a = b$.
   Prove this in Lean~4.
@@ -850,7 +851,7 @@ instance [OrderBook.PartialOrder α] [OrderBook.PartialOrder β] :
   If $(A, \leq)$ is a partial order, then so is $(A, \geq)$ where
   $a \geq b \iff b \leq a$.  This is called the \emph{dual} or \emph{opposite}
   order.  Implement a \lc{Dual} wrapper type and its \lc{PartialOrder} instance.
-  We will use this construction crucially when encoding Sudoku domains in
+  We will meet this construction again when encoding Sudoku domains in
   Chapter~8.
 \end{exercisebox}
 
@@ -986,7 +987,7 @@ end OrderBook
     \node[gray, font=\scriptsize, below=0.05cm of ann1, yshift=-0.4cm]
       {Here $e$ and $f$ incomparable $\Rightarrow$};
     \node[gray, font=\scriptsize, below=0.05cm of ann1, yshift=-0.75cm]
-      {$\sup S = g$ (least upper bound).};
+      {$\sup S$ does not exist ($g$ is not least).};
     \node[gray, font=\scriptsize, right=2.5cm of b, yshift=-0.2cm]
       {$a, b$ are lower bounds of $S$};
     \node[gray, font=\scriptsize, right=2.5cm of b, yshift=-0.6cm]
@@ -995,9 +996,11 @@ end OrderBook
   \caption{Illustration of upper bounds, lower bounds, supremum and infimum
            for the subset $S = \{c, d\}$ (shaded blue) in a poset.
            The upper bounds of $S$ are all elements $\geq$ both $c$ and $d$:
-           here $e$, $f$, and $g$. The \emph{supremum} is the \emph{least}
-           of these; since $e$ and $f$ are incomparable, the least upper
-           bound is $g$. The lower bounds are $a$ and $b$; the infimum
+           here $e$, $f$, and $g$. The \emph{supremum} would be the
+           \emph{least} of these, i.e.\ an upper bound below all the others;
+           since $e$ and $f$ are incomparable (and $g$ lies above both
+           rather than below them), no such element exists and $\sup S$ is
+           undefined. The lower bounds are $a$ and $b$; the infimum
            is $b$ since $a \leq b$.}
 \end{figure}
 
@@ -1126,7 +1129,7 @@ end OrderBook
 \section{Exercises}
 
 \begin{exercisebox}[Monotone composition]
-  Give an example showing that the composition of two \emph{antitone} maps
+  Prove that the composition of two \emph{antitone} maps
   (where $a \leq b \to f(b) \leq f(a)$) is monotone.
 \end{exercisebox}
 
@@ -1137,7 +1140,7 @@ end OrderBook
   pairwise comparable with the given order).
 \end{exercisebox}
 
-\begin{exercisebox}[Characterising PartialOrder via Monotone]
+\begin{exercisebox}[Identity is monotone]
   Show that the identity map $\mathrm{id} : (P,\leq) \to (P,\leq)$ is always
   monotone, and prove this in Lean~4 using your \lc{Monotone} structure.
 \end{exercisebox}
@@ -1415,9 +1418,8 @@ instance {α : Type} [Lattice α] : Lattice (Dual α) where
   \lc{Dual}-typed ones. In \lc{le\_antisymm}, \lc{congr 1} further
   reduces \lc{Dual.mk x = Dual.mk y} to \lc{x = y}.
 
-  \textbf{Why \lc{change} in \lc{le\_inf} and \lc{le\_sup}?} After
-  destructuring \lc{⟨a⟩ ⟨b⟩ ⟨c⟩}, the hypotheses \lc{h1} and \lc{h2}
-  are still elaborated under the dual \lc{LE}. \lc{change} restates the
+  \textbf{Why \lc{change} in \lc{le\_inf} and \lc{le\_sup}?} There the
+  goal is stated for \lc{Dual}-typed values, under the dual order. \lc{change} restates the
   goal entirely in terms of \lc{α}'s operations, giving Lean enough
   information to match the original lemma's type.
 
@@ -1668,7 +1670,8 @@ theorem le_iff_sup_eq {α : Type} [OrderBook.Lattice α] (a b : α) :
   and component-wise meet and join:
   $(a_1, b_1) \sqcap (a_2, b_2) = (a_1 \sqcap a_2,\, b_1 \sqcap b_2)$,
   $(a_1, b_1) \sqcup (a_2, b_2) = (a_1 \sqcup a_2,\, b_1 \sqcup b_2)$.
-  Prove all eight lattice axioms.
+  Prove all nine laws the class requires (three partial-order laws and
+  six lattice laws).
   (\emph{Hint}: each axiom reduces to the corresponding axiom applied component-wise.)
 \end{exercisebox}
 
@@ -1705,8 +1708,9 @@ namespace OrderBook
 -- as completely transparent — unfolding it automatically during
 -- elaboration without needing `simp` or `unfold`.  This makes the
 -- `sSup`/`sInf` signatures below easier to work with.
--- `def Set` was opaque because we wanted `Set α` to have its own
--- identity for attaching instances; here we just want a readable alias.
+-- `def Set` is not unfolded automatically (it is not reducible), which
+-- gives `Set α` its own identity for attaching instances; here we just
+-- want a readable alias.
 abbrev Pred (α : Type) := α → Prop
 
 class CompleteLattice (α : Type) extends Lattice α where
@@ -1727,14 +1731,15 @@ $\bigwedge \mathcal{F} = \bigcap \mathcal{F}$.
 \begin{minted}{lean4}
 -- Set α is a complete lattice
 instance {α : Type} : OrderBook.CompleteLattice (Set α) where
-  -- (inheriting the Lattice instance from Chapter 3)
+  -- (the Chapter 3 Lattice fields are not inherited automatically,
+  --  so they are restated below)
   sSup := fun F a => ∃ s : Set α, F s ∧ s a    -- union of a family
   sInf := fun F a => ∀ s : Set α, F s → s a    -- intersection of a family
   le_sSup := fun F s hs a ha => ⟨s, hs, ha⟩
   sSup_le := fun F u hu a ⟨s, hs, ha⟩ => hu s hs a ha
   sInf_le := fun F s hs a ha => ha s hs
   le_sInf := fun F l hl a ha s hs => hl s hs a ha
-  -- (le, inf, sup fields inherited)
+  -- (Lattice fields, restated from Chapter 3)
   le          := Set.subset
   le_refl     := fun s a h => h
   le_antisymm := fun s t h1 h2 => funext fun a => propext ⟨h1 a, h2 a⟩
@@ -1973,7 +1978,7 @@ $\mu f$ is where you end up.
   \itshape
   ``A propagator network is a collection of machines that compute
   values for cells by combining information from other cells.''\\
-  --- G.J.\ Sussman \& A.\ Radul, \emph{The Art of the Propagator}, 2009
+  --- paraphrasing A.\ Radul \& G.J.\ Sussman, \emph{The Art of the Propagator}, 2009
 \end{quote}
 
 We now have all the mathematical machinery we need. This chapter explains the
@@ -2297,8 +2302,9 @@ end Propagators
 \end{minted}
 
 \begin{notebox}
-  We require \lc{DecidableEq α} to compare \lc{merged == old}. For the
-  finite lattices we use in our capstone projects this is always available.
+  We require \lc{DecidableEq α} to compare \lc{merged == old}. For all the
+  lattices we use in this book (including the infinite interval and type
+  lattices) it is available.
 \end{notebox}
 
 \section{The Network and Scheduler}
@@ -3152,7 +3158,7 @@ sum ∈ [10, 10]
   seeded with $x \in [0,+\infty)$ really would tighten forever; industrial
   interval solvers add a \emph{widening} operator that jumps a bound
   straight to $\pm\infty$ after a few rounds to force termination. The ACC
-  is sufficient for termination, never necessary.
+  is sufficient for termination, not necessary.
 \end{notebox}
 
 \section{Exercises}
@@ -3260,7 +3266,7 @@ cascading process is exactly what a propagator network formalises.
 \end{exbox}
 
 \begin{exbox}[Elimination across constraints]
-  Suppose a cell sits in row 3, column 5, box 5 (the centre box). Row 3 already
+  Suppose a cell sits in row 5, column 5, box 5 (the centre box). Row 5 already
   contains $\{1,3,4,6,7\}$, column 5 contains $\{2,3,6,8\}$, and box 5 contains
   $\{1,2,6,9\}$. The candidates for this cell are all digits \emph{not} ruled
   out by any of its three units:
@@ -3298,7 +3304,7 @@ every cell can hold any of $\{1,\ldots,9\}$. Constraints eliminate candidates.
   The bottom $\bot = D$ (no information: any digit possible),
   the top $\top = \varnothing$ (contradiction: no digit possible).
   The join is intersection: $S \sqcup T = S \cap T$
-  (the smallest set of candidates consistent with both sources).
+  (exactly the candidates consistent with both sources).
 \end{defbox}
 
 \begin{figure}[h]
@@ -4224,9 +4230,10 @@ theorem rename_demo (o : Option Nat) (h : o ≠ none) : ∃ n, o = some n := by
 \subsection*{\lc{by\_cases} --- and the \lc{Decidable} \lc{if} underneath}
 
 \lc{by\_cases h : p} splits the proof into a branch where \lc{h : p} and
-one where \lc{h : ¬p}. In this book's zero-dependency setting it needs
-\lc{p} to be \emph{decidable} --- there must be an algorithm answering
-\lc{p} --- because it is sugar for a dependent \lc{if}:
+one where \lc{h : ¬p}. It is sugar for a dependent \lc{if}: when \lc{p} is
+\emph{decidable} --- there is an algorithm answering \lc{p} --- that
+instance is used; otherwise core Lean's \lc{by\_cases} quietly falls back
+on classical excluded middle, so it works for any proposition:
 
 \begin{minted}{lean4}
 theorem em_nat (n : Nat) : n = 0 ∨ n ≠ 0 := by
@@ -4359,7 +4366,7 @@ theorem have_demo (a : Nat) (h : a ≤ 3) : a ≤ 10 := by
   exact Nat.le_trans h h'
 \end{minted}
 
-A \lc{have} with no proof term, like Chapter~7's
+A \lc{have} whose proof is just an existing hypothesis, like Chapter~7's
 \lc{have hab' : loLe l1 l2 ∧ hiLe h2 h1 := hab}, re-types an existing
 hypothesis at a definitionally equal type --- no work, just unfolding.
 
@@ -4504,7 +4511,7 @@ examples of each.
     \lc{rename\_i x}  & Name the last inaccessible hypothesis \\
     \lc{induction n}  & \lc{cases} + induction hypotheses (sugar for \lc{T.rec}) \\
     \lc{constructor}  & Apply the goal type's constructor (\lc{And}, \lc{Iff}, …) \\
-    \lc{by\_cases h : p} & Split on decidable \lc{p} (sugar for dependent \lc{if}) \\
+    \lc{by\_cases h : p} & Split on \lc{p} (sugar for dependent \lc{if}; classical if undecidable) \\
     \lc{exfalso}      & Replace the goal with \lc{False} \\
     \lc{subst h}      & Eliminate a variable using \lc{h : x = e} \\
     \lc{calc}         & Chain of steps glued by \lc{Trans.trans} \\
@@ -4570,7 +4577,7 @@ solutions.
 % ── Chapter 1 ────────────────────────────────────────────────
 \section*{Chapter 1}
 
-\textbf{Exercise 1.1} (Reflexivity and symmetry)
+\textbf{Exercise 1.1} (Symmetry and antisymmetry)
 
 \begin{minted}{lean4}
 theorem symm_antisymm_eq {α : Type} (r : Rel α)
@@ -4856,7 +4863,7 @@ def conflictPropagates : IO Unit := do
     Technical Report, 2009.
     The foundational paper for the propagator model used in this book.
 
-  \item \textbf{Tate, Stepp, Lerner \& Chambers}, \emph{Equality Saturation: a
+  \item \textbf{Tate, Stepp, Tatlock \& Lerner}, \emph{Equality Saturation: a
     New Approach to Optimization}, POPL 2009.
     An application of lattice-based fixed-point algorithms to compiler optimization.
 

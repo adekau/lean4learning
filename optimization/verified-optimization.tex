@@ -200,10 +200,10 @@ It prunes beautifully. Now let's make it \textbf{solve}.\\[3em]}
 
 This book has an unusual origin.
 
-It began with a practical problem: building a gear optimizer for Guild Wars~2's
+It began with a practical problem: building a gear optimiser for Guild Wars~2's
 World vs.\ World game mode.  You choose stat combinations for fourteen equipment
 slots, each drawn from a finite menu of options.  You have stat targets to meet,
-a rune constraint that couples all six armor pieces, and an infusion budget for
+a rune constraint that couples all six armour pieces, and an infusion budget for
 fine-tuning.  The goal: find the loadout that gets as close to your targets as
 possible, penalising shortfalls much more than overshoots.
 
@@ -211,7 +211,7 @@ The first attempt was a \emph{propagator network}---the architecture from our
 companion book \emph{Verified Order Theory: From Partial Orders to Propagator
 Networks in Lean\,4}.  Each gear slot became a cell holding a set of remaining
 stat combos, ordered by reverse inclusion.  Propagators enforced constraints:
-the rune propagator ensured all six armor rune slots matched; the stat-floor
+the rune propagator ensured all six armour rune slots matched; the stat-floor
 propagator detected when no remaining combination of gear could reach a target.
 Running the network to its Knaster--Tarski fixed point pruned the search space
 dramatically.
@@ -286,7 +286,7 @@ Part~I opens with the build editor and your propagator attempt, then
 strengthens the propagator engine before introducing any new techniques.
 Part~II develops the mathematical tools: linear programming, integer
 programming, search strategies.  Part~III adds heuristic methods and
-multi-objective optimization.  Part~IV assembles everything into the capstone
+multi-objective optimisation.  Part~IV assembles everything into the capstone
 solver with a formal correctness theorem.
 
 Cross-reference boxes connect each new concept to its lattice-theoretic
@@ -540,7 +540,7 @@ structure Build where
   gear      : GearSlot → StatCombo
   rune      : Rune
   infusions : StatType → Nat
-  -- Invariant: ∑ infusions = 18
+  -- Invariant: ∑ infusions ≤ 18 (18 infusion slots)
 
 /-- Total stat from gear + infusions (excluding base stats and buffs). -/
 def statTotal (b : Build) (s : StatType) : Nat :=
@@ -590,7 +590,7 @@ def wOver : Nat := 1
 The optimisation problem: find the build $b^*$ that minimises
 $\pen(b^*)$ subject to the rune constraint (all six armour runes identical),
 the weapon constraint (2H or 1H+1H, not a mix), and the infusion budget
-($\sum_s \texttt{infusions}(s) = 18$).
+($\sum_s \texttt{infusions}(s) \leq 18$; an infusion slot may be left empty).
 
 \begin{warningbox}[title={Soft objective vs.\ hard floors: a modelling decision}]
 The penalty above is a \emph{soft} objective: missing a target is penalised
@@ -619,7 +619,7 @@ and the correctness theorem is stated precisely to match the code.
 \subsection{The Search Space}
 
 With 40 stat combos and the 14 gear slots of our \li{GearSlot} type, the raw
-search space is $40^{14} \approx 6.9 \times 10^{22}$ gear assignments---before
+search space is $40^{14} \approx 2.7 \times 10^{22}$ gear assignments---before
 considering rune choices, sigils, and infusion distributions.  Brute force is
 out of the question.
 
@@ -643,11 +643,11 @@ chapter on propagator network design.  We use that exact lattice here.
 For each gear slot $i$, define the \emph{domain cell} $D_i$ as a subset of
 the 40 WvW-legal stat combos, ordered by reverse inclusion:
 \[
-  D_i \subseteq D_j \iff D_j \subseteq D_i
+  D \sqsubseteq D' \iff D' \subseteq D
   \qquad\text{(fewer remaining options = more information)}.
 \]
 The initial value is the full set of 40 combos ($\bot$ = ``nothing ruled out'').
-The join (merge) is intersection: $D_i \sqcup D_j = D_i \cap D_j$
+The join (merge) is intersection: $D \sqcup D' = D \cap D'$
 (keep only combos consistent with both sources of information).  The top element
 $\top$ is the empty set: contradiction (all combos ruled out).
 
@@ -1247,7 +1247,9 @@ moves downward (since we're minimising).  The fixed point is the optimum.
 \subsection{Pivoting}
 
 A vertex of the polytope corresponds to a \emph{basic feasible solution}
-(BFS): a choice of $m$ constraints to hold with equality (the \emph{basis}).
+(BFS): a choice of $n$ linearly independent constraints to hold with equality;
+in the slack form used by the tableau, the remaining $m$ \emph{basic}
+variables form the \emph{basis}.
 The simplex method maintains a basis and performs \emph{pivot} operations
 to swap one constraint in and one out, moving to an adjacent vertex.
 
@@ -1417,7 +1419,8 @@ to prune.
   \item \textbf{Bound.}  Solve the LP relaxation of this node's subproblem.
     If the LP optimum $\geq$ \texttt{incumbent}, \emph{prune} (no solution
     in this subtree can beat the incumbent).
-  \item \textbf{Branch.}  If not pruned and the LP solution is fractional,
+  \item \textbf{Branch.}  If not pruned and the LP solution is integral, it is
+    an actual build: make it the new \texttt{incumbent}.  If it is fractional,
     choose a slot $i$ with a fractional assignment.  Create child nodes,
     one for each remaining combo in $D_i$ (fixing slot $i$ to that combo).
   \item \textbf{Propagate.}  At each child node, run the propagator network.
@@ -1429,8 +1432,8 @@ to prune.
 
 \begin{crossrefbox}
 The B\&B search tree is a \emph{lattice of subproblems}, ordered by
-refinement (fixing more variables).  At each node, the LP bound is an
-upper bound on the subtree's optimal value.  Pruning = detecting that
+refinement (fixing more variables).  At each node, the LP bound is a
+lower bound on the subtree's optimal value.  Pruning = detecting that
 a subtree is ``dead''---analogous to detecting $\top$ (contradiction)
 in a propagator cell.  The whole B\&B is a monotone process: as we
 descend the tree, domains only shrink, bounds only tighten.
@@ -1438,7 +1441,7 @@ descend the tree, domains only shrink, bounds only tighten.
 
 \subsection{The B\&B Invariant}
 
-The key correctness invariant, which we'll formalise and prove in the capstone:
+The key correctness invariant, which we'll formalise (as a specification) in the capstone:
 
 \begin{thmbox}[title={B\&B Invariant}]
 At every point during the B\&B search:
@@ -1483,7 +1486,7 @@ def selectSlotFailFirst
 
 Note the explicit \li{match}: the earlier edition wrote \li{unfixed.head!},
 which \emph{panics at runtime} when every domain is already a singleton
-(\li{unfixed} empty).  Pattern-matching makes the "all fixed" case total and
+(\li{unfixed} empty).  Pattern-matching makes the ``all fixed'' case total and
 lets the caller detect a leaf.
 
 \paragraph{Best-first value ordering.}
@@ -1545,7 +1548,7 @@ essentially different builds.
 
 \begin{leanbox}[title={Lean 4 --- Symmetry Breaking (specification)}]
 \begin{minted}{lean}
-/-- Any total order on combos will do; here, by name length then name. -/
+/-- Any total preorder on combos will do; here, simply by name length. -/
 def comboOrd (c : StatCombo) : Nat := c.name.length
 
 /-- A build is canonical if symmetric slot pairs are ordered. -/
@@ -1898,7 +1901,10 @@ is just one specific feasible assignment.
 
 With the rune constraint relaxed, the problem decomposes into independent
 per-slot subproblems, each trivially solvable by enumeration (pick the
-best combo for each slot independently).
+best combo for each slot independently).  Strictly, that last step also needs a
+separable objective: the asymmetric penalty couples the slots through each stat
+total, so a fully per-slot decomposition requires relaxing the stat targets as
+well (one multiplier per stat).
 
 \subsection{Subgradient Optimisation}
 
@@ -1961,13 +1967,15 @@ total \li{iters}---the earlier \li{1.0 / (1.0 + iters.toFloat)} was
 comment and prose.
 
 \begin{histbox}
-Lagrangian relaxation was pioneered by Marshall Fisher and Michael Held
-in the 1970s for vehicle routing and scheduling problems.  The key insight
+Lagrangian relaxation for integer programming was pioneered in the early
+1970s by Michael Held and Richard Karp (for the travelling salesman problem),
+named and systematised by Arthur Geoffrion (1974), and popularised by Marshall
+Fisher's work on scheduling and his 1981 survey.  The key insight
 is that \emph{complicating constraints}---the ones that prevent
 decomposition---can be moved into the objective, trading hard constraints
 for soft penalties.  The resulting decomposition often reveals beautiful
-structure: in our case, the rune constraint is the only thing preventing
-each slot from being optimised independently.
+structure: in our case, the rune constraint is (together with the shared stat
+totals) what prevents each slot from being optimised independently.
 \end{histbox}
 
 \section{Reduced-Cost Fixing}\label{sec:reduced}
@@ -2019,12 +2027,15 @@ Different bounding techniques give different quality bounds:
 \textbf{Method} & \textbf{Bound quality} & \textbf{Computation cost} \\
 \midrule
 Propagation only & Weakest & Cheapest (milliseconds) \\
-Lagrangian relaxation & Medium & Moderate (seconds) \\
-LP relaxation & Tightest & Most expensive (per node) \\
+Lagrangian relaxation & At least as tight as LP & Moderate (seconds) \\
+LP relaxation & Tight & Most expensive (per node) \\
 \bottomrule
 \end{tabular}
 \end{center}
 
+(By Geoffrion's theorem, the best Lagrangian bound is never weaker than the LP
+relaxation bound, and equals it when the Lagrangian subproblem has the
+integrality property; its practical appeal is cheap per-slot subproblems.)
 In practice, we use propagation at every B\&B node (cheap), LP relaxation at
 the root and at nodes where propagation doesn't prune enough (moderate cost),
 and Lagrangian relaxation as an alternative when the LP is too expensive.
@@ -2070,7 +2081,7 @@ builds reachable by changing one slot.  $|N(b)| \leq 14 \times 39 = 546$.
 
 The neighbourhood defines the ``moves'' available to local search.  Its
 size is a tradeoff: a larger neighbourhood (e.g., changing two slots at once,
-giving $|N| \approx 14^2 \times 39^2 \approx 300{,}000$) explores more
+giving $|N| = \binom{14}{2} \times 39^2 \approx 138{,}000$) explores more
 options per step but takes longer per step.  The single-slot neighbourhood
 is the standard choice for gear optimisation because it's large enough to
 escape many local optima but small enough that evaluating all neighbours is
@@ -2168,7 +2179,7 @@ The cooling schedule controls the exploration--exploitation tradeoff:
 \midrule
 Geometric & $T_{k+1} = \alpha T_k$ & Most common; $\alpha \in [0.99, 0.999]$ \\
 Linear & $T_k = T_0 - k \cdot \delta$ & Simple but less effective \\
-Logarithmic & $T_k = T_0 / \ln(k + 2)$ & Provably optimal but very slow \\
+Logarithmic & $T_k = T_0 / \ln(k + 2)$ & Provably convergent but very slow \\
 Adaptive & Adjust based on acceptance rate & Complex but robust \\
 \bottomrule
 \end{tabular}
@@ -2230,8 +2241,8 @@ functions, not one).
 
 \begin{histbox}
 Simulated annealing was independently invented by Scott Kirkpatrick (IBM, 1983)
-and Vlado \v{C}ern\'{y} (1985), inspired by the Metropolis--Hastings
-algorithm from statistical physics.  The metallurgical analogy is precise:
+(with Gelatt and Vecchi) and Vlado \v{C}ern\'{y} (1985), inspired by the
+Metropolis algorithm (1953) from statistical physics.  The metallurgical analogy is precise:
 annealing metal involves heating it (high temperature = accept bad moves)
 and slowly cooling (low temperature = only accept improvements), allowing
 atoms to find a low-energy crystalline structure rather than getting trapped
@@ -2511,7 +2522,8 @@ different target profiles, trace different points on the Pareto frontier.
 By sweeping the weights, we can approximate the full frontier.
 
 \begin{defbox}[title={Weighted Scalarisation}]
-Given weight vector $w = (w_1, \ldots, w_k) \geq 0$ with $\sum w_i = 1$:
+Given a strictly positive weight vector $w = (w_1, \ldots, w_k) > 0$ with
+$\sum w_i = 1$ (a zero weight can return a merely weakly Pareto-optimal point):
 \[
   \min_b \sum_{i=1}^{k} w_i \cdot f_i(b)
 \]
@@ -2579,27 +2591,29 @@ Given fixed gear contributions $G(s)$ for each stat $s$, and targets $T(s)$:
 \[
   \min_{n_1, \ldots, n_k} \sum_{s} \pen\!\big(T(s),\; G(s) + 5 n_s\big)
   \quad\text{s.t.}\quad
-  \sum_s n_s = 18, \quad n_s \geq 0, \quad n_s \in \N.
+  \sum_s n_s \leq 18, \quad n_s \geq 0, \quad n_s \in \N.
 \]
 \end{defbox}
 
 \section{Dynamic Programming Solution}
 
 \begin{defbox}[title={Infusion DP}]
-Define $\texttt{dp}[i][r]$ = minimum penalty using stats $1, \ldots, i$
-with $r$ infusions remaining.  The recurrence:
+Define $\texttt{dp}[i][r]$ = minimum penalty over stats $1, \ldots, i$
+with a budget of $r$ infusions to spend on them.  The recurrence:
 \[
   \texttt{dp}[i][r] = \min_{0 \leq n_i \leq r} \;
     \pen(T(s_i), G(s_i) + 5 n_i) + \texttt{dp}[i-1][r - n_i].
 \]
-Base case: $\texttt{dp}[0][r] = 0$ for all $r$.
+Base case: $\texttt{dp}[0][r] = 0$ for all $r$.  (This base case lets unused
+infusions go to waste, matching $\sum_s n_s \leq 18$; to force exactly
+18, set $\texttt{dp}[0][0] = 0$ and $\texttt{dp}[0][r] = \infty$ for $r > 0$.)
 \end{defbox}
 
 \begin{leanbox}[title={Lean 4 --- Infusion DP (runnable core Lean)}]
 \begin{minted}{lean}
 /-- Optimally distribute infusions to minimise remaining penalty.
     `dp[r]` = (minPenalty, allocation) for the stats processed so far,
-    indexed by the budget r remaining AFTER them. -/
+    indexed by the budget r available to them (unused infusions allowed). -/
 def infusionDP (gearStats : StatType → Nat)
     (targets : StatType → Nat) (budget : Nat := 18)
     : StatType → Nat :=
@@ -2806,10 +2820,11 @@ delete the claimed optimum.
 \begin{leanbox}[title={Lean 4 (Mathlib) --- Feasibility (with hard floors)}]
 \begin{minted}{lean}
 /-- A build is feasible for `p` when its gear lies in the initial domains,
-    it spends exactly the 18-infusion budget, AND it meets every hard floor. -/
+    it spends at most the 18-infusion budget (the infusion DP may leave
+    infusions unused), AND it meets every hard floor. -/
 def Build.feasible (b : Build) (p : GearProblem) : Prop :=
   (∀ slot, b.gear slot ∈ p.initialDomains slot) ∧
-  ((StatType.all.map b.infusions).sum = 18) ∧
+  ((StatType.all.map b.infusions).sum ≤ 18) ∧
   (∀ s, statTotal b s ≥ p.targets s)   -- HARD stat floors
 \end{minted}
 \end{leanbox}
@@ -2956,9 +2971,10 @@ theorem lp_bound_valid
 \subsection{B\&B Invariant}
 
 \begin{lembox}[title={B\&B Invariant Preservation}]
-At every point during the search: every feasible build either (a) has been
-evaluated and is no better than the incumbent, or (b) lives in an unexplored
-node whose LP bound is $\leq$ the incumbent penalty.
+At every point during the search: every feasible build either (a) is no
+better than the incumbent (it has been evaluated, or it lies in a pruned subtree
+whose LP bound is $\geq$ the incumbent penalty), or (b) lives in an unexplored
+node still in the queue.
 \end{lembox}
 
 \begin{proof}
@@ -3057,7 +3073,7 @@ theorem infusion_dp_optimal
 When the B\&B search completes (queue empty), the invariant implies:
 \begin{enumerate}[nosep]
   \item The incumbent is feasible (it was constructed from a valid assignment
-    and optimal infusions, by infusion DP optimality).
+    with DP-optimal infusions, and \li{meetsFloors} checked every floor).
   \item Every other feasible build either was evaluated (and is no better)
     or lives in a pruned subtree (whose LP bound $\geq$ incumbent, by LP
     bound validity).
@@ -3279,7 +3295,7 @@ structure Propagator (D : Type) where
 
 -- Use unboxed representations where possible
 structure PackedBuild where
-  slots     : BitVec 240  -- 14 slots, 6 bits each (with headroom for 40 combos)
+  slots     : BitVec 84   -- 14 slots, 6 bits each (6 bits index up to 64 ≥ 40 combos)
   runeIdx   : UInt8
   infusions : BitVec 72   -- 9 stats × 8 bits each (max 18 per stat)
 \end{minted}
@@ -3367,7 +3383,8 @@ food and utility have no coupling constraints with gear (unlike the rune
 constraint on armour), they don't complicate the structure significantly.
 
 \begin{intuitionbox}
-Because food and utility affect \emph{every} stat simultaneously, fixing them
+Because food and utility add to several stats at once, independent of any
+gear slot, fixing them
 early in the search tree can dramatically improve propagation effectiveness.
 A good heuristic: branch on food first, then utility, then gear slots.
 This gives propagation a concrete base of flat bonuses to reason about.
@@ -3384,7 +3401,7 @@ how much does the improved propagation (tighter stat floors) compensate?
 
 Some profession traits convert one stat into another.  For example, the
 Guardian trait \emph{Retribution} might grant Power equal to a percentage
-of Toughness.  This creates a \emph{nonlinear} dependency:
+of Toughness.  This creates a \emph{cross-stat} dependency:
 
 \begin{leanbox}[title={Lean 4 --- Trait-Modified Stat Computation}]
 \begin{minted}{lean}
@@ -3413,8 +3430,11 @@ accumulator---so with two conversions into Power only the \emph{last} counted
 
 The difficulty: with trait conversions, adding Toughness gear increases Power
 (through the trait), which means the stat computation is no longer a simple
-sum over independent slot contributions.  The LP relaxation assumes linearity
-and becomes invalid.
+sum over independent slot contributions.  A single fixed-percentage conversion
+is in fact still linear (fold $p \cdot \texttt{contribution}(i,c,\text{source})$
+into each slot's coefficient for the target stat), but caps, thresholds,
+rounding, or conversions conditioned on the totals are not, and then the LP
+relaxation's linearity assumption breaks.
 
 \paragraph{Approach 1: Linearisation.}
 If the conversion percentage is small, we can approximate: assume a fixed
@@ -3477,13 +3497,14 @@ def legendaryBerserkerArmour : List (GearSlot × StatCombo) :=
 
 This is trivially supported by the solver architecture: fixing a slot to a
 singleton domain before propagation means propagation will immediately
-exploit the fixed information.  The rune propagator, for instance, will
-see that all armour slots have the same rune (whatever rune Berserker armour
-uses) and skip rune selection entirely.
+exploit the fixed information.  The stat-floor propagators, for instance,
+immediately see the fixed armour contributions and prune the remaining slots
+accordingly.  (Rune selection is unaffected: a stat combo does not determine
+a rune, so the rune is still chosen by the solver.)
 
 The search space shrinks dramatically: if 6 of the 14 slots are fixed, the
 remaining space is $40^{8} \approx 6.6 \times 10^{12}$ instead of $40^{14}
-\approx 6.9 \times 10^{22}$---and propagation typically prunes this much further.
+\approx 2.7 \times 10^{22}$---and propagation typically prunes this much further.
 
 \begin{exercisebox}
 Implement what-if mode.  Solve the following scenario: a Warrior with full
@@ -3537,8 +3558,8 @@ extension left to the reader.
 
 Each point on the frontier represents a genuinely different gear philosophy.
 On the Power/Vitality frontier, one end is full Berserker (maximum damage,
-minimum health); the other is full Soldier or Minstrel (maximum health,
-minimum damage).  The interior points are the interesting ones---mixed
+minimum health); the other is full Minstrel's or Sentinel's (maximum health,
+little damage).  The interior points are the interesting ones---mixed
 builds that trade damage for survivability at different rates.
 
 \begin{intuitionbox}
@@ -3737,8 +3758,9 @@ inductive Colour where
 \subsection*{\li{def} and pattern matching}
 A \li{def} introduces a function or value, usually by \emph{pattern matching}:
 one equation per constructor.  Recursion is allowed when an argument
-structurally shrinks; otherwise you must write \li{partial def} (as the solver's
-search loops do) and forfeit the ability to reason about the function in proofs.
+structurally shrinks; otherwise you must prove termination (e.g.\ with
+\li{termination\_by}) or write \li{partial def} (as the solver's search loops
+do) and forfeit the ability to reason about the function in proofs.
 
 \begin{leanbox}
 \begin{minted}{lean}
