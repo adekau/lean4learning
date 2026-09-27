@@ -448,3 +448,122 @@ The full proofs of `solver_sound`, `linearGeq_sound`,
 `infusion_dp_optimal`, `canonical_exists`; wiring `wMissPerStat` through
 `solve`/`totalPenalty`; sound nogood minimisation; the A*/simplex helper bodies.
 The illustrative benchmark node counts are unchanged (labelled illustrative).
+
+## Second pass (2026-09-27)
+
+**Verdict.** I re-read all ~3,940 lines. The first pass's big repairs hold up:
+the hard-floor reframing, LP weak-duality direction, the Ch. 6 propagation trace,
+the v4.31 API fixes, and the honest `sorry` labelling. This pass fixed a set of
+smaller mathematical and factual errors that the first pass missed or introduced.
+The worst were a wrong number from the first pass's own 14-slot recount, a flipped
+bound direction in the B&B cross-reference box, a claim that LP bounds are tighter
+than Lagrangian bounds (the reverse of Geoffrion's theorem), a wrong attribution
+for Lagrangian relaxation, and an infusion-budget mismatch that made the
+`solver_sound` spec false. No Lean *code* logic was changed. The only edits
+inside listings are comments, `= 18` → `≤ 18` in `Build.feasible`, and
+`BitVec 240` → `BitVec 84`. Both edits are type-safe, and I made the same
+edits in the companion `.lean` files. I could not recompile, because the
+network blocks Lean downloads.
+
+### Fixed — correctness
+- **~622, ~3505: 40^14 was mis-evaluated.** The book said
+  `40^{14} ≈ 6.9×10^22`, but 4^14 = 268,435,456, so 40^14 ≈ **2.7×10^22**.
+  The first pass introduced this when it recounted to 14 slots.
+- **~646: garbled order definition.** It read `D_i ⊆ D_j ⟺ D_j ⊆ D_i`, which is
+  meaningless. It is now `D ⊑ D' ⟺ D' ⊆ D`, and the join on the next line uses
+  the same `D, D'` notation.
+- **~1250: definition of a basic feasible solution.** The book said "a choice of
+  *m* constraints to hold with equality (the basis)". A vertex in ℝⁿ needs *n*
+  linearly independent tight constraints; the basis is the *m* basic variables
+  in slack form. Both are now stated.
+- **~1422: B&B definition never updated the incumbent.** Without that step the
+  incumbent stays ∞. The Branch step now says that an integral LP solution
+  becomes the new incumbent.
+- **~1437: B&B cross-reference box.** It said the LP bound is an *upper* bound on
+  the subtree's optimum. For minimisation it is a **lower** bound; fixed.
+- **~1446: "formalise and prove in the capstone".** It is only specified (the
+  proof is `sorry`), so it now reads "formalise (as a specification)".
+- **~1553: `comboOrd` docstring.** It claimed "name length then name", but the
+  code orders by name length only. The docstring now says so.
+- **~1904: Lagrangian decomposition claim.** The book said that relaxing the rune
+  constraint makes the problem decompose per slot. The asymmetric penalty is not
+  separable, because it couples slots through the stat totals. I added a caveat,
+  and the history box now says that the rune constraint works "together with the
+  shared stat totals".
+- **~1970: Lagrangian relaxation attribution.** "Marshall Fisher and Michael Held
+  … vehicle routing" was wrong. It now credits Held & Karp (TSP, 1970–71),
+  Geoffrion (1974, who named and systematised it) and Fisher (scheduling, 1981
+  survey).
+- **~2030–2038: bound-quality table.** It ranked LP as tighter than Lagrangian.
+  By Geoffrion's theorem, the Lagrangian dual bound is never weaker than the LP
+  bound. I corrected the table entries and added a one-sentence note.
+- **~2084: two-slot neighbourhood size.** `14²×39² ≈ 300,000` counts ordered
+  pairs and same-slot pairs. The correct count is `C(14,2)×39² ≈ 138,000`.
+- **~2182: logarithmic cooling.** "Provably optimal" is now "provably
+  convergent".
+- **~2244: SA history.** SA was inspired by the Metropolis algorithm (1953), not
+  "Metropolis–Hastings". Gelatt and Vecchi are now credited alongside
+  Kirkpatrick.
+- **~2525: weighted scalarisation.** With `w ≥ 0`, a zero weight can return a
+  point that is only weakly Pareto-optimal. The book now requires `w > 0` and
+  notes why.
+- **~593, 543, 2601, 2607–2616, 2823–2827: infusion budget `= 18` vs the DP.**
+  With `dp[0][r] = 0` for all *r*, the DP (and its code) solves `Σ ≤ 18`. It can
+  return fewer than 18 infusions, which made `Build.feasible` (`sum = 18`) and so
+  the `solver_sound` spec false for `solve`'s output. I made the constraint
+  `≤ 18` in the problem statement, the invariant comment, the subproblem
+  defbox, and `Build.feasible`. The DP box explains how to force exactly 18. The
+  DP comment "budget remaining AFTER them" is now "budget available to them".
+  I synced both companion `.lean` files. A brute-force search (random 2–3-stat
+  instances) found no case where the DP's minimum-penalty split misses a floor
+  while some floor-meeting split exists, so the leaf `meetsFloors` check does not
+  wrongly reject.
+- **~2974: B&B invariant lemma.** Branch (b) said that unexplored nodes have an
+  "LP bound ≤ incumbent", which is not an invariant. It now matches the Lean
+  `partition` field: either the build is no better than the incumbent (it was
+  evaluated or pruned), or it is in the queue.
+- **~3076: composing the proof.** The book said incumbent feasibility followed
+  "by infusion DP optimality". It actually comes from the `meetsFloors` check.
+- **~3298: `PackedBuild.slots : BitVec 240`.** The comment says 14 slots × 6 bits,
+  which is 84 bits. Changed to `BitVec 84` (core companion synced too).
+- **~3386: food and utility.** The book said they affect "every stat". They add
+  to several stats.
+- **~3404, ~3433: trait conversions.** The book called a fixed-percentage
+  conversion "nonlinear" and said it made the LP "invalid". That kind of
+  conversion is linear: you can fold it into the slot coefficients. The text now
+  says that caps, thresholds and rounding are what break linearity.
+- **~3500: what-if mode.** The book said fixing Berserker armour fixes the rune
+  ("whatever rune Berserker armour uses"). In the book's own model, a stat combo
+  does not determine a rune. The sentence now points to stat-floor pruning
+  instead.
+- **~3561: Pareto-frontier endpoint.** "Full Soldier … minimum damage"
+  contradicts Appendix A, where Soldier's is Power-major. It now reads
+  Minstrel's/Sentinel's, "little damage".
+- **~3761: primer.** It said that non-structural recursion *requires*
+  `partial def`. Well-founded recursion with `termination_by` is the other
+  option; added.
+
+### Fixed — prose
+- The preface mixed US and UK spelling. It is now UK throughout, matching the
+  body (optimiser, armour ×2, optimisation). The title page is unchanged.
+- ~1489: the straight quotes in `"all fixed"` are now LaTeX quotes.
+
+### Flagged, not changed
+- **Combo count.** Appendix A lists **24** triple-attribute combos (plus 16 quad
+  and Celestial, 41 in total), but the text says "23" and "40" throughout
+  (`BitVec 40`, `40^{14}`, …). I don't know which entry is spurious or
+  non-WvW-legal, so I left it.
+- **WvW Celestial.** I believe the claim that the WvW version of Celestial
+  excludes Expertise and Concentration is wrong: WvW uses PvE gear, and Celestial
+  gives all 9 stats. The model depends on this claim throughout, so I left it
+  for the author.
+- **~3404: "Guardian trait *Retribution*".** Retribution is not, as far as I
+  know, a Guardian trait (it is a Revenant specialisation). The sentence hedges
+  with "might", so I left it.
+- **~2295: GA definition.** The defbox describes armour-from-A/trinkets-from-B
+  crossover, but the code implements uniform crossover.
+- **~2540: `epsilonConstraintSweep`.** It never optimises `primaryStat`; it just
+  calls `solve` with a raised floor.
+- **Companion files.** I did not recompile them after the `≤ 18` and
+  `BitVec 84` edits. Both edits are type-correct, and `feasible` is used only in
+  `sorry`'d specifications.
