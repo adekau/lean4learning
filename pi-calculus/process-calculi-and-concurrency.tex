@@ -280,8 +280,9 @@ All code is vanilla Lean\,4, no Mathlib---this book is genuinely
 zero-dependency, and we build every structure from scratch. The listings are
 checked against toolchain \lc{leanprover/lean4:v4.31.0}; a \lc{lean-toolchain}
 file containing that single line is all the project needs. Every printed
-listing compiles as shown (the one exception, an intentional \lc{sorry}, is an
-exercise and is flagged where it appears). Do not worry if the first listing
+listing compiles as shown; none contains a \lc{sorry} (the companion file
+\lc{PiCalcVerification.lean} has exactly one, an intentional hole for a
+Chapter~5 deadlock exercise). Do not worry if the first listing
 is your first encounter with Lean~4: Appendix~\ref{app:primer}
 (\emph{A Lean 4 Primer}) explains every keyword and tactic this book uses,
 with small worked examples and---where it illuminates---the lower-level term
@@ -321,8 +322,8 @@ operations---the first general-purpose synchronization primitive. His 1968
 paper ``Go To Statement Considered Harmful'' made him famous for structured
 programming, but his concurrency work is arguably his deepest contribution.
 
-Dijkstra received the Turing Award in 1972. His acceptance lecture contained
-the memorable line: ``The question of whether machines can think is about as
+Dijkstra received the Turing Award in 1972. A later essay of his (1984)
+contains the memorable line: ``The question of whether machines can think is about as
 relevant as the question of whether submarines can swim.''
 \end{historical}
 
@@ -525,7 +526,9 @@ where $\Reduces^{*}$ denotes zero or more $\tau$ steps.
 \end{center}
 
 This machine accepts a coin, then dispenses either coffee or tea. Its trace
-set is $\{\texttt{coin}\cdot\texttt{coffee},\; \texttt{coin}\cdot\texttt{tea}\}$.
+set is $\{\varepsilon,\; \texttt{coin},\; \texttt{coin}\cdot\texttt{coffee},\;
+\texttt{coin}\cdot\texttt{tea}\}$ (trace sets are prefix-closed; $\varepsilon$
+is the empty trace).
 
 \begin{leanbox}
 \begin{minted}{lean}
@@ -549,9 +552,11 @@ inductive VMStep : VMState → Action VMLabel → VMState → Prop where
 
 \section{Determinism and Nondeterminism}
 
-The vending machine is \textbf{nondeterministic}: from state \lc{paid},
+The vending machine offers a \textbf{choice}: from state \lc{paid},
 there are two possible transitions (coffee or tea). The ``choice'' is made
-by the environment (the customer), not the machine.
+by the environment (the customer), not the machine---so, by the definition
+below, the machine is still \emph{deterministic}: its two transitions carry
+different labels.
 
 \begin{defn}{Deterministic LTS}{det-lts}
 An LTS is \textbf{deterministic} if for every state $s$ and action $a$,
@@ -604,7 +609,8 @@ CCS where channel names can be communicated, modeling systems whose
 communication topology changes at runtime.
 
 Milner received the Turing Award in 1991 ``for three distinct and complete
-achievements''---an unprecedented citation. His 1989 book
+achievements''---an unprecedented citation. (The three it names are LCF, ML,
+and CCS; the $\pi$-calculus came later.) His 1989 book
 \textit{Communication and Concurrency} remains the definitive introduction
 to the theory.
 \end{historical}
@@ -656,7 +662,7 @@ inductive CCSAct where
   | tau : CCSAct                  -- silent action
   deriving DecidableEq, Repr
 
--- CCS is the complement of an action
+-- The complement of an action
 def CCSAct.complement : CCSAct → Option CCSAct
   | .inp a => some (.out a)
   | .out a => some (.inp a)
@@ -729,6 +735,7 @@ inductive CCSStep : CCS → CCSAct → CCS → Prop where
             CCSStep (.par P Q) .tau (.par P' Q')
   | res : CCSStep P α P' → α ≠ .inp a → α ≠ .out a →
           CCSStep (.res a P) α (.res a P')
+  | repl : CCSStep (.par P (.repl P)) α P' → CCSStep (.repl P) α P'
 \end{minted}
 \end{leanbox}
 
@@ -827,8 +834,8 @@ The canonical counterexample:
        + \text{coin} \pref \text{tea} \pref \nil
 \end{align*}
 
-Both have the same traces: $\{\text{coin}\cdot\text{coffee},\;
-\text{coin}\cdot\text{tea}\}$. But they behave differently! In $P$, after
+Both have the same traces: $\{\varepsilon,\; \text{coin},\;
+\text{coin}\cdot\text{coffee},\; \text{coin}\cdot\text{tea}\}$. But they behave differently! In $P$, after
 inserting a coin you can still choose coffee or tea. In $Q$, the choice was
 already made (by the nondeterministic resolution of $+$) \emph{before} you
 inserted the coin. An observer who inserts a coin and then tries to get
@@ -1018,8 +1025,10 @@ A process $P$ \textbf{diverges} (livelocks) if it can perform an infinite
 sequence of $\tau$ steps without ever performing an observable action.
 \end{defn}
 
-In TypeScript terms: a \lc{setImmediate} loop that prevents the event loop
-from processing any other callbacks.
+In TypeScript terms: a recursive \lc{process.nextTick} (or microtask) loop
+that prevents the event loop from processing any other callbacks. (A
+\lc{setImmediate} loop does \emph{not} starve I/O: each iteration yields back
+to the event loop.)
 
 \section{Safety and Liveness}
 
@@ -1183,7 +1192,7 @@ escapes via communication, its scope automatically widens.
   \res{a}(\outp{x}{a}.P) \;\Par\; \inp{x}{z}.Q
   \;\xrightarrow{\tau}\;
   \res{a}(P \;\Par\; Q[a/z])
-  \qquad\text{if } a \notin \fn(Q)
+  \qquad\text{if } a \neq x \text{ and } a \notin \fn(Q)
 \]
 The name $a$ was private to the left process, but after sending it over $x$,
 the right process now knows $a$ too. The $\nu a$ scope expands to cover
@@ -1232,7 +1241,9 @@ inductive PiStep : Pi → Pi → Prop where
 This \lc{PiStep} deliberately keeps only the ``computational'' rules
 (communication under parallel/restriction contexts); a fully general
 presentation also closes reduction under structural congruence
-(Chapter~7), which is what lets scope extrusion fire in arbitrary positions.
+(Chapter~7), which is what lets scope extrusion fire at all (in \lc{PiStep}
+a \lc{res}-wrapped sender never sits syntactically next to its receiver) and
+lets non-adjacent components communicate.
 We omit that closure to keep the relation small enough to compute with by
 hand---it is all we need for the exercises.
 
@@ -1378,8 +1389,9 @@ the same abstract patterns.
 \section{Structural Congruence}
 
 \begin{defn}{Structural Congruence}{struct-cong}
-\textbf{Structural congruence} ($\equiv$) is the smallest equivalence
-relation on CCS/\,$\pi$-calculus processes that includes the algebraic laws
+\textbf{Structural congruence} ($\equiv$) is the smallest congruence (an
+equivalence relation preserved by every process constructor) on
+CCS/\,$\pi$-calculus processes that includes the algebraic laws
 above plus:
 \begin{align}
   \res{a}\nil &\equiv \nil
@@ -1407,7 +1419,8 @@ inductive StructCong : CCS → CCS → Prop where
   | refl     : StructCong P P
   | symm     : StructCong P Q → StructCong Q P
   | trans    : StructCong P Q → StructCong Q R → StructCong P R
-  -- congruence: structural congruence is preserved by all operators
+  -- congruence, here only under ‖ and + (the right-hand argument
+  -- follows via parComm/plusComm + trans); prefix/ν/! are omitted
   | parCong  : StructCong P P' → StructCong (.par P Q) (.par P' Q)
   | plusCong : StructCong P P' → StructCong (.plus P Q) (.plus P' Q)
 \end{minted}
@@ -1418,9 +1431,10 @@ Note that this Lean \lc{StructCong} encodes only the algebraic laws over the
 omits the four laws in the Definition above that are specific to
 restriction and replication --- $\res{a}\nil \equiv \nil$,
 $\res{a}\res{b}P \equiv \res{b}\res{a}P$, scope extrusion, and
-$\repl P \equiv P \Par \repl P$ --- together with a congruence rule for
-$\nu$. Those laws mention constructors (\lc{res}, \lc{repl}) that the
-$\pi$-calculus type \lc{Pi} carries; a full \lc{Pi}-level structural
+$\repl P \equiv P \Par \repl P$ --- together with congruence rules for
+$\nu$ (and for prefix and replication). Those laws mention the constructors \lc{res} and \lc{repl} (which
+\lc{CCS} and \lc{Pi} both have; scope extrusion also needs a free-name
+function, which only \lc{Pi} has in this book); a full \lc{Pi}-level structural
 congruence would add them (and a \lc{resCong}). We show the CCS fragment here
 because it is all the later CCS material needs; extending it to \lc{Pi} is a
 good exercise.
@@ -1450,8 +1464,8 @@ Matthew Hennessy and Robin Milner introduced a modal logic specifically for
 reasoning about processes. The logic has two modalities: $\langle a \rangle\varphi$
 (``the process \emph{can} do action $a$ and then satisfy $\varphi$'') and
 $[a]\varphi$ (``\emph{whenever} the process does $a$, the result satisfies
-$\varphi$''). The landmark result: two processes are bisimilar if and only if
-they satisfy exactly the same HM formulas. This means bisimulation is not just
+$\varphi$''). The landmark result: two (image-finite) processes are bisimilar
+if and only if they satisfy exactly the same HM formulas. This means bisimulation is not just
 one definition of equivalence---it is \emph{the} equivalence that respects all
 observable properties.
 \end{historical}
@@ -1501,7 +1515,8 @@ def Satisfies {State Label : Type}
 \section{The Adequacy Theorem}
 
 \begin{thm}{HM Logic Characterizes Bisimilarity}{hm-adequacy}
-For image-finite LTSs (each state has finitely many transitions):
+For image-finite LTSs (for each state $s$ and action $a$, only finitely many
+$s'$ satisfy $s \xrightarrow{a} s'$):
 \[
   s \bisim t \quad\iff\quad
   \forall \varphi \in \text{HML},\;
@@ -1520,8 +1535,8 @@ The formula $\langle\text{coin}\rangle(\langle\text{coffee}\rangle\mathsf{tt}
 \wedge \langle\text{tea}\rangle\mathsf{tt})$ distinguishes them:
 \begin{itemize}[nosep]
 \item $P \models$ the formula: after coin, both coffee and tea are possible.
-\item $Q \not\models$ the formula: after coin (choosing the coffee branch),
-  tea is not possible.
+\item $Q \not\models$ the formula: after coin, whichever branch was taken,
+  only one of coffee and tea is possible.
 \end{itemize}
 
 \section{Specification via Logic}
@@ -1554,8 +1569,9 @@ logic we defined.
 \end{warning}
 
 \begin{historical}[title={From HM Logic to Model Checking}]
-HM logic is the ancestor of the temporal logics (CTL, CTL*, LTL) used by
-industrial model-checking tools like SPIN, NuSMV, and TLA+. Edmund Clarke,
+HM logic is a close cousin of the temporal logics (CTL, CTL*, LTL) used by
+industrial model-checking tools like SPIN, NuSMV, and TLA+; those developed in
+parallel (Pnueli's LTL dates from 1977, Clarke and Emerson's CTL from 1981). Edmund Clarke,
 Allen Emerson, and Joseph Sifakis received the 2007 Turing Award for
 model checking---the automatic verification of temporal logic properties
 against finite-state models. Amazon uses TLA+ to verify protocols in DynamoDB,
@@ -1566,7 +1582,9 @@ S3, and other AWS services.
 \stepcounter{exercise}
 Write HM formulas expressing: (a)~``the process can terminate'' and (b)~``the
 process is deadlock-free (from every reachable state, some action is
-possible).''
+possible).'' For (b), explain why a single formula of the core logic can only
+check reachable states up to a fixed depth, and what the extension mentioned
+above adds.
 \end{exercisebox}
 
 \begin{exercisebox}[title={Exercise 8.2}]
@@ -1598,8 +1616,10 @@ other side: ``receive an integer, then send a boolean, then done.''
 
 Honda's 1993 paper introduced \textbf{session types} for the $\pi$-calculus.
 The key theorem: if both endpoints of a channel are typed with dual session
-types, then communication is \emph{guaranteed} to be deadlock-free,
-type-safe, and eventually complete.
+types, then communication is \emph{guaranteed} to be type-safe---no message
+ever arrives that the receiver does not expect---and a single session run in
+isolation cannot deadlock. (Deadlock freedom across several interleaved
+sessions is \emph{not} guaranteed by binary session types alone.)
 
 Honda (with Vasconcelos and Kubo, 1998) extended the theory to cover choice,
 recursion, and delegation (passing a session-typed channel to another
@@ -1615,7 +1635,7 @@ of the most important contributions to programming language theory.
   S \;::=\;&\; !T.S &&\text{send a value of type $T$, continue as $S$} \\
   \mid\;&\; ?T.S &&\text{receive a value of type $T$, continue as $S$} \\
   \mid\;&\; S_1 \oplus S_2 &&\text{internal choice: sender picks a branch} \\
-  \mid\;&\; S_1 \mathbin{\&} S_2 &&\text{external choice: receiver picks a branch} \\
+  \mid\;&\; S_1 \mathbin{\&} S_2 &&\text{external choice: offer both; the peer picks} \\
   \mid\;&\; \text{end} &&\text{session complete} \\
   \mid\;&\; \mu X. S &&\text{recursive session (for protocols that loop)}
 \end{align*}
@@ -1692,17 +1712,19 @@ theorem SessionType.dual_dual (S : SessionType) :
 
 \section{Type Safety}
 
-The central guarantee: well-typed processes don't deadlock.
+The central guarantee: well-typed processes never exchange ill-typed
+messages, and a single session between two partners doesn't deadlock.
 
 \begin{thm}{Session Type Safety}{session-safety}
 If process $P$ has session type $S$ on channel $c$, and process $Q$ has
-session type $\overline{S}$ on $c$, then $\res{c}(P \Par Q)$ is:
+session type $\overline{S}$ on $c$ (and $P$, $Q$ share no other channels),
+then $\res{c}(P \Par Q)$ is:
 \begin{enumerate}[nosep, label=(\roman*)]
 \item \textbf{Type-safe:} messages always have the expected type.
 \item \textbf{Deadlock-free:} if both sides follow their types, communication
   always progresses.
-\item \textbf{Session-complete:} the protocol eventually reaches $\text{end}$
-  on both sides.
+\item \textbf{Session-complete:} if $S$ is not recursive, the protocol
+  eventually reaches $\text{end}$ on both sides.
 \end{enumerate}
 \end{thm}
 
@@ -1719,9 +1741,10 @@ By \textbf{progress} and \textbf{preservation}:
 \section{The Linear Logic Connection}
 
 \begin{historical}[title={Wadler's ``Propositions as Sessions'' (2012)}]
-Philip Wadler discovered a remarkable correspondence: session types are
-propositions in \textbf{classical linear logic}, and well-typed processes
-are proofs. This is a Curry-Howard correspondence for concurrent
+Philip Wadler, building on Caires and Pfenning's 2010 correspondence with
+\emph{intuitionistic} linear logic, gave a remarkable correspondence: session
+types are propositions in \textbf{classical linear logic}, and well-typed
+processes are proofs. This is a Curry-Howard correspondence for concurrent
 computation:
 
 \begin{center}
@@ -1757,8 +1780,8 @@ Define session types for a two-phase commit protocol: the coordinator sends a
 
 \begin{exercisebox}[title={Exercise 9.2}]
 \stepcounter{exercise}
-Prove \lc{SessionType.dual\_dual} in Lean (the skeleton is above---fill in the
-details for each case).
+Prove \lc{SessionType.dual\_dual} in Lean yourself (a complete proof is given
+above---reconstruct it case by case without looking).
 \end{exercisebox}
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -1836,7 +1859,8 @@ For full session type safety, TypeScript would need:
 
 \begin{enumerate}[nosep]
 \item \textbf{Linear types}: prevent a channel from being used twice or
-  forgotten. Rust's ownership system provides this; TypeScript doesn't.
+  forgotten. Rust's ownership system provides the first half (affine types:
+  no reuse, but values may be dropped); TypeScript provides neither.
 \item \textbf{Higher-kinded types}: abstract over protocol structure
   (e.g., ``for any protocol $S$, ...'').
   This connects back to the lambda calculus book's discussion of System
@@ -1852,8 +1876,9 @@ For full session type safety, TypeScript would need:
   (\lc{session-types} crate) work well. A consumed channel can't be reused.
 \item \textbf{Haskell}: the \lc{simple-sessions} library encodes session
   types using indexed monads.
-\item \textbf{Scribble/Links}: research languages designed around multiparty
-  session types.
+\item \textbf{Scribble/Links}: Scribble is a protocol-description language
+  built on multiparty session types; Links is a research web-programming
+  language with built-in (binary) session types.
 \end{itemize}
 
 \begin{exercisebox}[title={Exercise 10.1}]
@@ -1957,7 +1982,7 @@ participant $r$ follows their local type $G \upharpoonright r$, then:
 \begin{enumerate}[nosep, label=(\roman*)]
 \item Communication is deadlock-free.
 \item Messages are type-safe.
-\item The protocol completes.
+\item The protocol completes (for non-recursive $G$).
 \end{enumerate}
 \end{thm}
 
@@ -2004,9 +2029,9 @@ Machine-checked in Lean (the kernel accepts the proof term): the syntax of
 every calculus, the session-duality involution
 (Theorem/\lc{SessionType.dual\_dual}), the two-step \lc{CCSStep} request/response
 derivation, and the two-step \lc{PiStep} reduction of the identity encoding
-(Exercise~6.2). Everything with a ``\emph{Proof sketch}'' label below --- session
-safety, multiparty safety, and the three worker-pool theorems --- is argued
-\emph{on paper} in this chapter, not checked in Lean. Turning those sketches
+(Exercise~6.2). Everything else --- session safety (Chapter~9), multiparty
+safety (Chapter~11), and the three worker-pool theorems below --- is argued
+\emph{on paper} (via a proof sketch) or merely stated, not checked in Lean. Turning those sketches
 into machine-checked theorems (which would require, among other things, a
 typing relation and a fuel-bounded worker) is exactly the kind of work the
 field does and the exercises point toward. Read ``verified'' in the chapter
@@ -2231,8 +2256,8 @@ connected each one to TypeScript/Node.js patterns.
 \begin{itemize}[nosep]
 \item \textbf{Shared-memory concurrency and separation logic.} Peter O'Hearn
   and John Reynolds developed separation logic for reasoning about programs
-  that manipulate shared mutable state (pointers, heaps). O'Hearn received
-  the 2016 Gödel Prize for this work. Facebook/Meta uses the Infer tool
+  that manipulate shared mutable state (pointers, heaps). O'Hearn shared
+  the 2016 Gödel Prize with Stephen Brookes for concurrent separation logic. Facebook/Meta uses the Infer tool
   (based on separation logic) to automatically find concurrency bugs in their
   mobile apps.
 \item \textbf{Software transactional memory (STM).} Instead of locks, you
@@ -2442,8 +2467,8 @@ inductive Tree where
 
 \lc{deriving Repr} asks Lean to synthesise a printer (so \lc{\#eval} can show
 values); \lc{deriving DecidableEq} synthesises a decidable \lc{=} test (used by
-\lc{CCSAct}, \lc{SessionType}, and the \lc{if x = z} tests inside
-\lc{Pi.subst}).
+\lc{CCSAct} and \lc{SessionType}; the \lc{if x = z} tests inside
+\lc{Pi.subst} use the built-in instance for \lc{String}).
 
 \subsection*{\lc{def} and pattern matching}
 
@@ -2745,7 +2770,7 @@ def firstTwo' (xs : List Nat) : Option (Nat × Nat) :=
 \subsection*{\lc{sorry} --- an admitted hole}
 
 \lc{sorry} closes any goal without a proof. It type-checks but is flagged with a
-warning; the book uses it for exactly one exercise (the deadlock of
-Chapter~5). Never ship a \lc{sorry} as a real proof.
+warning; no listing in the book uses it, and the companion file uses it for
+exactly one exercise (the two-sender deadlock of Chapter~5). Never ship a \lc{sorry} as a real proof.
 
 \end{document}

@@ -103,6 +103,10 @@ inductive CCSStep : CCS → CCSAct → CCS → Prop where
             CCSStep (.par P Q) .tau (.par P' Q')
   | res : CCSStep P α P' → α ≠ .inp a → α ≠ .out a →
           CCSStep (.res a P) α (.res a P')
+  -- ADDED (second pass, 2026-09-27): the Repl rule (g) of the book's
+  -- Definition was missing from the printed listing; mirrored here.
+  -- Not recompiled in this pass (no Lean toolchain available).
+  | repl : CCSStep (.par P (.repl P)) α P' → CCSStep (.repl P) α P'
 
 /- Machine check of the worked "Request/Response" derivation
    (tex ll. 713-724) and Exercise 3.2 (tex ll. 750-755):

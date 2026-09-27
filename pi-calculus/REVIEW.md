@@ -293,3 +293,62 @@ request/response, `dual_dual`) still hold.
   in Latin Modern Roman; replaced with `$\leftrightarrow$`.
 - Non-DejaVu notation glyphs `𝟎 ⬝ ∥` (see finding 6) — the review checked Lean
   compilation but not PDF glyph coverage; these would have printed as blanks.
+
+## Second pass (2026-09-27)
+
+Full sequential re-read of all 2,751 lines (now 2,776). Line numbers below are
+for the .tex after these edits. No Lean toolchain was available (network
+policy), so nothing was recompiled; the one Lean change is a single
+constructor whose well-formedness is not in doubt.
+
+**Verdict.** The first pass fixed the big problems, and every fix it
+recorded is still in place. The core CCS/π material is sound. This pass
+found one real Lean/semantics gap: the `CCSStep` listing had no Repl rule,
+although the Definition states one. It also found several mathematical
+inaccuracies that the first pass missed. These were: calling the vending
+machine "nondeterministic", which contradicts the book's own definition;
+the wrong definition of image-finiteness; the missing `a ≠ x` in scope
+extrusion; describing structural congruence as only an "equivalence"; and
+session-type safety claims that do not hold for recursive types or
+interleaved sessions. There were also a few historical misattributions and
+two internal contradictions about `sorry`.
+
+### Fixed — correctness
+- **l.738 (CCSStep listing):** the Def's rule (g) Repl had no Lean constructor, so `!P` had no transitions in the Lean model. Added `| repl : CCSStep (.par P (.repl P)) α P' → CCSStep (.repl P) α P'` (mirrored in `PiCalcVerification.lean`, marked as added, not recompiled).
+- **l.556–559:** the vending machine was called "nondeterministic". Under Def. "Deterministic LTS" (at most one successor per state *and label*), it is deterministic, because coffee and tea are different labels. It is now described as offering a choice while being deterministic.
+- **l.528–531, l.837:** trace sets were given as `{coin·coffee, coin·tea}`, but the book's trace definition is prefix-closed. They are now `{ε, coin, coin·coffee, coin·tea}`.
+- **l.1195:** scope-extrusion reduction lacked `a ≠ x`. If `x = a`, the bound channel on the left is not the free `x` on the right. The condition is now `a ≠ x and a ∉ fn(Q)`.
+- **l.1244:** said that closing `PiStep` under ≡ lets extrusion fire "in arbitrary positions". Without ≡, extrusion cannot fire at all, because a ν-wrapped sender is never adjacent to its receiver. Reworded.
+- **l.1392:** structural congruence was defined as the "smallest equivalence relation"; it is now the "smallest congruence". **l.1422:** the Lean comment claimed it is "preserved by all operators", but only ∥/+ congruence exists. The comment is corrected, and the prose (l.1435) now also notes the missing prefix/replication congruence rules. **l.1435–1437:** the prose implied that only `Pi` has `res`/`repl`, but `CCS` has them too. Clarified.
+- **l.1518:** image-finite was glossed as "each state has finitely many transitions", which is finite branching. It is now "finitely many a-successors per state and action". The historical note (l.1467) now states the image-finite hypothesis.
+- **l.1572:** "HM logic is the ancestor of CTL/CTL*/LTL" is wrong, because LTL (1977) and CTL (1981) developed independently and in parallel. Now "close cousin", with dates.
+- **l.1586:** Exercise 8.1(b) asked for an HML formula for a property the core logic cannot express, as the book's own warning box says. Added a note to explain the depth limitation.
+- **l.1617–1621, 1715, 1720, 1726:** session-type safety was overclaimed. Binary session types do not guarantee deadlock freedom across interleaved sessions, and a recursive `S` never reaches `end`. The Theorem now says "P, Q share no other channels" and "(iii) if S is not recursive". The historical note and the "central guarantee" sentence are qualified to match. Multiparty Thm (iii) at l.1985 now says "for non-recursive G".
+- **l.1638:** `&` was glossed "receiver picks a branch"; now "offer both; the peer picks".
+- **l.325:** the "submarines can swim" line was attributed to Dijkstra's 1972 Turing lecture. It is from a 1984 essay (EWD898).
+- **l.612:** the Turing citation's "three achievements" read as ML/CCS/π. They are LCF, ML and CCS; π came after the 1991 award.
+- **l.1744:** Wadler 2012 is now credited as building on Caires–Pfenning 2010 (intuitionistic linear logic).
+- **l.1862:** said "Rust's ownership provides linear types". It provides affine types, which prevent reuse but not forgetting. This contradicted l.1873.
+- **l.1879:** "Scribble/Links: research languages designed around multiparty session types" is wrong for Links, which has binary session types. Corrected.
+- **l.2260:** the 2016 Gödel Prize went to O'Hearn *and Brookes*, for *concurrent* separation logic.
+- **l.1028:** the livelock analogy used a `setImmediate` loop. That does not starve the event loop; a recursive `process.nextTick`/microtask loop does. Fixed, with a one-line explanation.
+- **l.283, l.2773:** the Preface and Appendix D both said the book prints a `sorry` for a Chapter 5 exercise. No listing contains one: it exists only in the companion file, and book Exercise 5.2 is about the philosophers anyway. Both are reworded.
+- **l.1784:** Exercise 9.2 called the complete `dual_dual` proof above it a "skeleton". Reworded.
+- **l.2032:** the capstone warning said session and multiparty safety have "Proof sketch" labels "below". They are in Chapters 9 and 11, multiparty safety has no sketch, and only one worker-pool theorem has one. Reworded.
+- **l.2469–2471:** the primer said the `if x = z` tests in `Pi.subst` use derived `DecidableEq`. They use `String`'s built-in instance.
+
+### Fixed — prose
+- l.665: garbled Lean comment "CCS is the complement of an action" → "The complement of an action".
+- l.1538: the reason Q fails the distinguishing formula now covers both coin-branches, not only the coffee branch.
+
+### Flagged, not changed
+- **l.2093 (`worker`):** the comment says `.send pool "self"` is "scope extrusion: pass our channel". `"self"` is a *free* name that is never restricted, so nothing is extruded there, and every worker shares the same `"self"`. The actual extrusion is the later `Pi.res "result"` + send. Fixing it means changing code, for example wrapping in `Pi.res "self"` so the recursion re-registers under a fresh ν. It is left for the author. The comment "(modeled as tau + send)" is also inaccurate, since `Pi` has no τ prefix.
+- **l.1609:** Honda is given as "(1956–2012)", and l.1624 says he died "at the age of 56". Some sources give 1959 as his birth year. I could not confirm this, so it is flagged for checking.
+- **l.973 / Appendix C:** "Dining Philosophers (1971)". 1971 is the publication (EWD310). Dijkstra set the problem as an exam exercise in 1965, and Hoare gave it the philosophers framing. Acceptable as written.
+- **l.597:** "Algorithm W inspired … Lean's type systems" is a stretch. Lean is based on dependent type theory (CIC); only its elaborator's unification-based inference is loosely related.
+- **l.1055:** "CSP and CCS … can encode each other" is contested (CSP's multiway synchronisation versus CCS's binary handshake), and CSP's semantics is failures/divergences rather than just traces.
+- **l.446:** the Chapter 1 roadmap says session types "guarantee deadlock freedom". This is informal and now qualified in Ch 9, but still an overstatement.
+- **l.1912:** "Scribble … has been used by … VMware": unverified. Red Hat and OOI are well attested.
+- **l.2741:** "Mathlib wraps it in a `by_contra` tactic". `by_contra` actually comes from Batteries, which Mathlib imports. This is roughly right and was not changed.
+- **l.1547–1553:** the "never deadlocks" HML example checks only one step even informally. The warning box already covers this.
+- **l.419–420:** the TS deadlock sketch says `postMessage` "blocks until B responds", but `postMessage` is non-blocking. It is illustrative pseudo-code, so it was left as is.
