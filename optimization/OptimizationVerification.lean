@@ -771,7 +771,7 @@ def toyAlloc : StatType → Nat := infusionDP toyGear toyTargets 18
 -- LinearGeq is NOT sound for it: it can prune the soft optimum.)
 def Build.feasible (b : Build) (p : GearProblem) : Prop :=
   (∀ slot, b.gear slot ∈ p.initialDomains slot) ∧
-  ((StatType.all.map b.infusions).sum = 18) ∧
+  ((StatType.all.map b.infusions).sum ≤ 18) ∧  -- 2nd pass: ≤ (DP may leave infusions unused)
   (∀ s, statTotal b s ≥ p.targets s)   -- HARD stat floors
 
 theorem solver_sound (problem : GearProblem) :
@@ -1007,7 +1007,7 @@ structure Propagator (D : Type) where
 
 -- Use unboxed representations where possible
 structure PackedBuild where
-  slots     : BitVec 240  -- 16 slots × 6 bits each (enough for 40 combos)
+  slots     : BitVec 84   -- 14 slots × 6 bits each (6 bits index up to 64 ≥ 40 combos)
   runeIdx   : UInt8
   infusions : BitVec 72   -- 9 stats × 8 bits each (max 18 per stat)
 

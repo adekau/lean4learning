@@ -690,7 +690,7 @@ theorem lp_bound_valid
 -- theorem below is true-in-principle and matches what `solve` computes.
 def Build.feasible (b : Build) (p : GearProblem) : Prop :=
   (∀ slot, b.gear slot ∈ p.initialDomains slot) ∧
-  ((StatType.all.map b.infusions).sum = 18) ∧
+  ((StatType.all.map b.infusions).sum ≤ 18) ∧  -- 2nd pass: ≤ (DP may leave infusions unused)
   (∀ s, statTotal b s ≥ p.targets s)   -- HARD stat floors
 
 /-- The complete solver soundness theorem. -/

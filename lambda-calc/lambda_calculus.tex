@@ -189,28 +189,31 @@ that no procedure exists for a task, you need a rigorous definition of what a
 procedure is. In the mid-1930s, several mathematicians independently proposed
 answers.
 
-\textbf{Alonzo Church} (1903--1995), a logician at Princeton, proposed
-the lambda calculus in 1936. His idea was radical: computation is nothing more
+\textbf{Alonzo Church} (1903--1995), a logician at Princeton, introduced
+the lambda calculus in the early 1930s and in 1936 used it to give a precise
+definition of computability. His idea was radical: computation is nothing more
 than function application. Define functions, apply them to arguments, simplify
 the results---that's it. No machine, no tape, no steps through a state
 table. Just the algebra of functions.
 
-\textbf{Alan Turing} (1912--1954), then a graduate student at Princeton
-(Church was his PhD advisor!), independently proposed the Turing machine in
-the same year---an imaginary device with a tape, a read/write head, and a table
+\textbf{Alan Turing} (1912--1954), then a young fellow at Cambridge (he
+would soon go to Princeton to do his PhD under Church!), independently proposed
+the Turing machine in the same year---an imaginary device with a tape, a read/write head, and a table
 of rules. His approach was more ``mechanical'': it modeled computation as a
 physical process with states and transitions.
 
-Church and Turing proved their models equivalent: anything computable by a
+Turing proved the two models equivalent: anything computable by a
 Turing machine can be expressed in $\lam$-calculus, and vice versa. This
-remarkable fact is called the \textbf{Church--Turing thesis}. Both men also used
+remarkable fact underpins the \textbf{Church--Turing thesis}: the claim that
+these models capture exactly what is mechanically computable. Both men also used
 their formalisms to prove Hilbert wrong: the Entscheidungsproblem has no
 solution. There are mathematical statements that no mechanical procedure can
 decide.
 
 Kurt G\"odel, who had already shaken the foundations of mathematics with his
-incompleteness theorems (1931), showed his own system of recursive functions
-was equivalent to both. So three independent approaches---functions, machines,
+incompleteness theorems (1931), had proposed his own system of (general)
+recursive functions, which Church and Kleene showed was equivalent to the
+$\lam$-calculus (and hence to Turing machines). So three independent approaches---functions, machines,
 and recursion---all captured the same notion of computability. This convergence
 is strong evidence that the definition is ``right.''
 
@@ -256,7 +259,7 @@ but functions.
 
 Before diving in, here is a quick guide to the mathematical notation used
 throughout this document. If you are comfortable with set notation and logic
-symbols, feel free to skip ahead to Section~\ref{sec:what}. Otherwise, this
+symbols, feel free to skip ahead to Section~\ref{sec:lean}. Otherwise, this
 page is your cheat sheet---refer back to it whenever a symbol looks unfamiliar.
 
 \subsection{Set Notation}
@@ -798,7 +801,7 @@ instances for \texttt{Term}:
 \end{itemize}
 
 The term $\lam x.\, x\;y$ becomes \texttt{lam "x" (app (var "x") (var "y"))}.
-This is a tree---the same tree structure we visualized in
+This is a tree---the same tree structure we will visualize in
 Section~\ref{sec:beta}. Variables are leaves, applications are internal nodes
 with two children, and lambdas are internal nodes with one child plus a name
 annotation.
@@ -923,7 +926,7 @@ lambda calculus. They were introduced by Moses Sch\"onfinkel in a 1924 paper,
 all of logic could be expressed using just two operations ($\mathbf{S}$ and
 $\mathbf{K}$). Haskell Curry independently rediscovered and greatly expanded
 these ideas starting in 1927, developing them into a full theory called
-\textbf{combinatory logic}. Church's lambda calculus (1936) took a different
+\textbf{combinatory logic}. Church's lambda calculus (early 1930s) took a different
 but equivalent path---using variable binding rather than combinators as the
 primitive. The two systems are interconvertible and equally expressive.
 \end{intuition}
@@ -1124,7 +1127,7 @@ At first, beta reduction might seem too simple to deserve the name
 can that express loops, conditionals, data structures, and everything else a
 real program needs?
 
-This question is worth sitting with. In 1933, when Church first defined the
+This question is worth sitting with. In the early 1930s, when Church first defined the
 $\lam$-calculus, it was not at all obvious that it had anything to do with
 computation. Church was working on the foundations of logic, trying to build
 a system where mathematical functions could be treated as first-class objects.
@@ -1175,8 +1178,7 @@ This was a bold claim. Church was saying: \emph{if a function can be computed
 at all, by any method whatsoever, then it can be computed by beta reduction.}
 
 Turing, independently working on the same problem, proved the same thing for
-his Turing machines using a different approach. When Church (1936) and Turing
-(1937) proved that $\lam$-definable functions and Turing-computable functions
+his Turing machines using a different approach. When Turing (1937) proved that $\lam$-definable functions and Turing-computable functions
 were exactly the same class, the result was electrifying. Two completely
 different formalizations of ``computation''---one based on abstract
 symbol manipulation, the other on an imaginary physical machine---captured
@@ -1492,7 +1494,7 @@ with $z$ in the body):
   (\lam z.\, x\;z)[x := y] \;=\; \lam z.\, (x\;z)[x := y]
 \]
 Now apply rule 6 (application): $(x\;z)[x := y] = x[x := y]\;z[x := y] =
-y \cdot z$ (by rules 1 and 2). So:
+y\;z$ (by rules 1 and 2). So:
 \[
   (\lam y.\, x\;y)[x := y] \;=\; \lam z.\, y\;z
 \]
@@ -1641,8 +1643,9 @@ Some examples:
 \end{enumerate}
 
 There is also a weaker notion called \textbf{weak head normal form} (WHNF): a
-term is in WHNF if its outermost structure is either a $\lam$-abstraction or an
-application whose leftmost part is not a redex. Most practical implementations
+term is in WHNF if its outermost structure is either a $\lam$-abstraction or a
+variable applied to zero or more arguments ($x\;e_1\cdots e_n$), so that there
+is no redex at the head (redexes inside the arguments may remain). Most practical implementations
 (including Haskell's runtime) stop at WHNF because fully normalizing under
 lambdas is expensive and usually unnecessary.
 
@@ -1665,8 +1668,7 @@ very reassuring property---it means the ``answer'' is well-defined.
 Alonzo Church and J. Barkley Rosser proved this in 1936. It was a crucial
 result: without it, the $\lam$-calculus would be ambiguous as a model of
 computation, since different evaluation orders could yield different ``answers.''
-The proof was notoriously difficult---Church himself called it one of the
-hardest things he had worked on---and it took decades for truly elegant proofs
+The original proof was notoriously intricate, and it took decades for truly elegant proofs
 to emerge (notably Tait and Martin-L\"of's parallel reduction technique in the
 1970s).
 \end{intuition}
@@ -2402,7 +2404,7 @@ Let $L = \textsc{Cons}\;a\;(\textsc{Cons}\;b\;\textsc{Nil})$.
   \textsc{Head}\;L
   &= L\; (\lam h\, \_.\, h)\; \FL \\
   &\reduces (\lam h\, \_.\, h)\; a\; \bigl((\lam h\, \_.\, h)\; b\; \FL\bigr)
-  \;\reduce\; a \quad\checkmark
+  \;\reduces\; a \quad\checkmark
 \end{align*}
 \end{workedexample}
 
@@ -2418,6 +2420,8 @@ $\textsc{Sub}\;\church{m}\;\church{n}$ should apply $\textsc{Pred}$ a total of $
 
 \stepcounter{exercise}\textbf{\theexercise.}\; Is $\textsc{Nil}$ the same term as $\church{0}$? Explain why or why not, and what this says about Church encodings.
 \end{exercisebox}
+
+\subsection{Recursion Without Names}
 
 In most programming languages, writing a recursive function is straightforward:
 you give the function a name and call that name inside its own body.
@@ -2487,8 +2491,8 @@ earlier. Curry showed that \emph{every} function in the $\lam$-calculus has a
 fixed point---a consequence of the system's ability to express self-application.
 This was a double-edged sword: it made recursion possible, but it also meant
 Church's original goal of using $\lam$-calculus as a consistent foundation for
-\emph{logic} was doomed (Kleene and Rosser showed in 1935 that the untyped
-$\lam$-calculus is logically inconsistent). The $\lam$-calculus survived by
+\emph{logic} was doomed (Kleene and Rosser showed in 1935 that Church's
+original logical system built on the untyped $\lam$-calculus is inconsistent). The $\lam$-calculus survived by
 pivoting: it became a theory of \emph{computation} rather than logic.
 
 Here is the actual definition:
@@ -2538,8 +2542,9 @@ $\lam$ to delay it:
 The extra $\lam y.\, \ldots\; y$ acts as a ``thunk''---it prevents $x\;x$
 from being evaluated until the result is actually needed (i.e., until the
 function is called with an argument $y$). This is the combinator used in
-eager languages like JavaScript, Python, and our call-by-value Lean
-interpreter.
+eager languages like JavaScript and Python, and the one you would need with
+the call-by-value evaluator \texttt{cbvStep} of Section~\ref{sec:dbimpl}
+(our main interpreter uses normal order, where $\mathbf{Y}$ works).
 
 \subsection{Factorial: Putting It All Together}
 
@@ -3423,13 +3428,13 @@ where $y$ is free. The function ignores its argument and just returns $y$.
 
 In the original term $\lam.\, 1$, the $\texttt{bvar}\;1$ is \textbf{bound}---
 it points to a binder above the $\lam$ we're about to strip. After stripping,
-the body is just $\texttt{bvar}\;1$, and the binder it pointed to is gone.
-It's an orphan:
+the body is just $\texttt{bvar}\;1$, but the $\lam$ it was counting past
+(the stripped one) is gone. Its count is now off by one:
 
 \begin{minted}{text}
 (λ. 1) (bvar 5)            -- named: (λx. y) arg; y is bound above
 
-body = bvar 1               -- after stripping, y is FREE (binder gone!)
+body = bvar 1               -- after stripping, 1 overshoots (a λ it skipped is gone!)
 arg  = bvar 5
 target index 0              -- x (the stripped λ's variable)
 
@@ -3711,9 +3716,9 @@ types, Church hoped to tame the system just enough to make it logically
 consistent while keeping its computational expressiveness.
 
 The version we study here---the ``simply typed'' calculus---is the simplest
-typed $\lam$-calculus. It was formalized in its modern presentation by Curry
-in the 1950s and independently by Howard in 1969 (who discovered its deep
-connection to logic, which we explore in Section~\ref{sec:curryhoward}).
+typed $\lam$-calculus. Its type-assignment presentation was developed by Curry
+(culminating in Curry and Feys, 1958), and in 1969 Howard made explicit its deep
+connection to logic, which we explore in Section~\ref{sec:curryhoward}.
 The cost: the STLC is not Turing-complete. But this is also its strength---
 every well-typed STLC term terminates, making it safe to use as a logic.
 
@@ -3759,9 +3764,9 @@ Related symbols you may encounter:
 \textbf{Symbol} & \textbf{Name} & \textbf{Meaning} \\
 \hline
 $\proves$ & turnstile & ``we can derive'' (syntactic) \\
-$\Proves$ & double turnstile & ``semantically entails'' \\
+$\Proves$ & forces & ``forces'' (Kripke semantics) \\
 $\nproves$ & negated turnstile & ``we cannot derive'' \\
-$\entails$ & models & ``satisfies'' (model theory) \\
+$\entails$ & double turnstile / models & ``semantically entails,'' ``satisfies'' (model theory) \\
 \end{tabular}
 \end{center}
 
@@ -4015,7 +4020,7 @@ every $\Gamma$ back to its definition.
 
 \subsection{Key Theorems of the STLC}
 
-The STLC enjoys three fundamental properties that together give it the
+The STLC enjoys three fundamental properties. The first two together give it the
 property known as \textbf{type safety}: well-typed programs don't ``go wrong.''
 
 \begin{theorem}[Type Preservation / Subject Reduction]
@@ -4321,8 +4326,8 @@ unpublished manuscript (finally published in 1980) making the correspondence
 explicit and systematic: types \emph{are} logical propositions, and programs
 \emph{are} proofs. Every rule of typed lambda calculus corresponds precisely to
 a rule of natural deduction in logic. Howard extended the correspondence beyond
-simple types to include universal quantification, existential types, and
-disjunction.
+simple types to include conjunction, disjunction, and (first-order) universal
+and existential quantification.
 
 The correspondence says:
 
@@ -4667,13 +4672,14 @@ theory. Every proof must construct its evidence. This is why proofs in Lean
 are programs: the BHK interpretation \emph{is} the type system.
 
 \begin{intuition}[Classical logic in Lean]
-Lean does allow classical reasoning---but only when you explicitly opt in by
-importing \texttt{Classical}. When you write \texttt{Classical.em P}
-(excluded middle for $P$), or use the \texttt{by\_contra} tactic, Lean adds
-the axiom of choice or excluded middle as an additional assumption. The proof
-still type-checks, but it is marked as ``noncomputable''---Lean can verify it
-but cannot extract a runnable program from it, because the proof may use
-existence claims without witnesses. This is the type-theoretic manifestation
+Lean does allow classical reasoning---but only through an explicit axiom,
+\texttt{Classical.choice}, from which excluded middle is derived. When you
+write \texttt{Classical.em P} (excluded middle for $P$), or use the
+\texttt{by\_contra} tactic, your proof depends on that axiom
+(\texttt{\#print axioms} will list it). The proof still type-checks, but a
+\emph{definition} whose computation relies on it must be marked
+\texttt{noncomputable}---Lean can verify it but cannot extract a runnable
+program from it, because it may use existence claims without witnesses. This is the type-theoretic manifestation
 of the constructivist objection: classical proofs don't always compute.
 \end{intuition}
 
@@ -4856,8 +4862,8 @@ def FTy.subst (k : Nat) (s : FTy) : FTy → FTy
   | .tvar n      => if n == k then s
                      else if n > k then .tvar (n - 1) else .tvar n
   | .base s      => .base s
-  | .arrow t₁ t₂ => .arrow (t₁.subst k s) (t₂.subst k s)
-  | .forall_ t   => .forall_ (t.subst (k + 1) (s.shift 1 0))
+  | .arrow t₁ t₂ => .arrow (FTy.subst k s t₁) (FTy.subst k s t₂)
+  | .forall_ t   => .forall_ (FTy.subst (k + 1) (s.shift 1 0) t)
 \end{minted}
 
 Now the type checker. It has five cases---three from the STLC (Var, Abs, App)
@@ -4888,7 +4894,7 @@ def fTypeCheck (ctx : List FTy) : FExpr → Option FTy
   | .tapp e ty    => do
     let eTy ← fTypeCheck ctx e
     match eTy with
-    | .forall_ bodyTy => some (bodyTy.subst 0 ty)  -- substitute τ for α
+    | .forall_ bodyTy => some (FTy.subst 0 ty bodyTy)  -- substitute τ for α
     | _               => none
 \end{minted}
 
@@ -4910,7 +4916,10 @@ The two new rules are:
 all existing types are shifted (because we've introduced a new type variable).
 \textsc{TApp} says: if $e$ has type $\forall\alpha.\, \tau$, then applying it
 to a type $\sigma$ gives $\tau$ with $\alpha$ replaced by $\sigma$. That
-substitution in the code is \texttt{bodyTy.subst 0 ty}---exactly what we built.
+substitution in the code is \texttt{FTy.subst 0 ty bodyTy}---exactly what we built.
+(We write \texttt{FTy.subst k s t} in full rather than \texttt{t.subst k s}:
+Lean's dot notation would plug \texttt{t} into the first \texttt{FTy}
+argument, which is the replacement \texttt{s}, not the subject.)
 
 \begin{minted}{lean}
 -- Test: the polymorphic identity  Λα. λ(x:α). x : ∀α. α → α
@@ -4925,8 +4934,8 @@ substitution in the code is \texttt{bodyTy.subst 0 ty}---exactly what we built.
 %======================================================================
 
 System F lets terms depend on types (polymorphism). But what about types that
-depend on \emph{other types}? We've already seen the intuition in our
-discussion of higher-kinded types (Section~\ref{sec:hkt}): \textsf{List} is
+depend on \emph{other types}? We will make this concrete in our
+discussion of higher-kinded types (Section~\ref{sec:hkt}), but the intuition is simple: \textsf{List} is
 not a type---it's a \emph{function on types}. Give it \textsf{Nat} and it
 returns \textsf{List Nat}. System F$\omega$ makes this kind of type-level
 computation a first-class concept.
@@ -4986,7 +4995,7 @@ happen \emph{inside types}, not just inside terms.
 \subsection{What System F$\omega$ Enables}
 
 The practical payoff is the ability to abstract over type constructors, as we
-saw in Section~\ref{sec:hkt}. Here is a more formal view:
+will see in Section~\ref{sec:hkt}. Here is a more formal view:
 
 In System F, you can write:
 \[
@@ -5003,7 +5012,7 @@ In System F$\omega$, you can also write:
 Now $f$ ranges over type constructors of kind $\star \to \star$---things like
 \textsf{List}, \textsf{Option}, \textsf{Tree}. Inside the term, we apply $f$
 to $\alpha$ to get the concrete type $f\;\alpha$. This is exactly the
-``\texttt{Functor<F>}'' pattern we discussed earlier, expressed in the formal
+``\texttt{Functor<F>}'' pattern of Section~\ref{sec:hkt}, expressed in the formal
 calculus.
 
 \subsection{System F$\omega$ in Practice}
@@ -5094,7 +5103,8 @@ Terms $\to$ Types & Dependent types: a type computed from a value & $\lam P$ \\
 Each corner of the cube enables some subset of these three ``extra'' axes.
 The STLC ($\lam_\to$) sits at the origin with none enabled. System F enables
 one axis. The corner with all three enabled is the \textbf{Calculus of
-Constructions} (CoC), introduced by Thierry Coquand and G\'erard Huet in 1988.
+Constructions} (CoC), introduced by Thierry Coquand and G\'erard Huet in the
+mid-1980s (1985; journal version 1988).
 
 \subsection{Why a Cube?}
 
@@ -5377,7 +5387,7 @@ Martin-L\"of's type theory remained a topic in mathematical logic for over a
 decade. The transition to software came through two parallel efforts.
 
 \textbf{Coquand and Huet (1985--1988).} Thierry Coquand, a French logician
-(and student of Girard), and G\'erard Huet at INRIA developed the
+(and Huet's doctoral student), and G\'erard Huet at INRIA developed the
 \textbf{Calculus of Constructions} (CoC)---a type theory that sat at the
 ``top corner'' of the Lambda Cube, combining polymorphism, type operators, and
 dependent types in a single unified system. Their insight was that
@@ -5471,7 +5481,8 @@ implementing the interpreter!). If a non-terminating computation could appear
 in a type, the type checker might loop forever trying to normalize it.
 
 \textbf{The Type : Type paradox.} If \texttt{Type} has type \texttt{Type}, you
-get a variant of Russell's paradox. Girard discovered this in 1972 (``Girard's
+get a type-theoretic variant of the Burali-Forti paradox (a cousin of
+Russell's paradox). Girard discovered this in 1972 (``Girard's
 paradox''): in a system with \texttt{Type : Type}, you can construct a term of
 any type, meaning every proposition is ``provable''---the system is logically
 inconsistent. The solution is a \textbf{universe hierarchy}: $\textsf{Type}_0 :
@@ -5730,8 +5741,8 @@ theorem identity (A : Prop) (a : A) : A := a
 -- If it type-checks, the proof is valid. Period.
 \end{minted}
 
-The entire 4539-line Lean kernel that verifies every proof in Lean's
-\texttt{mathlib} library works on essentially this principle: terms are proofs,
+The Lean kernel---a comparatively small C++ program that verifies every proof in
+Lean's \texttt{Mathlib} library---works on essentially this principle: terms are proofs,
 types are propositions, and type checking is proof verification. What we've
 built above is a toy version of the same idea---simplified, but the core
 mechanism is identical.
@@ -6059,7 +6070,7 @@ Why does the typeclass hierarchy matter? Because each level gives you
 
 \textbf{Functor} gives you \texttt{<\$>} (map): transform a parser's result
 without changing what it consumes. If \texttt{digit} parses a character,
-\texttt{Char.toNat <\$> digit} parses a character and converts it to a number.
+\texttt{Char.toNat <\$> digit} parses a character and converts it to a number (its character code).
 
 \textbf{Applicative} gives you \texttt{<*>} (apply): run two parsers in
 sequence and combine their results. This is enough for parsers that don't need
@@ -6179,9 +6190,9 @@ crucial refinement: \textbf{committed choice}. Once a parser has consumed
 input successfully, it \emph{commits} to that branch---it won't backtrack.
 This gives two benefits:
 
-\textbf{Better error messages.} If you write \verb|\x. y| and the parser
-successfully consumes the \verb|\| and \texttt{x} but fails on what comes
-next, you want ``expected \texttt{.} at position 3,'' not ``expected
+\textbf{Better error messages.} If you write \verb|\x y| (forgetting the dot) and the parser
+successfully consumes the \verb|\| and the parameters but fails on what comes
+next, you want ``expected \texttt{.} at position 4,'' not ``expected
 identifier''  (which is what you'd get if it backtracked and tried the
 \texttt{app} branch instead).
 
@@ -6598,8 +6609,8 @@ Starting from three constructs (variable, lambda, application) and one rule
 (beta reduction), you've built a system that can do arithmetic, logic,
 recursion, and more---all from functions. The interpreter follows the exact
 same structure as industrial implementations of functional languages, just
-without the optimizations. GHC (Haskell), OCaml's compiler, and Lean's own
-kernel all follow this pattern: parse source text into an AST, elaborate it
+without the optimizations. GHC (Haskell), OCaml's compiler, and Lean itself
+all follow this pattern: parse source text into an AST, elaborate it
 into a core calculus, type-check, then evaluate by repeated reduction.
 
 The pipeline you've built is a miniature version of what every programming
@@ -6695,7 +6706,7 @@ write the proof (the program) by hand.
 
 This is exactly what proof assistants do. When a mathematician formalizes a
 theorem in Lean, they are writing a program. When Lean's type checker accepts
-it, Lean has mechanically verified the proof. The 4539-line Lean kernel---a
+it, Lean has mechanically verified the proof. The Lean kernel---a small
 dependent type checker at its heart---is the closest thing we have to
 Hilbert's dream, built on the lambda calculus that Church invented to show
 the dream was impossible in its original form.
@@ -6767,8 +6778,9 @@ has no infinite types and no recursive types, so this term is untypeable.
 
 This is why the $\mathbf{Y}$ combinator (which contains $x\;x$) also cannot be
 typed in the STLC. If you want recursion in a typed system, you need either
-an explicit \texttt{fix} operator, recursive types, or a more expressive type
-system like System F.
+an explicit \texttt{fix} operator or recursive types. (A more expressive
+system like System F can type some self-applications and express iteration,
+but it is still strongly normalizing, so it cannot type $\mathbf{Y}$ either.)
 
 \subsection{``What's the difference between $\reduce$ and $\reduces$?''}
 
@@ -7242,23 +7254,23 @@ yourself before reading the solutions is strongly recommended.
 
 \subsection*{Variables and Renaming (Section~\ref{sec:alpha})}
 
-\textbf{5.1.}\; $\FV(\lam x.\, \lam y.\, x\; z\; y) = \{z\}$. The variables $x$ and $y$ are bound by their respective $\lam$'s. Only $z$ is free.
+\textbf{6.1.}\; $\FV(\lam x.\, \lam y.\, x\; z\; y) = \{z\}$. The variables $x$ and $y$ are bound by their respective $\lam$'s. Only $z$ is free.
 
 \medskip
-\textbf{5.2.}\; Yes, $\lam f.\, \lam x.\, f\;(f\;x)$ is closed. $\FV = \varnothing$: both $f$ and $x$ are bound. This is the Church numeral $\church{2}$.
+\textbf{6.2.}\; Yes, $\lam f.\, \lam x.\, f\;(f\;x)$ is closed. $\FV = \varnothing$: both $f$ and $x$ are bound. This is the Church numeral $\church{2}$.
 
 \medskip
-\textbf{5.3.}\; The inner $\lam x$ shadows the outer one. The inner $x$ refers to the inner binder. Alpha-convert the outer: $\lam x.\, \lam x.\, x \;\aeq\; \lam y.\, \lam x.\, x$. This is $\mathbf{K}^* = \lam y.\, \lam x.\, x$: a function that takes two arguments and returns the \emph{second} (the opposite of $\mathbf{K}$). Equivalently, it is $\lam y.\, \mathbf{I}$.
+\textbf{6.3.}\; The inner $\lam x$ shadows the outer one. The inner $x$ refers to the inner binder. Alpha-convert the outer: $\lam x.\, \lam x.\, x \;\aeq\; \lam y.\, \lam x.\, x$. This is $\mathbf{K}^* = \lam y.\, \lam x.\, x$: a function that takes two arguments and returns the \emph{second} (the opposite of $\mathbf{K}$). Equivalently, it is $\lam y.\, \mathbf{I}$.
 
 \medskip
-\textbf{5.4.}\; No. $\lam x.\, x\;y$ has $\FV = \{y\}$, but $\lam y.\, y\;y$ has $\FV = \varnothing$. Alpha conversion can only rename bound variables---it cannot change the set of free variables. These terms have different free variable sets, so they cannot be $\alpha$-equivalent.
+\textbf{6.4.}\; No. $\lam x.\, x\;y$ has $\FV = \{y\}$, but $\lam y.\, y\;y$ has $\FV = \varnothing$. Alpha conversion can only rename bound variables---it cannot change the set of free variables. These terms have different free variable sets, so they cannot be $\alpha$-equivalent.
 
 \subsection*{Beta Reduction (Section~\ref{sec:beta})}
 
-\textbf{6.1.}\; $(\lam x.\, x\;x)\;(\lam y.\, y) \;\reduce\; (\lam y.\, y)\;(\lam y.\, y) \;\reduce\; \lam y.\, y$. The normal form is the identity $\mathbf{I}$.
+\textbf{7.1.}\; $(\lam x.\, x\;x)\;(\lam y.\, y) \;\reduce\; (\lam y.\, y)\;(\lam y.\, y) \;\reduce\; \lam y.\, y$. The normal form is the identity $\mathbf{I}$.
 
 \medskip
-\textbf{6.2.}\; Let $\omega = \lam y.\, y\;y$. Then
+\textbf{7.2.}\; Let $\omega = \lam y.\, y\;y$. Then
 $(\lam f.\, \lam x.\, f\;(f\;x))\;\omega \;\reduce\; \lam x.\, \omega\;(\omega\;x)$.
 Normalizing the body (normal order) actually \emph{terminates} in three more steps:
 \[
@@ -7276,33 +7288,33 @@ Having a normal form and looping-when-applied are different properties; see the
 box ``Normal form vs.\ diverges-when-applied'' in Section~\ref{sec:strategies}.
 
 \medskip
-\textbf{6.3.}\; Two redexes: (1) the outer application $(\lam x.\, x)\;((\lam y.\, y)\;z)$ is a redex (the whole expression), and (2) the inner application $(\lam y.\, y)\;z$ inside the argument is also a redex.
+\textbf{7.3.}\; Two redexes: (1) the outer application $(\lam x.\, x)\;((\lam y.\, y)\;z)$ is a redex (the whole expression), and (2) the inner application $(\lam y.\, y)\;z$ inside the argument is also a redex.
 
 \medskip
-\textbf{6.4.}\; No, $\lam x.\, (\lam y.\, y)\;x$ is not in normal form---the body contains the redex $(\lam y.\, y)\;x$. Reducing: $(\lam y.\, y)\;x \reduce x$, giving $\lam x.\, x$. Then yes, we can $\eta$-reduce\ldots\ but $\lam x.\, x$ is already the identity; there is no $f$ to $\eta$-reduce to (the body is $x$, not $f\;x$ for some $f$ with $x \notin \FV(f)$). So the final normal form is $\lam x.\, x = \mathbf{I}$.
+\textbf{7.4.}\; No, $\lam x.\, (\lam y.\, y)\;x$ is not in normal form---the body contains the redex $(\lam y.\, y)\;x$. Reducing: $(\lam y.\, y)\;x \reduce x$, giving $\lam x.\, x$. Then yes, we can $\eta$-reduce\ldots\ but $\lam x.\, x$ is already the identity; there is no $f$ to $\eta$-reduce to (the body is $x$, not $f\;x$ for some $f$ with $x \notin \FV(f)$). So the final normal form is $\lam x.\, x = \mathbf{I}$.
 
 \medskip
-\textbf{6.5.}\; We need $(\lam y.\, x\;y)[x := \lam y.\, y]$. The binder is $\lam y$, so we check whether the replacement term $\lam y.\, y$ has $y$ free. It does not: $\FV(\lam y.\, y) = \varnothing$ (the $y$ inside $\lam y.\, y$ is bound by its own $\lam$). Since $y \notin \FV(\lam y.\, y)$, no capture is possible, so \textbf{rule 4 (the safe case) applies}---push the substitution under the binder unchanged: $\lam y.\, (x\;y)[x := \lam y.\, y] = \lam y.\, (\lam y.\, y)\;y$. The result $\lam y.\, (\lam y.\, y)\;y$ reduces to $\lam y.\, y$, which is correct ($\eta$-equivalent to the original).
+\textbf{7.5.}\; We need $(\lam y.\, x\;y)[x := \lam y.\, y]$. The binder is $\lam y$, so we check whether the replacement term $\lam y.\, y$ has $y$ free. It does not: $\FV(\lam y.\, y) = \varnothing$ (the $y$ inside $\lam y.\, y$ is bound by its own $\lam$). Since $y \notin \FV(\lam y.\, y)$, no capture is possible, so \textbf{rule 4 (the safe case) applies}---push the substitution under the binder unchanged: $\lam y.\, (x\;y)[x := \lam y.\, y] = \lam y.\, (\lam y.\, y)\;y$. The result $\lam y.\, (\lam y.\, y)\;y$ reduces to $\lam y.\, y$, which is correct ($\eta$-equivalent to the original).
 
 \subsection*{Church Encodings (Section~\ref{sec:church})}
 
-\textbf{9.1.}\; $\textsc{IsZero}\;(\textsc{Succ}\;\church{0})$: First, $\textsc{Succ}\;\church{0} \reduces \church{1} = \lam f\,x.\, f\;x$. Then $\textsc{IsZero}\;\church{1} = \church{1}\;(\lam\_.\,\FL)\;\TR \reduces (\lam\_.\,\FL)\;\TR \reduce \FL$.
+\textbf{10.1.}\; $\textsc{IsZero}\;(\textsc{Succ}\;\church{0})$: First, $\textsc{Succ}\;\church{0} \reduces \church{1} = \lam f\,x.\, f\;x$. Then $\textsc{IsZero}\;\church{1} = \church{1}\;(\lam\_.\,\FL)\;\TR \reduces (\lam\_.\,\FL)\;\TR \reduce \FL$.
 
 \medskip
-\textbf{9.2.}\; $\textsc{Add}\;\church{2}\;\church{3} = (\lam m\,n\,f\,x.\, m\;f\;(n\;f\;x))\;\church{2}\;\church{3}$. Substituting: $\lam f\,x.\, \church{2}\;f\;(\church{3}\;f\;x) \reduces \lam f\,x.\, f\;(f\;(f\;(f\;(f\;x)))) = \church{5}$.
+\textbf{10.2.}\; $\textsc{Add}\;\church{2}\;\church{3} = (\lam m\,n\,f\,x.\, m\;f\;(n\;f\;x))\;\church{2}\;\church{3}$. Substituting: $\lam f\,x.\, \church{2}\;f\;(\church{3}\;f\;x) \reduces \lam f\,x.\, f\;(f\;(f\;(f\;(f\;x)))) = \church{5}$.
 
 \medskip
-\textbf{9.3.}\; $\textsc{Sub} \triangleq \lam m\, n.\, n\; \textsc{Pred}\; m$. Apply $\textsc{Pred}$ a total of $n$ times to $m$. Since $\church{n}$ applies its first argument $n$ times to its second, $n\;\textsc{Pred}\;m$ does exactly this.
+\textbf{10.3.}\; $\textsc{Sub} \triangleq \lam m\, n.\, n\; \textsc{Pred}\; m$. Apply $\textsc{Pred}$ a total of $n$ times to $m$. Since $\church{n}$ applies its first argument $n$ times to its second, $n\;\textsc{Pred}\;m$ does exactly this.
 
 \medskip
-\textbf{9.4.}\; $\textsc{Length} \triangleq \lam l.\, l\; (\lam \_\, \mathit{acc}.\, \textsc{Succ}\;\mathit{acc})\; \church{0}$. Fold over the list: for each element (ignored), increment the accumulator. Start from $\church{0}$.
+\textbf{10.4.}\; $\textsc{Length} \triangleq \lam l.\, l\; (\lam \_\, \mathit{acc}.\, \textsc{Succ}\;\mathit{acc})\; \church{0}$. Fold over the list: for each element (ignored), increment the accumulator. Start from $\church{0}$.
 
 \medskip
-\textbf{9.5.}\; Yes, $\textsc{Nil} = \lam c\, n.\, n$ and $\church{0} = \lam f\, x.\, x$ are the same term (up to renaming: $c \leftrightarrow f$, $n \leftrightarrow x$). They are $\alpha$-equivalent. This illustrates a fundamental limitation of Church encoding in untyped $\lam$-calculus: different ``types'' of data can be identical terms. Only a type system can distinguish them.
+\textbf{10.5.}\; Yes, $\textsc{Nil} = \lam c\, n.\, n$ and $\church{0} = \lam f\, x.\, x$ are the same term (up to renaming: $c \leftrightarrow f$, $n \leftrightarrow x$). They are $\alpha$-equivalent. This illustrates a fundamental limitation of Church encoding in untyped $\lam$-calculus: different ``types'' of data can be identical terms. Only a type system can distinguish them.
 
 \subsection*{Types (Section~\ref{sec:stlc})}
 
-\textbf{11.1.}\; The proof tree for the $\mathbf{S}$ combinator has type $(A \to B \to C) \to (A \to B) \to A \to C$. It requires three \textsc{Abs} rules (one for each $\lam$), three \textsc{App} rules (one for $x\;z$, one for $y\;z$, and one combining them into $x\;z\;(y\;z)$), and three \textsc{Var} axioms ($x$, $y$, $z$):
+\textbf{12.1.}\; The proof tree for the $\mathbf{S}$ combinator has type $(A \to B \to C) \to (A \to B) \to A \to C$. It requires three \textsc{Abs} rules (one for each $\lam$), three \textsc{App} rules (one for $x\;z$, one for $y\;z$, and one combining them into $x\;z\;(y\;z)$), and three \textsc{Var} axioms ($x$, $y$, $z$):
 
 \begin{center}
 \small
@@ -7331,14 +7343,14 @@ box ``Normal form vs.\ diverges-when-applied'' in Section~\ref{sec:strategies}.
 where $\Gamma = x : A {\to} B {\to} C,\; y : A {\to} B,\; z : A$.
 
 \medskip
-\textbf{11.2.}\; For $x\;x$ to type-check, $x$ must have a function type $A \to B$ (left of the application) and also be a valid argument (type $A$). So we need $A \to B = A$, which means $A = A \to B = (A \to B) \to B = \ldots$\,---an infinite type. The STLC has only finite types, so $\lam x.\, x\;x$ is untypeable.
+\textbf{12.2.}\; For $x\;x$ to type-check, $x$ must have a function type $A \to B$ (left of the application) and also be a valid argument (type $A$). So we need $A \to B = A$, which means $A = A \to B = (A \to B) \to B = \ldots$\,---an infinite type. The STLC has only finite types, so $\lam x.\, x\;x$ is untypeable.
 
 \medskip
-\textbf{11.3.}\; $\lam f{:}(A \to A).\, \lam x{:}A.\, f\;(f\;x)$ has type $(A \to A) \to A \to A$. This is the same as $A \to A$ where we've substituted $A \to A$ for $A$. Every Church numeral $\church{n}$ has this same type. Under Curry--Howard, it's a proof of ``if $A$ implies $A$, then $A$ implies $A$''---which is trivially true, and there are infinitely many distinct proofs (one per numeral).
+\textbf{12.3.}\; $\lam f{:}(A \to A).\, \lam x{:}A.\, f\;(f\;x)$ has type $(A \to A) \to A \to A$. This is the same as $A \to A$ where we've substituted $A \to A$ for $A$. Every Church numeral $\church{n}$ has this same type. Under Curry--Howard, it's a proof of ``if $A$ implies $A$, then $A$ implies $A$''---which is trivially true, and there are infinitely many distinct proofs (one per numeral).
 
 \subsection*{De Bruijn Substitution (Section~\ref{sec:dbimpl})}
 
-\textbf{10.1.}\; The na\"ive version fails on $\lam.\,\lam.\, 0\;1\;2$:
+\textbf{11.3.}\; The na\"ive version fails on $\lam.\,\lam.\, 0\;1\;2$:
 indices $0$ and $1$ are bound (by the inner and outer $\lam$s respectively),
 and index $2$ is the free variable that corresponds to external variable $0$.
 \texttt{substNaive} with $k=0$ incorrectly replaces \texttt{bvar 0} (which is
@@ -7346,7 +7358,7 @@ the innermost $\lam$'s own parameter) with $s$, while leaving the actual target
 (\texttt{bvar 2}) untouched.
 
 \medskip
-\textbf{10.2.}\; $\texttt{substV2}\;0\;(\texttt{bvar}\;0)\;(\lam.\, 1)$:
+\textbf{11.4.}\; $\texttt{substV2}\;0\;(\texttt{bvar}\;0)\;(\lam.\, 1)$:
 Named version is ``substitute $y$ for $x$ in $\lam z.\, x$.'' Result should
 be $\lam z.\, y$, i.e., $\lam.\, 1$ (index 1 skips past $z$'s binder to
 reach $y$). But $\texttt{substV2}$ produces $\lam.\, 0$---the replacement
@@ -7354,7 +7366,7 @@ $\texttt{bvar}\;0$ was dropped in unchanged, and inside the $\lam$ it points
 to $z$ instead of $y$. The fix: shift $s$ up when entering the $\lam$.
 
 \medskip
-\textbf{10.3.}\; (a) Replace with $s$ when $n = k$; leave as $\texttt{bvar}\;n$
+\textbf{11.5.}\; (a) Replace with $s$ when $n = k$; leave as $\texttt{bvar}\;n$
 when $n \neq k$.
 (b) Recurse: $\texttt{subst}\;k\;s$ into both sides independently.
 (c) Both fixes apply: the target $k$ increments to $k + 1$ (fix 1) because the
@@ -7367,13 +7379,13 @@ correctly but looks for the wrong variable inside the $\lam$ (would replace
 bound variables or miss the target, like stage 1).
 
 \medskip
-\textbf{10.4.}\; $k$ goes $0 \to 1 \to 2 \to 3$. Yes, index $3$ inside three binders refers to the same variable as index $0$ outside. The substitution fires correctly.
+\textbf{11.6.}\; $k$ goes $0 \to 1 \to 2 \to 3$. Yes, index $3$ inside three binders refers to the same variable as index $0$ outside. The substitution fires correctly.
 
 \medskip
-\textbf{10.5.}\; See the worked trace in the exercise box.
+\textbf{11.7--11.8.}\; See the worked trace in the exercise box.
 
 \medskip
-\textbf{10.6.}\; Body is $\lam.\, 1$, argument is $\texttt{bvar}\;0$.
+\textbf{11.9.}\; Body is $\lam.\, 1$, argument is $\texttt{bvar}\;0$.
 
 Step 1: $\texttt{shift}\;1\;0\;(\texttt{bvar}\;0) = \texttt{bvar}\;1$.
 
@@ -7389,19 +7401,19 @@ Final: $\lam.\, \texttt{bvar}\;1$---a function that ignores its argument and ret
 
 \subsection*{Going Deeper (Section~\ref{sec:curryhoward})}
 
-\textbf{13.1.}\; $\textsc{Succ}_S \triangleq \lam n.\, \lam z\, s.\, s\; n$. This creates a new Scott numeral that, when pattern-matched, calls the successor handler $s$ with $n$ as the predecessor. Verification: $\textsc{Succ}_S\;\church{2}_S = (\lam n.\, \lam z\,s.\, s\;n)\;\church{2}_S \reduce \lam z\,s.\, s\;\church{2}_S = \church{3}_S$.
+\textbf{14.1.}\; $\textsc{Succ}_S \triangleq \lam n.\, \lam z\, s.\, s\; n$. This creates a new Scott numeral that, when pattern-matched, calls the successor handler $s$ with $n$ as the predecessor. Verification: $\textsc{Succ}_S\;\church{2}_S = (\lam n.\, \lam z\,s.\, s\;n)\;\church{2}_S \reduce \lam z\,s.\, s\;\church{2}_S = \church{3}_S$.
 
 \medskip
-\textbf{13.2.}\; $\textsc{IsZero}_S \triangleq \lam n.\, n\;\TR\;(\lam\_.\, \FL)$. If $n$ is zero, it selects the first handler ($\TR$). If $n$ is a successor, it calls the second handler (which ignores the predecessor and returns $\FL$). This is much simpler than the Church version---a single reduction step vs.\ the Church version's $O(n)$ iterations.
+\textbf{14.2.}\; $\textsc{IsZero}_S \triangleq \lam n.\, n\;\TR\;(\lam\_.\, \FL)$. If $n$ is zero, it selects the first handler ($\TR$). If $n$ is a successor, it calls the second handler (which ignores the predecessor and returns $\FL$). This is much simpler than the Church version---a single reduction step vs.\ the Church version's $O(n)$ iterations.
 
 \medskip
-\textbf{13.3.}\; $(A \to B) \to (B \to C) \to (A \to C)$ corresponds to the transitivity of implication: ``if $A$ implies $B$ and $B$ implies $C$, then $A$ implies $C$.'' A witnessing term: $\lam f{:}(A \to B).\, \lam g{:}(B \to C).\, \lam x{:}A.\, g\;(f\;x)$. This is function composition.
+\textbf{14.3.}\; $(A \to B) \to (B \to C) \to (A \to C)$ corresponds to the transitivity of implication: ``if $A$ implies $B$ and $B$ implies $C$, then $A$ implies $C$.'' A witnessing term: $\lam f{:}(A \to B).\, \lam g{:}(B \to C).\, \lam x{:}A.\, g\;(f\;x)$. This is function composition.
 
 \medskip
-\textbf{13.4.}\; There is no closed term of type $A \to B$ when $A \neq B$ because to produce a $B$, you would need either a variable of type $B$ or a function that returns $B$. But the only variable available is $x : A$, and there is no way to convert an $A$ into a $B$. Under Curry--Howard, this means the proposition ``$A$ implies $B$'' (for unrelated $A$ and $B$) is not provable---which is correct.
+\textbf{14.4.}\; There is no closed term of type $A \to B$ when $A \neq B$ because to produce a $B$, you would need either a variable of type $B$ or a function that returns $B$. But the only variable available is $x : A$, and there is no way to convert an $A$ into a $B$. Under Curry--Howard, this means the proposition ``$A$ implies $B$'' (for unrelated $A$ and $B$) is not provable---which is correct.
 
 \medskip
-\textbf{13.5.}\; $\forall \alpha.\, \alpha$ says ``for every type $\alpha$, I can produce a value of type $\alpha$.'' Under Curry--Howard, this is the proposition ``everything is true''---i.e., falsity ($\bot$). It is uninhabited because no single term can work at every type. (In System F, the term would need to simultaneously be a natural number, a boolean, a function, etc.)
+\textbf{14.5.}\; $\forall \alpha.\, \alpha$ says ``for every type $\alpha$, I can produce a value of type $\alpha$.'' Under Curry--Howard, this is the proposition ``everything is true''---i.e., falsity ($\bot$). It is uninhabited because no single term can work at every type. (In System F, the term would need to simultaneously be a natural number, a boolean, a function, etc.)
 
 \newpage
 %======================================================================
@@ -7566,7 +7578,7 @@ def eval (fuel : Nat) (e : Expr) : Expr :=
 -- We track the position as a plain Nat index into the input's
 -- character list. (Earlier editions indexed with `String.Pos`; that
 -- API was redesigned in recent Lean, so a Nat over `input.toList` is
--- both simpler and stable. See the "String positions" note below.)
+-- both simpler and stable.)
 structure PState where
   input : List Char
   pos   : Nat
