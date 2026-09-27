@@ -267,3 +267,142 @@ Repo `lean-toolchain` bumped v4.28.0 → v4.31.0; all files re-verified on v4.31
 exit 0 against Mathlib v4.31.0 (8 book sorries; `push_neg` deprecation warnings only —
 it is being renamed to `push Not`). `Calculus.lean` needed a whitespace-only fix
 (v4.31 requires the tactic block after `:= by` to be indented).
+
+## Second pass (2026-09-27)
+
+Full re-read of all 5,528 lines (post-edit count). No Lean or LaTeX run (network policy);
+Lean listings were checked against `CalculusVerification.lean` /
+`CalculusMathlibVerification.lean`. Line numbers refer to the .tex after these edits.
+
+**Verdict.** The July fixes hold up. The book is now in good shape. This pass found
+errors of a different kind: several false exercise statements, historical misattributions,
+one mathematically false claim in a history box (a "complete ordered field with
+infinitesimals"), and a real usability bug in the Mathlib setup instructions (name clashes
+with Mathlib's `ContinuousAt`/`HasDerivAt`). No Lean code was changed except comments.
+
+### Fixed — correctness
+
+- **l.1127** Robinson's hyperreals described as a "complete ordered field containing
+  genuine infinitesimals". This is impossible, because a complete ordered field is ℝ, which
+  is Archimedean. It now reads: an ordered extension of ℝ that is necessarily not complete
+  or Archimedean.
+- **l.1437** §6.1 told readers to `import Mathlib` and then define `ContinuousAt` and
+  `HasDerivAt` at top level. Mathlib already declares both, so Lean would reject the
+  definitions (the verification file silently wraps them in `namespace VCM`). A sentence
+  now tells readers to put their definitions in a namespace. This also makes the Ch. 16
+  `_root_.HasDerivAt` remark coherent.
+- **l.3394** (Ch. 25, Ex. 2) claimed f = xy·sin(1/(x²+y²)) has equal mixed partials at
+  the origin. In fact f_x(0,k) = k·sin(1/k²), so f_xy(0,0) does not exist. The exercise
+  now uses f(x,y) = φ(x)φ(y) with φ(t) = t²sin(1/t), which does have equal but
+  discontinuous mixed partials.
+- **l.2380** (Ch. 12, Ex. 2) "f′ ≥ 0 and not identically zero ⇒ strictly increasing" is
+  false. It now says f′ does not vanish identically on any subinterval.
+- **l.2527** (Ch. 14, Ex. 4) "every cubic has a real critical point" is false
+  (x³ + x has none). It now asks for exactly one inflection point.
+- **l.2802** (Ch. 16, Ex. 4) The hint 1_ℚ is not Riemann integrable, so F is undefined.
+  The hint now uses a step function at x = 1/2.
+- **l.4176** (Ch. 32, Ex. 3) The claimed result `Add (diff u).1 (diff v).1` ignores the
+  `fullSimplify` that `diff` applies. The statement now includes `.fullSimplify`.
+- **l.4008** (Ch. 31, Ex. 4) asked for a proof of `e.simplify.eval env = e.eval env`,
+  which is false for Float: `Mul (Div 1 0) 0` evaluates to NaN but simplifies to `Const 0`.
+  The exercise is reworded as "try to prove", gives the counterexample and points to Ch. 36.
+- **l.4837** (Ch. 36 theorem box) said the `Abs` case of `diff` is correct under side
+  conditions, but the shipped `Abs` case always returns 0. `Tan` was missing from the
+  side-condition list. `Abs` is replaced by `Tan`, and a parenthetical notes that the `Abs`
+  placeholder is wrong.
+- **l.4937** "Our correctness theorem guarantees that everything we do return is correct".
+  No such theorem exists: `integrate` has none, and `diff` has only rule-level lemmas. The
+  sentence is now conditional.
+- **l.2430** Taylor proof: "Apply the MVT … to obtain Cauchy's MVT form of the remainder".
+  It now reads: apply *Cauchy's* MVT to g and h to obtain the *Lagrange* form (re-derived).
+- **l.2516** The Newton-iteration comment skipped an iterate (showed 1.4166 → 1.41421356).
+  It now shows 17/12 → 577/408 ≈ 1.41421568 → 1.41421356.
+- **l.316** The Peano paragraph said the cycle {0,1,2} satisfies P5 and then that P5 rules
+  it out. This contradicts itself. P4 (with P3) rules out cycles, and P5 rules out extra
+  elements. "Every number has a unique predecessor" is changed to "at most one" (0 has none).
+- **l.1359** "Completeness is not a theorem but an axiom … we have constructed ℝ to have
+  it." This contradicts itself. It now says completeness is not a consequence of the
+  ordered-field axioms: axiomatic treatments postulate it, and here it is a theorem.
+- **l.878** "all ring axioms; *in particular* an integral domain" is changed to "moreover".
+- **l.357** "Mathlib … flags which results require Classical axioms" was false. It now
+  says Mathlib is classical and that `#print axioms` reports dependence on
+  `Classical.choice`.
+- **l.4189** Non-existence of elementary antiderivatives was credited to "Risch's
+  theorem". It is now credited to Liouville's theorem.
+- **l.4359** The inverse-trig constructors are Ex. 2 of Ch. **31**, not Ch. 32.
+- **l.1745** "sequential characterisation (the next theorem) … bridge theorem below".
+  That theorem is the *previous* one, so the wording now says so.
+- History:
+  - **l.1008** Euclid did not prove the fundamental theorem of arithmetic in Book IX, and
+    "p | n² ⇒ p | n" is not Gauss's. This is now Euclid's lemma (Book VII), with FTA
+    explicitly first proved by Gauss (1801).
+  - **l.1121** In 1858 Dedekind taught at the Zürich Polytechnic, not Göttingen.
+  - **l.1125** The infinite-decimal construction is no longer attributed to Weierstrass
+    (his construction used aggregates, not decimals).
+  - **l.1401** Cauchy's three textbooks span 1821–1829 (*Leçons sur le calcul
+    différentiel* is 1829), not 1821–1823.
+  - **l.1782** The Hermite quote is corrected to *cette plaie lamentable* (letter to
+    Stieltjes, 1893). The book had printed "un fléau déplorable".
+  - **l.2035** Leibniz did see some of Newton's manuscripts in London in 1676. The false
+    accusation was plagiarism.
+  - **l.2548** Barrow is dated "around 1665" here but *Lectiones* 1670 at l.2728. Both now
+    say 1670.
+  - **l.2965** Dirichlet (1837) proved that absolutely convergent series can be rearranged.
+    The any-value rearrangement theorem is Riemann's (1854). The "we prove in this chapter"
+    claim is changed, because the chapter only states the theorem.
+  - **l.3657** "Earlier versions were known to … Hankel" is impossible (Hankel was born in
+    1839). The dubious "Brioschi 1854" claim is replaced by the standard account: the first
+    published proof is Hankel (1861).
+  - **l.3697** "the Kelvin–Stokes theorem in fluid mechanics" is circular (it *is*
+    Stokes' theorem). This is now Kelvin's circulation theorem.
+
+### Fixed — prose
+
+About 12 small edits:
+- l.817/829: listing comments said Z is built on MyNat and uses the MyNat cancellation
+  law, but the code uses built-in `Nat` and `omega`.
+- l.882: prose aligned with the code.
+- l.860: "numerators and denominators" for pairs of differences.
+- l.906: dependent-types sentence ("type of a value depends on a proof") now reads "type
+  of `den_pos` depends on the value of `den`".
+- l.1721: "the absolute value |x|/x".
+- l.1951: "completeness of the Riemann integral" changed to "Riemann integrability of
+  continuous functions".
+- l.2037: "replace X for Y" changed to "substitute X for Y".
+- l.2785: "whichever is larger" changed to "whichever order".
+- l.2167/2281/2287: the three Ch. 10–11 `sorry`s are now labelled "exercise" as the
+  Preface promises.
+- l.5318: "constants multiples".
+- l.5402/5521: the primer's "Mathlib tactics" section said every entry needs Mathlib, but
+  `by_cases`/`unfold` are core. It also said they were "seen in Chapter 36", but `unfold`
+  is used in Ch. 22.
+
+### Flagged, not changed
+
+- **l.3903–3920, 4716–4749:** The tokeniser and parser are `sorry` ("full implementation
+  in the Lake project"), and that project is not printed. The CLI transcripts are still
+  presented as "actual output", and Ex. 35.1 asks readers to build and run it. The printed
+  code cannot produce them: the `--expr` path goes through `parseStr`. The engine outputs
+  themselves match the `#eval` checks. Suggest printing a parser or rewording.
+- **l.262:** "Dedekind (1872) defined the integers and rationals via equivalence
+  classes". The 1872 work is on cuts. Attributing the pair constructions to Dedekind in
+  1872 is doubtful.
+- **l.1010, 1077:** "did not arrive until 1872" and "Cantor (1872)" omit Méray (1869),
+  who published a Cauchy-sequence construction earlier. This is a common simplification,
+  so I left it.
+- **l.1403:** ε/δ "appear to have been introduced by Weierstrass". Cauchy already used
+  ε and δ (e.g. 1823). The claim is hedged, so I left it.
+- **l.1337:** Bishop "located set … strictly weaker conclusion", and "every classically
+  valid theorem is also constructively valid if you add enough hypotheses". Both are
+  imprecise. The standard fact runs the other way (constructive ⇒ classical).
+- **l.3549:** The (x²−y²)/(x²+y²)² Fubini counterexample is attributed to Tonelli.
+  I could not confirm this attribution.
+- **l.3661:** "Cartan (1899–1945)" reads like a lifespan (he lived 1869–1951). It is
+  probably meant as his working period.
+- **l.4137:** `diff`'s `Abs` case returns 0 (acknowledged in a comment only). A
+  user-visible CLI would print wrong derivatives for |x|.
+- **l.4388:** "terminates in practice because each remainder is strictly simpler" is not
+  generally true of IBP remainders. It is hedged.
+- **l.2469, 3378, 3424:** minor hypothesis looseness in the first-derivative test,
+  "twice continuously differentiable *at* a", and "semidefinite ⇒ inconclusive" (should
+  be singular/semidefinite-but-not-definite). This is textbook-standard informality.

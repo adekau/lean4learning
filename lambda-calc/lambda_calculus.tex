@@ -3709,8 +3709,8 @@ out certain errors statically.
 
 Church introduced the first typed lambda calculus in 1940, just a few years
 after the untyped version. His motivation was not programming (computers barely
-existed!) but logic. As Kleene and Rosser had shown in 1935, the untyped
-$\lam$-calculus was inconsistent as a logic: you could derive any proposition,
+existed!) but logic. As Kleene and Rosser had shown in 1935, his original
+logic built on the untyped $\lam$-calculus was inconsistent: you could derive any proposition,
 including false ones, using tricks like the $\mathbf{Y}$ combinator. By adding
 types, Church hoped to tame the system just enough to make it logically
 consistent while keeping its computational expressiveness.
@@ -5476,8 +5476,8 @@ Dependent types come with subtleties that simpler systems avoid.
 \textbf{Type checking requires evaluation.} Since types can contain arbitrary
 computation, type checking in a dependently typed system is only decidable if
 all programs terminate. This is why Lean requires termination proofs for
-recursive functions (and why you fought with \texttt{termination\_by} when
-implementing the interpreter!). If a non-terminating computation could appear
+recursive functions (and why our interpreter had to reach for \texttt{partial}
+and a fuel parameter!). If a non-terminating computation could appear
 in a type, the type checker might loop forever trying to normalize it.
 
 \textbf{The Type : Type paradox.} If \texttt{Type} has type \texttt{Type}, you
