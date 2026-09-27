@@ -261,7 +261,7 @@ consistency is nothing but the algebra of join}. Because $\sqcup$ is
 commutative, associative, and idempotent, replicas that have received the
 same set of updates --- in any order, any number of times --- compute the
 same fold and therefore hold equal state. The network's three sins
-(reordering, duplication, redelivery) are absorbed by three algebraic
+(reordering, duplication, batching) are absorbed by three algebraic
 laws. Nothing else is needed, and --- this book proves by refutation ---
 nothing less suffices.
 
@@ -418,7 +418,7 @@ Watch closely.
 The replicas agree. They agree on the wrong answer.
 
 $B$'s increment was not rejected, logged, or reported as a conflict. It
-was simply erased, in the fourth row, by a synchronization step that
+was simply erased, in the fifth row, by a synchronization step that
 looked perfectly innocent. Nobody will notice until an invoice is wrong.
 This failure mode --- \emph{the lost update} --- is the original sin of
 replication, and any design that can exhibit it under ordinary operation
@@ -677,7 +677,7 @@ theorem overwrite_not_comm :
 \end{quote}
 
 Chapter~\ref{ch:intro} ended with a moral: reconciliation must remember,
-not choose. The predecessor book spent three hundred pages, in effect,
+not choose. The predecessor spent a whole book, in effect,
 on what ``remembering'' means inside one process. This chapter restates
 that vocabulary as a discipline for replicas --- and discovers that
 nothing new is needed except a change of postal service.
@@ -1776,7 +1776,7 @@ anywhere; it was \emph{propagated}, like everything else.
   goes below zero while remaining available to every replica. Write
   down where the attempt breaks. \emph{Finish after
   Chapter~\ref{ch:limits}}, which proves a precise version of the
-  obstruction and Exercise~\ref{ex:escrow} which shows what
+  obstruction, and Exercise~\ref{ex:escrow}, which shows what
   coordination-free bounding \emph{is} achievable.
 \end{exercisebox}
 
@@ -2214,7 +2214,7 @@ state \emph{down} the lattice, and the lattice has an opinion about
 that: any peer still holding the element out-informs you, and the next
 merge puts it back.
 
-\begin{refutedbox}{Remove-by-deletion is monotone}
+\begin{refutedbox}{Remove-by-deletion is inflationary}
   \label{ref:naive-remove}
   Deletion is deflationary, and the merge resurrects what it deleted.
   Replica $A$ deletes $1$; a peer still holds $\{1\}$; one merge later,
@@ -2833,14 +2833,15 @@ theorem merge_idem {α : Type} [TotalOrder α] (x : Option α) :
 Each is the generic ACI theorem of Chapter~\ref{ch:merge} applied to the
 \lc{Option} instance --- which we earned through \lc{maxo}'s lemmas ---
 which we earned through the total order. Pause on the route, because it
-is the third one this book has taken to the same destination. The
+is the fourth one this book has taken to the same destination. The
 counters of Chapters~\ref{ch:gcounter} and~\ref{ch:pncounter} got their
-algebra \emph{pointwise}, slot by slot from \lc{Nat.max}. The sets of
+algebra \emph{pointwise}, slot by slot from \lc{Nat.max} (and, for the
+PN-Counter, \emph{componentwise}, through the product). The sets of
 Chapter~\ref{ch:sets} got it \emph{setwise}, from membership logic
 through canonical sorted representations. The register gets it from
 \emph{linear-order max}.
 
-Three routes, one algebra.
+Four routes, one algebra.
 
 The tie that killed the naive design is now just a test case:
 
@@ -3658,15 +3659,15 @@ tombstones safely needs the very coordination CRDTs exist to avoid.
   --- after Shapiro, Preguiça, Baquero \& Zawirski (2011)
 \end{quote}
 
-Part~II built five working replicated data types, and for each of them we
+Part~II built seven working replicated data types, and for each of them we
 proved the same three facts: the state space is a bounded join-semilattice,
 updates are inflationary, and merge is the join. Every chapter then ended
 with an interlude in which replicas received updates out of order, twice
 over, in scrambled groupings --- and agreed anyway. Five times we watched it
 happen; not once did we prove it \emph{must} happen.
 
-This chapter pays that debt. We state and prove, once and for all state-based
-CRDTs, the theorem the whole book has been circling:
+This chapter pays that debt. We state and prove, once and for all, for every
+state-based CRDT, the theorem the whole book has been circling:
 
 \medskip
 \emph{Replicas that have received the same set of updates hold equal state.}
@@ -3789,7 +3790,7 @@ equivalence class. The word \emph{class} is doing real work:
 example : mk 3 5 = mk 10 12 := Quotient.sound (rfl : 3 + 12 = 10 + 5)
 \end{minted}
 
-Read that twice. The equality sign is Lean's honest, definitional
+Read that twice. The equality sign is Lean's honest, built-in
 \lc{Eq} --- not a bespoke ``equivalent-to'' predicate we must remember to
 use. \lc{Quotient.sound} converts a proof that two representatives are
 related into a proof that their classes are \emph{equal}. Everything Lean
@@ -3878,8 +3879,8 @@ inductive Perm {α : Type} : List α → List α → Prop where
 The four constructors say: the empty list is a permutation of itself; a
 common head can be peeled off; adjacent elements may swap; and
 permutations chain. Transitivity is a \emph{constructor} here, not a
-theorem --- without it, \lc{swap} could only ever disturb the first two
-positions.
+theorem --- without it, \lc{cons} and \lc{swap} could only ever exchange
+a single adjacent pair.
 
 \begin{notebox}
   \textbf{The standard library already has this.} Core Lean ships
@@ -4152,8 +4153,8 @@ not an obstacle, it is a checklist item you had already planned to prove.
   anything that touches \lc{MSet} and Lean reports \lc{Quot.sound}: the
   rule that related representatives give equal classes is an
   \emph{axiom} of Lean's kernel, not a theorem. It joins \lc{propext}
-  (propositional extensionality, which our \lc{funext}-style reasoning
-  has used since the predecessor). The audit block at the end of
+  (propositional extensionality, which \lc{simp} and friends have used
+  since the predecessor). The audit block at the end of
   \texttt{Crdt.lean} prints the axioms of every headline theorem in this
   book: the answer is \lc{propext} and \lc{Quot.sound} and nothing else.
   In particular \lc{Classical.choice} appears nowhere --- the entire
@@ -4257,7 +4258,7 @@ Each of the three laws is one network sin's antidote, and the proof of
 % ────────────────────────────────────────────────────────────
 \section{Computation Interlude: Same News, Any Postal Service}
 
-Three replicas of a G-Set receive the same three updates --- as one, five,
+Three replicas of a G-Set receive the same three updates --- as three, five,
 and six deliveries respectively, in three different orders.
 
 \begin{minted}{lean4}
@@ -4329,8 +4330,8 @@ not have been otherwise.
 \begin{quote}
   \itshape
   ``The network is reliable.''\\
-  --- the first of Peter Deutsch's eight fallacies of distributed
-  computing (1994)
+  --- the first of the fallacies of distributed computing, as listed
+  by Peter Deutsch (1994)
 \end{quote}
 
 Chapter~\ref{ch:sec} proved the main theorem over an abstraction: a
@@ -4470,7 +4471,7 @@ To apply Chapter~\ref{ch:sec}'s theorem we must connect the
 \emph{states} the protocol maintains to the \emph{logs} the theorem
 speaks about. The connection is an invariant --- every replica's state is
 the fold of its log, and every in-flight message tells the truth about
-itself --- and the proof style is the one you met with \lc{WfORSet} in
+itself --- and the proof style is the one you met with \lc{ORSet.Wf} in
 Chapter~\ref{ch:orset}: establish it at the initial configuration, show
 every step preserves it, conclude it holds along every execution.
 
@@ -4720,7 +4721,7 @@ theorem, delivered by construction rather than by assumption.
   argument local (one exchange, one strictly smaller number). The
   adversarial schedules return in the interlude below --- as a seeded
   generator whose chaos runs \emph{before} the verified driver mops up.
-  The IO simulation there remains fuel-bounded like \lc{runToFixpoint},
+  The chaotic phase there is fuel-bounded (a fixed number of attempts),
   and honestly so: an adversary who never delivers can stall any
   protocol forever; the theorem covers those executions through the
   relational semantics, not by promising the impossible.
@@ -4873,8 +4874,8 @@ theorem tick_inflationary (i : Fin R) : Order.Inflationary (tick (R := R) i) :=
   GCounter.increment_inflationary i
 \end{minted}
 
-An \lc{abbrev} and a renaming. The semilattice instance, the
-inflationarity of \lc{tick}, the decidability of the order --- all of it
+An \lc{abbrev} and a renaming. The semilattice instance and the
+inflationarity of \lc{tick} --- all of it
 flows in from Chapter~\ref{ch:gcounter} without a single new proof. This
 is the cleanest instance in the book of a phenomenon worth naming: a
 CRDT about CRDTs. The version vector is itself a state-based CRDT (it is
@@ -6002,7 +6003,10 @@ interleavings of one increment per replica if syncs happen only at the
 end, but the interesting count is of \emph{sync placements}: for each of
 the six orderings of \{incr$_A$, incr$_B$, sync$_{A\to B}$,
 sync$_{B\to A}$\} consistent with program order, tabulate the final
-pair of values. Four of them lose an update under overwrite-merge.
+pair of values. All six lose an update under overwrite-merge: the final
+pair is $(1, 1)$ in four orderings and $(0, 0)$ in the two where a
+replica syncs before its peer has incremented, and none ends with the
+replicas disagreeing.
 
 \textbf{Exercise~\ref{ex:overwrite-not-comm}.} As in the main text:
 
@@ -6091,7 +6095,7 @@ Exercise~\ref{ex:escrow}; see the Chapter~13 solutions below.
 \section*{Chapter 5}
 
 \textbf{Exercise~\ref{ex:mem-decidable}} is the \lc{Decidable (x ∈ s)}
-instance of the main text --- delegate to the list.
+instance of the companion --- delegate to the list.
 
 \textbf{Exercise~\ref{ex:size-monotone}.} The lemma is a pigeonhole for
 sorted duplicate-free lists: a subset relation between them bounds the
@@ -6109,8 +6113,9 @@ theorem size_monotone {s t : GSet} (h : s ⊑ t) :
 (\lc{sorted_subset_length} is proved in full in \lc{Crdt.Solutions};
 its skeleton is the same double-head analysis as \lc{sorted_ext}.)
 
-\textbf{Exercise~\ref{ex:remove-inflationary}} is
-\lc{TwoPSet.remove_inflationary} in the main text.
+\textbf{Exercise~\ref{ex:remove-inflationary}} mirrors
+\lc{TwoPSet.remove_inflationary} in the main text: \lc{add} is the same
+proof on the first component, and composition is \lc{le_trans}.
 
 \textbf{Exercise~\ref{ex:meet-merge}} (\ding{72}\ding{72}\ding{72},
 hints). Intersection is the greatest lower bound of the subset order;
@@ -6130,7 +6135,7 @@ theorem lww_merge_bot {R : Nat} (x : LWW.LWWReg R Nat) : ⊥ ⊔ x = x :=
 \end{minted}
 
 \textbf{Exercise~\ref{ex:three-way-tie}.} With bare timestamps the
-grouping decides the winner:
+argument order decides the winner:
 
 \begin{minted}{lean4}
 example :
