@@ -242,7 +242,7 @@ in certain ways without breaking the algebraic relationships between them. Over
 the next sixty years, a succession of mathematicians---Gauss, Abel, Galois,
 Cauchy---gradually uncovered a deep connection between these symmetries and the
 solvability of the equation. The climax came in 1832, when Évariste Galois,
-a twenty-year-old political radical in Paris, wrote down the definitive answer
+a twenty-year-old political radical in Paris, summarized the definitive answer
 the night before he was killed in a duel: a polynomial equation can be solved
 by radicals if and only if its \emph{group of symmetries} has a certain
 structural property called \emph{solvability}.
@@ -343,12 +343,12 @@ directly, he asked \emph{why} the existing formulas worked. He noticed that
 the key step in solving a cubic or quartic is finding an expression in the
 roots that takes on fewer values when the roots are \emph{permuted}. For
 example, if a cubic has roots $r_1, r_2, r_3$, the expression
-$r_1 + \omega r_2 + \omega^2 r_3$ (where $\omega = e^{2\pi i/3}$) takes
-only three values under all six permutations of the roots. This ``reduction
+$(r_1 + \omega r_2 + \omega^2 r_3)^3$ (where $\omega = e^{2\pi i/3}$) takes
+only two values under all six permutations of the roots. This ``reduction
 in the number of values'' is what makes the equation solvable.
 
 Lagrange didn't have the word ``group''---that term wouldn't be coined until
-Galois used it in 1832---but he was seeing \emph{symmetry}: the permutations
+Galois used it around 1830---but he was seeing \emph{symmetry}: the permutations
 of the roots, and the structure of how those permutations compose with each
 other, control whether the equation can be solved.
 
@@ -608,7 +608,7 @@ on modular arithmetic laid the foundations for what we now recognize as group
 theory. Euler's theorem---$a^{\varphi(n)} \equiv 1 \pmod{n}$ for $\gcd(a,n)=1$%
 ---is, in modern language, a consequence of Lagrange's theorem applied to the
 multiplicative group $(\Z/n\Z)^\times$. Euler proved it by direct combinatorial
-reasoning in 1736, more than a century before the group-theoretic framework
+reasoning in 1763, more than a century before the group-theoretic framework
 existed to express it cleanly.
 
 Euler's totient function $\varphi(n)$ counts the integers from 1 to $n$ that
@@ -1130,7 +1130,7 @@ Every Galois connection gives rise to a \emph{closure operator}: the
 composition $u \circ \ell : P \to P$ is extensive ($p \leq u(\ell(p))$),
 monotone, and idempotent. The ``closed'' elements---those satisfying
 $p = u(\ell(p))$---are exactly the elements in the image of $u$, and
-they form a complete lattice.
+(when $P$ is a complete lattice) they form a complete lattice.
 
 \begin{defn}{Closure Operator}{closure-op}
 A \textbf{closure operator} on a poset $(P, \leq)$ is a map
@@ -1282,7 +1282,8 @@ $R/I$ inherits a ring structure precisely when $I$ is an ideal. The connection
 to fields:
 
 \begin{thm}{}{quotient-field}
-$R/I$ is a field if and only if $I$ is a \textbf{maximal ideal}.
+For a commutative ring $R$, $R/I$ is a field if and only if $I$ is a
+\textbf{maximal ideal}.
 \end{thm}
 
 This will be the key to constructing field extensions in Chapter~6.
@@ -1620,9 +1621,10 @@ $E/F$ is \textbf{separable} if every element of $E$ is a root of a
 in this book so far is $\Q$ or a subfield of $\C$, and \emph{over any field of
 characteristic $0$ separability is automatic}: an irreducible polynomial and its
 formal derivative can never share a root there, so repeated roots are
-impossible. The hypothesis only starts to bite in characteristic $p$---which is
-exactly why it reappears in the finite-field chapter (Chapter~11), where
-$\GF(p^n)$ lives in characteristic $p$. For our number-field examples you may
+impossible. The hypothesis can only bite in characteristic $p$---and even there
+not for the finite fields $\GF(p^n)$ of Chapter~11, which are \emph{perfect}
+(every algebraic extension of a finite field is separable); the classic
+inseparable example is adjoining a $p$th root of $t$ to $\F_p(t)$. For our number-field examples you may
 read ``Galois'' as simply ``normal.''
 \end{intuition}
 
@@ -1706,8 +1708,8 @@ given by the \textbf{fixing-group} map (field $\mapsto$ group) and the
 \end{thm}
 
 \begin{warning}
-This is the deepest theorem in the book, and---unlike everything up to
-Chapter~7---we \emph{state} it rather than prove it in Lean. A from-scratch,
+This is the deepest theorem in the book, and---unlike the concrete
+computations up to Chapter~7---we \emph{state} it rather than prove it in Lean. A from-scratch,
 core-Lean proof (building intermediate fields, the Galois group, and Artin's
 linear-algebra argument) is a substantial project well beyond our scope; the
 Lean block below is an honest \emph{skeleton} with \lc{sorry} in place of the
@@ -1744,7 +1746,7 @@ def fixingGroup (K : IntermediateField E F) : Subgroup (Gal E F) where
   sorry  -- proof obligation: this carrier is a subgroup
 
 -- These maps form an ANTITONE Galois connection between the lattice of
--- intermediate fields and the lattice of subgroups (Definition 3.x):
+-- intermediate fields and the lattice of subgroups (Definition 3.3):
 theorem galois_connection :
     ∀ K H, H ≤ fixingGroup K ↔ K ≤ fixedField H := by
   sorry  -- the core of the fundamental theorem
@@ -1944,8 +1946,8 @@ hundred years.''}{\textit{Charles Hermite}}
 \begin{historical}[title={Abel and Galois}]
 Niels Henrik Abel (1802--1829) grew up in poverty in Norway. At 22, he proved
 that the general quintic equation cannot be solved by radicals---the first
-impossibility result in algebra. He sent his proof to Gauss (who ignored it)
-and to Cauchy at the French Academy (who lost the manuscript). Abel spent two
+impossibility result in algebra. He sent his proof to Gauss (who ignored it);
+a later major memoir he submitted to the French Academy was mislaid by Cauchy. Abel spent two
 years traveling Europe trying to gain recognition, returned to Norway in debt,
 contracted tuberculosis, and died at 26. Two days later, a letter arrived
 offering him a prestigious professorship in Berlin.
@@ -1974,7 +1976,7 @@ where each quotient $G_{i+1}/G_i$ is abelian.
 -- ILLUSTRATIVE ONLY (does not type-check): `IsNormal`, `IsAbelian`,
 -- and a two-argument `Quotient` are not defined here -- this sketches
 -- the definition rather than building it from scratch.
--- A composition series: chain of normal subgroups with abelian quotients
+-- A subnormal series: chain of normal subgroups with abelian quotients
 def IsSolvable (G : Type) [Group G] : Prop :=
   ∃ (n : Nat) (chain : Fin (n + 1) → Subgroup G),
     chain ⟨0, by omega⟩ = ⊥ ∧              -- starts at {e}
@@ -1988,6 +1990,7 @@ def IsSolvable (G : Type) [Group G] : Prop :=
 \section{The Solvability Criterion}
 
 \begin{thm}{Galois's Criterion}{galois-criterion}
+Let $F$ have characteristic~$0$.
 A polynomial $f \in F[x]$ is solvable by radicals if and only if its
 Galois group $\Gal(E/F)$ (where $E$ is the splitting field of $f$) is a
 solvable group.
@@ -1998,10 +2001,12 @@ Like the fundamental theorem (Chapter~8), Galois's criterion is a deep result
 we \emph{state and use} but do not formalize from scratch: its proof requires
 the full radical-extension theory. What we \emph{can} verify in Lean from first
 principles is the group-theoretic half of the argument---that $S_5$ is not
-solvable while $S_n$ ($n \le 4$) is---which is what the rest of this chapter does.
+solvable while $S_n$ ($n \le 4$) is---which the rest of this chapter
+establishes on paper.
 \end{warning}
 
-Why? Adjoining an $n$th root corresponds to a cyclic (hence abelian) extension.
+Why? Adjoining an $n$th root (once the $n$th roots of unity are present)
+corresponds to a cyclic (hence abelian) extension.
 Solving by radicals means building a tower of radical extensions, each with a
 cyclic Galois group. The overall Galois group must decompose into cyclic layers
 ---i.e., be solvable.
@@ -2009,7 +2014,7 @@ cyclic Galois group. The overall Galois group must decompose into cyclic layers
 \section{$S_n$ for $n \leq 4$ Is Solvable}
 
 \begin{prop}{}{s4-solvable}
-$S_4$ is solvable, with composition series:
+$S_4$ is solvable, with the normal series:
 \[
   \{e\} \normal V_4 \normal A_4 \normal S_4
 \]
@@ -2042,8 +2047,8 @@ $S_5$ is not solvable.
 
 \begin{proof}
 If $S_5$ were solvable, then $A_5$ (as a subgroup) would also be solvable.
-But $A_5$ is simple and non-abelian, so its only composition series is
-$\{e\} \normal A_5$, with the non-abelian quotient $A_5/\{e\} = A_5$.
+But $A_5$ is simple and non-abelian, so (discarding repeated terms) its only
+chain of the required form is $\{e\} \normal A_5$, with the non-abelian quotient $A_5/\{e\} = A_5$.
 This contradicts solvability.
 \end{proof}
 
@@ -2076,7 +2081,8 @@ $\{e\} \normal \langle r \rangle \normal S_3$.
 \begin{exercisebox}[title={Exercise 10.2}]
 \stepcounter{exercise}
 Prove that every group of order $\leq 4$ is solvable. \emph{Hint:} every
-group of prime order is cyclic, hence abelian, hence solvable.
+group of prime order is cyclic, hence abelian, hence solvable; and every
+group of order 4 is abelian.
 \end{exercisebox}
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -2093,9 +2099,10 @@ a journey into a strange wilderness.''}{\textit{W.S.\ Anglin}}
 \section{Galois's Legacy}
 
 \begin{historical}[title={The Fields That Bear His Name}]
-In his final manuscripts, Galois described the finite fields: for every prime
-power $p^n$, there is exactly one field of that size (up to isomorphism), and
-these are \emph{all} the finite fields. They are denoted $\GF(p^n)$ (``Galois
+In his 1830 paper \textit{Sur la théorie des nombres}, Galois constructed
+fields with $p^n$ elements. We now know that for every prime power $p^n$ there
+is exactly one field of that size (up to isomorphism), and that these are
+\emph{all} the finite fields (E.~H.~Moore, 1893). They are denoted $\GF(p^n)$ (``Galois
 field'') or $\F_{p^n}$ in his honor.
 \end{historical}
 
@@ -2227,7 +2234,7 @@ where
     sorry -- Matrix multiplication over F₂
 
 -- Sanity checks: the standard AES multiplication test vector, and that
--- `inv` really inverts. Both pass by kernel computation.
+-- `inv` really inverts. Both pass by compiled evaluation (native_decide).
 example : (mul ⟨0x57⟩ ⟨0x13⟩).val = 0xFE := by native_decide
 example : (mul ⟨0x53⟩ (inv ⟨0x53⟩)).val = 1 := by native_decide
 
@@ -2244,8 +2251,10 @@ Properties we can verify:
 \item No ``opposite fixed points'': $\text{sbox}(x) \neq x \oplus \texttt{0xFF}$.
 \end{itemize}
 
-These properties are what make AES resistant to linear and differential
-cryptanalysis.
+Bijectivity is what makes decryption possible; the absence of (opposite) fixed
+points is a deliberate consequence of the affine constant \texttt{0x63}.
+Resistance to linear and differential cryptanalysis comes instead from the
+high nonlinearity and low differential uniformity of the inversion map.
 
 \begin{exercisebox}[title={Exercise 12.1}]
 \stepcounter{exercise}
@@ -2329,7 +2338,7 @@ Ferdinand von Lindemann in 1882. Since $\pi$ is not algebraic over $\Q$,
 $[\Q(\pi):\Q]$ is infinite---certainly not a power of 2.
 
 \begin{historical}[title={Gauss and the 17-gon}]
-On the positive side: Gauss proved at age 19 (1796) that the regular 17-gon
+On the positive side: Gauss proved at age 18 (1796) that the regular 17-gon
 is constructible. He was so proud of this that he reportedly asked for a
 regular 17-gon to be inscribed on his tombstone. The criterion: a regular
 $n$-gon is constructible iff $n = 2^k \cdot p_1 \cdots p_m$ where the $p_i$
@@ -2373,7 +2382,7 @@ needed roots of unity.
 \begin{exercisebox}[title={Exercise 14.1}]
 \stepcounter{exercise}
 Implement a simple Reed-Solomon encoder over $\GF(2^8)$: given a message of
-$k$ bytes, produce $n$ evaluation points.
+$k$ bytes, produce the codeword of $n$ evaluations.
 \end{exercisebox}
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -2396,7 +2405,7 @@ The following are all instances of Galois connections:
 \item \textbf{Topology:} interior $\leftrightarrow$ closure. Open sets form a
   lattice; closed sets form a lattice; interior and closure connect them.
 \item \textbf{Logic:} theories $\leftrightarrow$ models. $\text{Th}(M)$ =
-  sentences true in models $M$; $\text{Mod}(T)$ = models satisfying theory $T$.
+  sentences true in every model in $M$; $\text{Mod}(T)$ = models satisfying theory $T$.
 \item \textbf{Computer science:} abstract interpretation. Concrete semantics
   $\leftrightarrow$ abstract domains. The abstraction and concretization maps
   form a Galois connection.
@@ -2427,7 +2436,8 @@ We began with Lagrange's observation (1770) that the roots of a polynomial
 have symmetries. We followed the thread through Gauss, Abel, and Galois to
 the fundamental theorem: the solvability of an equation is controlled by its
 symmetry group. We built every structure in Lean~4---groups, rings, fields,
-polynomials, extensions, automorphisms---and proved the key theorems.
+polynomials, extensions, automorphisms---and stated the key theorems, proving
+the computational ones.
 
 \section{What We Proved}
 
@@ -2466,8 +2476,8 @@ Hilbert would have been amazed.
 \section{Connections Forward}
 
 \begin{itemize}[nosep]
-\item \textbf{Category theory:} groups, rings, and fields are all categories;
-  homomorphisms are functors; Galois connections are adjunctions. Category
+\item \textbf{Category theory:} groups, rings, and fields each form a category,
+  with homomorphisms as morphisms; Galois connections are adjunctions. Category
   theory is the language that unifies all of abstract algebra.
 \item \textbf{Algebraic number theory:} Galois theory for number fields
   (extensions of $\Q$) is the foundation of modern number theory, including
@@ -2773,9 +2783,9 @@ bookkeeping.
 \subsection*{\lc{sorry}}
 
 A placeholder that proves \emph{anything}, with a warning. We use it only for
-the handful of exercises left to the reader (e.g.\ \lc{GroupHom.map\_one}) and
-for the two deep theorems (Chapters~8 and~10) we state but do not build from
-scratch. A finished development has no \lc{sorry}.
+the handful of exercises left to the reader (e.g.\ \lc{GroupHom.map\_one}), for
+the fundamental theorem (Chapter~8), which we state but do not build from
+scratch, and for the AES affine transform left unimplemented in Chapter~12. A finished development has no \lc{sorry}.
 
 \chapter{Lean 4 Typeclass Hierarchy}
 

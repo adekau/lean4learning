@@ -297,3 +297,108 @@ preamble.) Remaining overfull \hboxes (3) are all pre-existing long chapter
 titles / wide code lines, not introduced here.
 
 **Deferred:** none. All 17 findings addressed.
+
+## Second pass (2026-09-27)
+
+**Verdict.** Full sequential re-read of all 2,816 lines (now 2,826) after the July
+pass. The July fixes are all present and correct (S₃ table re-verified against
+permutation composition: all 25 listed products match, reflections fix vertices
+1/3/2 as labelled; antitone Galois-connection proof re-checked; x⁴−2 lattices and
+the 10-pair correspondence re-derived element-by-element; A₅ class-sum argument,
+cos 20° cubic and its rational-root check, GF(2⁸) facts all re-checked). What
+remained were mostly historical slips, a handful of imprecise math statements
+(missing hypotheses, "composition series" misused), and a few claims that
+contradict the book's own Warnings about what is actually proved in Lean. No Lean
+code was changed except one comment. Line numbers below are post-edit.
+
+### Fixed — correctness
+
+- **l.346** Lagrange example: the resolvent `r₁+ωr₂+ω²r₃` takes **six** values
+  under S₃, not three (cyclic shifts multiply it by powers of ω). Now its **cube**,
+  which takes two values — the standard statement.
+- **l.351** "group" was coined by Galois "in 1832" → "around 1830" (the word
+  already appears in his 1831 memoir).
+- **l.245** Preface: Galois "wrote down the definitive answer the night before"
+  → "summarized" (the theory was in his 1830–31 memoir; the night-before letter
+  to Chevalier summarized it — as Ch. 7 itself says).
+- **l.611** Euler proved the totient theorem in **1763**, not 1736 (1736 is his
+  proof of Fermat's little theorem, which the l.824 note correctly dates).
+- **l.1133** Closed elements of a Galois connection form a complete lattice only
+  when P is complete — hypothesis added.
+- **l.1285** "R/I is a field iff I is maximal" needs R commutative (the book's
+  Ring is not assumed commutative) — hypothesis added.
+- **l.1622–1627** Separability intuition claimed the hypothesis "bites" for
+  GF(pⁿ) and "reappears" in Ch. 11. Finite fields are perfect (all algebraic
+  extensions separable) and Ch. 11 never mentions separability. Now says it can
+  only bite in char p, not for finite fields, and gives the F_p(t) example.
+- **l.1711** Warning said "unlike everything up to Chapter 7" we only state the
+  FTGT — but Lagrange, the tower law, first isomorphism theorem etc. are also only
+  stated. Now "unlike the concrete computations up to Chapter 7".
+- **l.1749** Broken cross-reference placeholder "Definition 3.x" → "Definition
+  3.3" (Galois Connection is the 3rd `defn` of Ch. 3; inside minted, so no \ref).
+- **l.1949–1950** Abel: Cauchy did not lose his quintic proof; what Cauchy
+  mislaid was Abel's 1826 Paris memoir (on transcendental functions). Reworded.
+- **l.1993** Galois's criterion stated without a characteristic hypothesis; it
+  is false in char p in general. Added "Let F have characteristic 0".
+- **l.2008** "Adjoining an nth root corresponds to a cyclic extension" — only once
+  the nth roots of unity are present; qualifier added.
+- **l.2017, l.1979, l.2050** `{e} ⊴ V₄ ⊴ A₄ ⊴ S₄` was called a *composition
+  series*, but V₄/{e} is not simple; now "normal series" (Lean comment "subnormal
+  series"); A₅ corollary proof reworded to "only chain of the required form".
+- **l.2084–2085** Ex. 10.2 hint covered only prime orders; added that groups of
+  order 4 are abelian.
+- **l.2102–2105** Finite fields: Galois constructed GF(pⁿ) in his 1830 paper
+  *Sur la théorie des nombres*, not in "his final manuscripts", and did not prove
+  the full classification; now attributes the classification to E. H. Moore (1893).
+- **l.2237** Lean comment claimed the `native_decide` checks "pass by kernel
+  computation"; `native_decide` is compiled evaluation (contradicting the Primer).
+  Fixed comment.
+- **l.2254–2257** S-box bijectivity / no (opposite) fixed points were said to be
+  "what make AES resistant to linear and differential cryptanalysis". They are not;
+  that resistance comes from the inversion map's nonlinearity / low differential
+  uniformity, and the fixed-point properties come from the constant 0x63. Reworded.
+- **l.2341** Gauss constructed the 17-gon at age **18** (30 March 1796; born
+  30 April 1777), not 19.
+- **l.2479** "groups, rings, fields are all categories; homomorphisms are
+  functors" → each *forms* a category with homomorphisms as morphisms.
+- **l.2439** "and proved the key theorems" contradicted the Ch. 8/10 Warnings →
+  "stated the key theorems, proving the computational ones".
+- **l.2786–2788** Primer `sorry` entry said sorries cover "the two deep theorems
+  (Chapters 8 and 10)"; the Ch. 10 block has no sorry, and the Ch. 12
+  `affineTransform` sorry was omitted. Corrected.
+
+### Fixed — prose
+
+- l.2385 Ex. 14.1 "produce n evaluation points" → "produce the codeword of n
+  evaluations" (the points are inputs, not outputs).
+- l.2408 Th(M) "sentences true in models M" → "true in every model in M".
+
+### Flagged, not changed
+
+- **Title page (l.223) / Preface (l.257–258)**: "every theorem proved" / "all
+  … proofs formalized in Lean 4" contradict the Warnings (FTGT, Galois's criterion,
+  Lagrange, tower law are stated only; several sorries remain). Left as the
+  author's pitch; recommend softening.
+- **l.1941 Hermite epigraph** "five hundred years": the usually cited French is
+  "cent cinquante ans" (150 years); both versions circulate. Not verified offline.
+- **l.1946–1947** Abel's result called "the first impossibility result in
+  algebra" — Ruffini's (gappy) 1799 proof predates it; Ruffini is never mentioned.
+- **l.1500–1501** "lost by Cauchy" (Galois's 1829 submission) is the popular
+  story; Taton's archival work suggests Cauchy did not simply lose it.
+- **l.2502 closing quote** is presented in quotation marks with a date
+  ("written in haste the night of May 29, 1832") though it is a paraphrase, not a
+  Galois quotation.
+- **Ch. 15 (iii) topology**: "interior ↔ closure" between open and closed sets is
+  not literally a Galois connection as stated (closure/interior are adjoints to the
+  inclusions of closed/open sets). Vague rather than wrong; left.
+- **Primer `cases`** (l.~2683): "the two proofs below are the same proof term" —
+  `cases` elaborates to `Bool.casesOn`, not literally `Bool.rec`; close enough for
+  a primer.
+- **Primer intro** says `ring` is "the one Mathlib-only tactic the book mentions",
+  but `by_contra` is also mentioned as Mathlib; its exact home (core vs
+  Batteries) in v4.31 could not be checked offline.
+- **Primer `theorem zero_add`** is declared at top level; if a future core
+  version adds a root `zero_add`, it would clash (companion file uses
+  `zero_add_primer` inside a namespace). Not confirmable offline.
+- **Ch. 14** "the fact that GF(qⁿ) contains all the needed roots of unity"
+  reuses n (the code length) as an extension degree; vague, left.
