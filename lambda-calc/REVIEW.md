@@ -375,3 +375,152 @@ benign font-shape fallback warnings: italic monospace, bold small-caps).
   not fully printed.
 - `#eval (⟨1,2⟩+⟨3,4⟩ : Point)` in the primer shows `⟨4,6⟩` for readability; the
   literal `Repr` is `{ x := 4, y := 6 }` (value verified via `#guard`).
+
+## Second pass (2026-09-27)
+
+**Verdict.** The first pass's fixes hold up: the REPL session, Ex. 7.2 (old
+"6.2"), the dependent checker, `partial`, `ctx[n]?`/`idxOf?` and the parser
+rewrite are all in place and correct. This pass re-read all ~7,800 lines and
+re-derived the reductions, de Bruijn traces and type-checker outputs (all
+correct). It found one remaining compile/semantics bug that the first pass
+marked fixed but never applied (System F `FTy.subst`), a broken
+exercise-solution numbering scheme, and a cluster of historical and
+Lean-fact errors, mostly in the narrative parts. Line numbers refer to the .tex
+after these edits.
+
+### Fixed — correctness
+
+1. **ll. 4861–4921, System F `FTy.subst`/`fTypeCheck` (Lean).** The first pass
+   said "System-F was already correct in-book", but the book still used
+   `t₁.subst k s`, `t.subst (k+1) …` and `bodyTy.subst 0 ty`. Generalized dot
+   notation inserts the receiver at the first explicit `FTy` argument, which is
+   the replacement `s`. As printed, then, the code fails termination and computes
+   the inverted substitution; `LambdaCalcVerification.lean` §I documents the
+   error. The calls are now in prefix form (`FTy.subst k s t₁`,
+   `FTy.subst (k+1) (s.shift 1 0) t`, `FTy.subst 0 ty bodyTy`), matching the
+   compiled §I. The prose at l. 4919 is updated, and a one-sentence note explains
+   the dot-notation pitfall.
+2. **ll. 7254–7413, exercise solutions misnumbered (broken cross-references).**
+   The solutions were labelled 5.x/6.x/9.x/11.x/10.x/13.x, but the exercise
+   counter (`\thesection.n`) prints them as 6.x (α), 7.x (β), 10.x (Church),
+   12.x (STLC), 11.3–11.9 (de Bruijn; the first pass's 10.1–10.6 also skipped
+   exercises 11.1, 11.2, 11.8 and 11.10) and 14.x (Curry–Howard). All 28 labels
+   are now renumbered to match what the reader sees (for example, the old
+   "Solution 6.2" is Exercise 7.2).
+3. **ll. 192–217, history of computability.** The book said Church "proposed
+   the lambda calculus in 1936"; he introduced it in the early 1930s and used it
+   in 1936. Turing was described as "then a graduate student at Princeton" when he
+   proposed the machine; he was at Cambridge and went to Princeton afterwards. The
+   book said "Church and Turing proved their models equivalent… This… is called
+   the Church–Turing thesis"; Turing proved the equivalence, and the thesis is the
+   separate claim about effective computability. It also said Gödel "showed his
+   own system… was equivalent"; that equivalence was shown by Church and Kleene.
+   The companion dates are now consistent: "(1936)" became "(early 1930s)" at
+   l. 929, "In 1933" became "In the early 1930s" at l. 1130, and at l. 1181
+   "When Church (1936) and Turing (1937) proved" became "When Turing (1937)
+   proved".
+4. **l. 2494 and l. 3712, Kleene–Rosser.** The book said "the untyped
+   λ-calculus is logically inconsistent". The pure calculus is consistent (by
+   Church–Rosser). What was inconsistent was Church's original *logical system*
+   built on it, and the text now says so.
+5. **ll. 3718–3721, STLC history.** The book said the STLC was "formalized… by
+   Curry in the 1950s and independently by Howard in 1969". Howard did not
+   formalize the STLC. The text now credits Curry's type-assignment presentation
+   (Curry–Feys 1958) and Howard's 1969 correspondence.
+6. **ll. 3767–3769, turnstile table.** ⊩ was called the "double turnstile /
+   semantically entails", and ⊨ was just "models". ⊨ is the double turnstile
+   (semantic entailment, satisfaction) and ⊩ is "forces" (Kripke semantics). The
+   two rows are corrected.
+7. **ll. 4675–4683, "Classical logic in Lean".** The box said you opt in "by
+   importing `Classical`" and that the classical proof "is marked as
+   noncomputable". In fact no import is needed. Classical reasoning goes through
+   the axiom `Classical.choice`, which `#print axioms` shows, and excluded middle
+   is derived from it. Only *definitions* whose computation depends on it must be
+   marked `noncomputable`.
+8. **ll. 1645–1648, WHNF definition.** "an application whose leftmost part is
+   not a redex" would admit `(λx.x) y z`. The text now says "a λ-abstraction or
+   a variable applied to zero or more arguments (no redex at the head)".
+9. **ll. 3428–3437, de Bruijn "orphan" explanation.** For `(λ.1) arg` the text
+   claimed "the binder it pointed to is gone" and "y is FREE (binder gone!)". In
+   fact y's binder survives; what is gone is the stripped λ that index 1 counted
+   past, so its count is off by one. This matches the book's own diagram and the
+   sentence at l. 3448.
+10. **ll. 2544–2548, Z combinator.** The book said Z is what "our call-by-value
+    Lean interpreter" uses, but the main interpreter (body and appendix) is
+    normal order. The text now points to the `cbvStep` sketch and notes that Y
+    works in the normal-order interpreter.
+11. **l. 2407, Church list Head.** Two β-steps were written with the single-step
+    `\reduce`; this is now `\reduces`.
+12. **ll. 6781–6783, FAQ.** The FAQ offered "a more expressive type system like
+    System F" as a way to get recursion and type Y. System F is strongly
+    normalizing and cannot type Y. The sentence is now qualified.
+13. **l. 5390, Coquand.** "student of Girard" is wrong; Coquand was Huet's
+    doctoral student.
+14. **l. 5744 and l. 6709, "The entire 4539-line Lean kernel".** This was a
+    fabricated specific figure. It is now "a comparatively small C++ program" /
+    "a small dependent type checker". The l. 6612 claim that Lean's *kernel*
+    parses source text is now "Lean itself".
+15. **ll. 5483–5485, Girard's paradox.** "a variant of Russell's paradox" is now
+    "a type-theoretic variant of the Burali-Forti paradox (a cousin of
+    Russell's)".
+16. **ll. 5105–5107, CoC date.** "introduced … in 1988" conflicted with the
+    "1985–1988" at l. 5388 and the "1985" in the timeline table. It now reads
+    "mid-1980s (1985; journal version 1988)".
+17. **ll. 4328–4330, Howard's extension.** "universal quantification,
+    existential types, and disjunction" confused *existential types* (System F
+    ∃α) with first-order ∃. It is now "conjunction, disjunction, and
+    (first-order) universal and existential quantification".
+18. **l. 4023, type safety.** The book said all three properties "together give"
+    type safety; type safety is progress plus preservation. Strong normalization
+    is separate.
+19. **l. 1671, Church–Rosser.** The unsourced anecdote "Church himself called it
+    one of the hardest things he had worked on" was removed.
+20. **ll. 6193–6195, parser error example.** The example `\x. y` is a valid
+    term, so it cannot illustrate a parse error. It is now `\x y` (missing dot),
+    and the position is corrected to 4.
+21. **l. 6073.** `Char.toNat <$> digit` gives the character *code*, not the
+    digit value; this is now stated.
+22. **ll. 5478–5480.** "why you fought with `termination_by` when implementing
+    the interpreter" did not match the book: the interpreter uses `partial` and
+    fuel, never `termination_by`. It now says `partial`/fuel.
+
+### Fixed — prose / structure
+
+- **l. 262.** "skip ahead to Section~\ref{sec:what}" pointed *backwards* to
+  §1. It now points to §3 (`sec:lean`).
+- **l. 804, ll. 4937–4938, l. 4998, l. 5015.** Several references used past
+  tense ("we visualized", "We've already seen", "as we saw", "we discussed
+  earlier") for sections that come *later*. The wording is now forward-looking.
+- **l. 2424.** The recursion material began with an orphaned paragraph and no
+  heading. A `\subsection{Recursion Without Names}` was added; it sits inside
+  the Church section so that section and exercise numbering is unchanged.
+- **l. 1497.** The application `y\;z` had been written `y \cdot z`, which reads
+  as multiplication.
+- **l. 7581.** An appendix code comment referred to a "String positions" note
+  that does not exist; the dangling reference was removed.
+
+### Flagged, not changed
+
+- **l. 2488.** "The Y combinator was discovered by Haskell Curry in the 1940s,
+  though Church's group… had studied fixed-point constructions earlier." Y is
+  standardly credited to Curry, but its appearance predates the 1940s: Curry's
+  work around 1930 uses it, and his 1942 paradox paper uses it too. Turing's Θ
+  (1937) is the Princeton-side construction. I could not pin down the exact date,
+  so this is left for the author.
+- **l. 4731.** Girard's "System F" name is explained as "the next letter after
+  his earlier System D and System E". This looks invented and I found no source
+  for it. The same paragraph says the normalization proof gave "a constructive
+  consistency proof for second-order arithmetic", which is overstated: the proof
+  is impredicative and cannot be formalized in PA₂. Consider removing or
+  softening both.
+- **ll. 1949–1956, applicative-order display for K I Ω.** Strict
+  leftmost-innermost fires `K I` before touching Ω, so the first step shown
+  (Ω → Ω) is not literally what happens. The conclusion (it diverges) is correct.
+- **l. 5864, `parseApp` sketch.** It uses `where go s acc := …` without type
+  annotations. The body is elided (`...`) elsewhere in that listing, so it is a
+  sketch; the appendix version is the compiled one.
+- **l. 7817, `def main : IO Unit := repl`.** This relies on default-argument
+  insertion for `repl (defs := churchDefs)`. I believe it elaborates, but I could
+  not compile it here.
+- **l. 2019.** The pronunciation "EH-tah" for η is unusual (English "AY-tuh" /
+  "EE-tuh"). This is cosmetic and was left unchanged.
